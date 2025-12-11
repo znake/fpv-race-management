@@ -1,0 +1,10 @@
+# BMM Workflow Status
+# Tracks completed workflows and their output files
+# Generated: 2025-12-11
+
+workflow_status:
+  product-brief:
+    status: complete
+    output_file: 'docs/analysis/product-brief-FPV-Racing-Heats-2025-12-11.md'
+    completed_at: '2025-12-11'
+    project_name: 'FPV Racing Heats'
