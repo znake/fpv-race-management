@@ -8,3 +8,11 @@ workflow_status:
     output_file: 'docs/analysis/product-brief-FPV-Racing-Heats-2025-12-11.md'
     completed_at: '2025-12-11'
     project_name: 'FPV Racing Heats'
+  
+  create-ux-design:
+    status: complete
+    output_file: 'docs/ux-design-specification.md'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'
+    supporting_files:
+      - 'docs/ux-design-directions.html'

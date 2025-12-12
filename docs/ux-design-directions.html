@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPV Racing Heats - Design Direction Mockup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Synthwave Color Palette */
+            --void: #0d0221;
+            --night: #1a0533;
+            --night-light: #2a0845;
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-magenta: #d300c5;
+            --gold: #f9c80e;
+            --winner-green: #39ff14;
+            --loser-red: #ff073a;
+            --chrome: #e0e0e0;
+            --steel: #888888;
+            
+            /* Glow Effects */
+            --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
+            --glow-cyan: 0 0 20px rgba(5, 217, 232, 0.5);
+            --glow-gold: 0 0 20px rgba(249, 200, 14, 0.5);
+            --glow-green: 0 0 15px rgba(57, 255, 20, 0.4);
+            --glow-red: 0 0 15px rgba(255, 7, 58, 0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(180deg, var(--void) 0%, var(--night) 100%);
+            min-height: 100vh;
+            color: var(--chrome);
+        }
+        
+        /* Header */
+        .header {
+            background: var(--night);
+            border-bottom: 2px solid var(--neon-pink);
+            box-shadow: var(--glow-pink);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 42, 109, 0.5);
+        }
+        
+        .logo span {
+            color: var(--neon-cyan);
+            -webkit-text-fill-color: var(--neon-cyan);
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            padding: 24px 32px;
+            background: var(--void);
+        }
+        
+        .tab {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 16px 32px;
+            background: var(--night);
+            border: 2px solid var(--steel);
+            border-radius: 8px;
+            color: var(--steel);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+        
+        .tab.active {
+            background: var(--night-light);
+            border-color: var(--neon-pink);
+            color: var(--chrome);
+            box-shadow: var(--glow-pink);
+        }
+        
+        /* Main Content */
+        .main {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Heat Header */
+        .heat-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .heat-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 64px;
+            letter-spacing: 8px;
+            color: var(--chrome);
+            margin-bottom: 8px;
+        }
+        
+        .heat-subtitle {
+            font-size: 20px;
+            color: var(--neon-cyan);
+        }
+        
+        /* Pilot Cards Grid */
+        .pilots-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        
+        .pilot-card {
+            background: var(--night);
+            border: 3px solid var(--steel);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .pilot-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-4px);
+        }
+        
+        .pilot-card.selected {
+            border-color: var(--neon-pink);
+            box-shadow: var(--glow-pink);
+        }
+        
+        .pilot-card.selected-1 {
+            border-color: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+        
+        .pilot-card.selected-2 {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+        
+        .pilot-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-magenta));
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pilot-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .rank-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            color: var(--void);
+        }
+        
+        .rank-badge.rank-1 {
+            background: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+        
+        .rank-badge.rank-2 {
+            background: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+        
+        .pilot-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .pilot-detail {
+            font-size: 14px;
+            color: var(--steel);
+        }
+        
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+        }
+        
+        .btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 20px 48px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--neon-pink);
+            color: var(--void);
+            box-shadow: var(--glow-pink);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 42, 109, 0.7);
+        }
+        
+        .btn-primary:disabled {
+            background: var(--steel);
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        /* On-Deck Preview */
+        .on-deck {
+            margin-top: 48px;
+            padding: 24px;
+            background: var(--night);
+            border: 2px solid var(--steel);
+            border-radius: 12px;
+        }
+        
+        .on-deck-title {
+            font-size: 16px;
+            color: var(--steel);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .on-deck-pilots {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .on-deck-pilot {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--void);
+            border-radius: 8px;
+        }
+        
+        .on-deck-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+        }
+        
+        .on-deck-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* Grid Lines Background Effect */
+        .grid-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: 
+                linear-gradient(180deg, transparent 0%, var(--void) 100%),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 60px,
+                    rgba(255, 42, 109, 0.1) 60px,
+                    rgba(255, 42, 109, 0.1) 62px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 60px,
+                    rgba(255, 42, 109, 0.1) 60px,
+                    rgba(255, 42, 109, 0.1) 62px
+                );
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Design Notes Section */
+        .design-notes {
+            margin-top: 64px;
+            padding: 32px;
+            background: var(--night);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 12px;
+        }
+        
+        .design-notes h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: var(--neon-cyan);
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+        
+        .design-notes h3 {
+            font-size: 18px;
+            color: var(--neon-pink);
+            margin: 24px 0 12px;
+        }
+        
+        .color-swatches {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        
+        .swatch {
+            text-align: center;
+        }
+        
+        .swatch-color {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 2px solid var(--steel);
+        }
+        
+        .swatch-name {
+            font-size: 12px;
+            color: var(--steel);
+        }
+        
+        .swatch-hex {
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--chrome);
+        }
+        
+        /* Status Demo */
+        .status-demo {
+            display: flex;
+            gap: 24px;
+            margin: 16px 0;
+        }
+        
+        .status-item {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status-winner {
+            background: rgba(57, 255, 20, 0.2);
+            border: 2px solid var(--winner-green);
+            color: var(--winner-green);
+            box-shadow: var(--glow-green);
+        }
+        
+        .status-loser {
+            background: rgba(255, 7, 58, 0.2);
+            border: 2px solid var(--loser-red);
+            color: var(--loser-red);
+            box-shadow: var(--glow-red);
+        }
+        
+        .status-finale {
+            background: rgba(249, 200, 14, 0.2);
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">FPV RACING <span>HEATS</span></div>
+        <div style="color: var(--steel); font-size: 14px;">FPV Oberösterreich</div>
+    </header>
+    
+    <!-- Tabs -->
+    <nav class="tabs">
+        <button class="tab">PILOTEN</button>
+        <button class="tab">BRACKET</button>
+        <button class="tab active">AKTUELLER HEAT</button>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Heat Header -->
+        <div class="heat-header">
+            <h1 class="heat-title">HEAT 5</h1>
+            <p class="heat-subtitle">Winner Bracket - Runde 2</p>
+        </div>
+        
+        <!-- Pilot Cards -->
+        <div class="pilots-grid">
+            <div class="pilot-card selected-1">
+                <div class="rank-badge rank-1">1</div>
+                <div class="pilot-photo">
+                    <img src="https://i.pravatar.cc/150?img=1" alt="Anna">
+                </div>
+                <div class="pilot-name">Anna S.</div>
+                <div class="pilot-detail">@anna_fpv</div>
+            </div>
+            
+            <div class="pilot-card selected-2">
+                <div class="rank-badge rank-2">2</div>
+                <div class="pilot-photo">
+                    <img src="https://i.pravatar.cc/150?img=2" alt="Ben">
+                </div>
+                <div class="pilot-name">Ben K.</div>
+                <div class="pilot-detail">@benkfpv</div>
+            </div>
+            
+            <div class="pilot-card">
+                <div class="pilot-photo">
+                    <img src="https://i.pravatar.cc/150?img=3" alt="Chris">
+                </div>
+                <div class="pilot-name">Chris M.</div>
+                <div class="pilot-detail">@chrismfpv</div>
+            </div>
+            
+            <div class="pilot-card">
+                <div class="pilot-photo">
+                    <img src="https://i.pravatar.cc/150?img=4" alt="Dana">
+                </div>
+                <div class="pilot-name">Dana P.</div>
+                <div class="pilot-detail">@danapfpv</div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn btn-primary">FERTIG</button>
+        </div>
+        
+        <!-- On-Deck Preview -->
+        <div class="on-deck">
+            <div class="on-deck-title">Nächster Heat - Bitte Drohnen vorbereiten</div>
+            <div class="on-deck-pilots">
+                <div class="on-deck-pilot">
+                    <div class="on-deck-photo"></div>
+                    <span class="on-deck-name">Erik F.</span>
+                </div>
+                <div class="on-deck-pilot">
+                    <div class="on-deck-photo"></div>
+                    <span class="on-deck-name">Flo G.</span>
+                </div>
+                <div class="on-deck-pilot">
+                    <div class="on-deck-photo"></div>
+                    <span class="on-deck-name">Gina H.</span>
+                </div>
+                <div class="on-deck-pilot">
+                    <div class="on-deck-photo"></div>
+                    <span class="on-deck-name">Hans I.</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Design Notes -->
+        <div class="design-notes">
+            <h2>DESIGN DIRECTION NOTES</h2>
+            
+            <h3>Farbpalette</h3>
+            <div class="color-swatches">
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #0d0221;"></div>
+                    <div class="swatch-name">Void</div>
+                    <div class="swatch-hex">#0d0221</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #1a0533;"></div>
+                    <div class="swatch-name">Night</div>
+                    <div class="swatch-hex">#1a0533</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #ff2a6d;"></div>
+                    <div class="swatch-name">Neon-Pink</div>
+                    <div class="swatch-hex">#ff2a6d</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #05d9e8;"></div>
+                    <div class="swatch-name">Neon-Cyan</div>
+                    <div class="swatch-hex">#05d9e8</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #d300c5;"></div>
+                    <div class="swatch-name">Magenta</div>
+                    <div class="swatch-hex">#d300c5</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #f9c80e;"></div>
+                    <div class="swatch-name">Gold</div>
+                    <div class="swatch-hex">#f9c80e</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #39ff14;"></div>
+                    <div class="swatch-name">Winner</div>
+                    <div class="swatch-hex">#39ff14</div>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-color" style="background: #ff073a;"></div>
+                    <div class="swatch-name">Loser</div>
+                    <div class="swatch-hex">#ff073a</div>
+                </div>
+            </div>
+            
+            <h3>Status-Indikatoren</h3>
+            <div class="status-demo">
+                <div class="status-item status-winner">Winner Bracket</div>
+                <div class="status-item status-loser">Loser Bracket</div>
+                <div class="status-item status-finale">Finale</div>
+            </div>
+            
+            <h3>Typografie</h3>
+            <p style="margin: 8px 0;">
+                <strong>Display:</strong> Bebas Neue - für Titel und Heat-Nummern<br>
+                <strong>UI/Body:</strong> Space Grotesk - für alles andere
+            </p>
+            
+            <h3>Glow-Strategie</h3>
+            <p style="margin: 8px 0; color: var(--steel);">
+                Dezente Glows bei aktiven Elementen. Stärkere Glows nur bei Gold/Sieger-Elementen.
+                Keine pulsierenden Animationen im MVP - kann später hinzugefügt werden.
+            </p>
+            
+            <h3>Interaktion</h3>
+            <p style="margin: 8px 0; color: var(--steel);">
+                Klick auf Piloten-Karte = Rang vergeben (1, 2, 3, 4).<br>
+                Nochmal klicken = Rang entfernen (Toggle).<br>
+                "Fertig" aktiv sobald mindestens 2 Piloten markiert sind.
+            </p>
+        </div>
+    </main>
+    
+    <script>
+        // Simple interaction demo
+        document.querySelectorAll('.pilot-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Toggle selection visual
+                if (this.classList.contains('selected-1')) {
+                    this.classList.remove('selected-1');
+                    this.querySelector('.rank-badge')?.remove();
+                } else if (this.classList.contains('selected-2')) {
+                    this.classList.remove('selected-2');
+                    this.querySelector('.rank-badge')?.remove();
+                }
+            });
+        });
+        
+        // Tab interaction
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
