@@ -1,0 +1,73 @@
+# generated: 2025-12-12
+# project: FPV Racing Heats
+# project_key: 
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2025-12-12
+project: FPV Racing Heats
+project_key: 
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-piloten-manuell-hinzufuegen: ready-for-dev
+  1-2-csv-import: backlog
+  1-3-piloten-bearbeiten-loeschen: backlog
+  epic-1-retrospective: optional
+  epic-2: backlog
+  2-1-turnier-starten: backlog
+  2-2-automatische-heat-aufteilung: backlog
+  2-3-heat-aufteilung-bestaetigen: backlog
+  epic-2-retrospective: optional
+  epic-3: backlog
+  3-1-heat-ergebnis-eingeben: backlog
+  3-2-heat-abschliessen: backlog
+  epic-3-retrospective: optional
+  epic-4: backlog
+  4-1-double-elim-bracket: backlog
+  epic-4-retrospective: optional
+  epic-5: backlog
+  5-1-finale-eingeben: backlog
+  epic-5-retrospective: optional
+  epic-6: backlog
+  6-1-tabs-navigation: backlog
+  6-2-piloten-visualisierung: backlog
+  epic-6-retrospective: optional
+  epic-7: backlog
+  7-1-localstorage-persistenz: backlog
+  epic-7-retrospective: optional
+  epic-8: backlog
+  8-1-fpv-oo-branding: backlog
+  epic-8-retrospective: optional
