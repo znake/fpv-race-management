@@ -228,7 +228,7 @@ export function PilotCard({
         </div>
       )}
 
-      {/* Instagram Handle - Edit Mode */}
+      {/* Instagram Handle */}
       {isEditing ? (
         <input
           type="text"
@@ -239,7 +239,7 @@ export function PilotCard({
         />
       ) : (
         /* Instagram Handle - nur anzeigen wenn vorhanden */
-        !isEditing && pilot.instagramHandle && (
+        pilot.instagramHandle && (
           <div className="font-ui text-sm text-steel flex items-center justify-center gap-1">
             <svg 
               className="w-3 h-3" 
