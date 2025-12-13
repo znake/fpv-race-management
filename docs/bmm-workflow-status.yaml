@@ -16,3 +16,39 @@ workflow_status:
     project_name: 'FPV Racing Heats'
     supporting_files:
       - 'docs/ux-design-directions.html'
+  
+  prd:
+    status: complete
+    output_file: 'docs/prd.md'
+    completed_at: '2025-12-11'
+    project_name: 'FPV Racing Heats'
+  
+  create-architecture:
+    status: complete
+    output_file: 'docs/architecture.md'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'
+  
+  create-epics-and-stories:
+    status: complete
+    output_file: 'docs/backlog/epics-stories.md'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'
+  
+  implementation-readiness:
+    status: complete
+    output_file: 'docs/implementation-readiness-report-2025-12-12.md'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'
+  
+  sprint-planning:
+    status: complete
+    output_file: 'docs/sprint-artifacts/sprint-status.yaml'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'
+  
+  correct-course:
+    status: complete
+    output_file: 'docs/sprint-change-proposal-2025-12-12.md'
+    completed_at: '2025-12-12'
+    project_name: 'FPV Racing Heats'

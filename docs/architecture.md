@@ -81,13 +81,59 @@ fpv-racing-heats/
 **Component Communication:** Alle über `TournamentProvider` + Custom Hooks (kein Prop Drilling)
 **Storage Boundaries:** `StorageAdapter` Interface (localStorage MVP → server Future)
 
+### Synthwave Design System Integration
+
+#### Tailwind Configuration (tailwind.config.ts)
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        // Synthwave Color Palette (aus ux-design-directions.html)
+        'void': '#0d0221',           // Tiefes Violett-Schwarz
+        'night': '#1a0533',          // Dunkles Violett
+        'neon-pink': '#ff2a6d',      // Heißes Pink
+        'neon-cyan': '#05d9e8',      // Leuchtendes Cyan
+        'neon-magenta': '#d300c5',   // Magenta
+        'gold': '#f9c80e',           // Sieger-Gold
+        'winner-green': '#39ff14',   // Neon-Grün für Winner
+        'loser-red': '#ff073a',      // Neon-Rot für Loser
+        'chrome': '#e0e0e0',         // Heller Text
+        'steel': '#888888',          // Gedämpfter Text
+      },
+      boxShadow: {
+        'glow-pink': '0 0 20px rgba(255, 42, 109, 0.5)',
+        'glow-cyan': '0 0 20px rgba(5, 217, 232, 0.5)',
+        'glow-gold': '0 0 20px rgba(249, 200, 14, 0.5)',
+        'glow-green': '0 0 15px rgba(57, 255, 20, 0.4)',
+        'glow-red': '0 0 15px rgba(255, 7, 58, 0.4)',
+      }
+    }
+  }
+}
+```
+
+#### Typography Integration (src/globals.css)
+```css
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-ui: 'Space Grotesk', sans-serif;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-ui { font-family: var(--font-ui); }
+```
+
 ### Requirements to Structure Mapping
 
-| FR Kategorie | Components | Hooks | Lib | Tests |
-|--------------|------------|-------|-----|-------|
-| **FR1-5 Piloten** | `pilot-card.tsx` | `usePilots.ts` | `pilotSchema` | `pilot-card.test.tsx` |
-| **FR11-16 Heat** | `heat-box.tsx` | `useHeatManager.ts` | `heatSchema` | `heat-box.test.tsx` |
-| **FR17-21 Bracket** | `bracket-tree.tsx` | `useBracketLogic.ts` | `bracketSchema` | `bracket-logic.test.tsx` |
+| FR Kategorie | Design-System Komponenten | Tailwind Classes | CSS Variables |
+|--------------|-------------------------|-----------------|---------------|
+| **FR1-5 Piloten** | PilotCard mit Neon-Glow | bg-night border-steel glow-pink | --neon-pink, --glow-pink |
+| **FR11-16 Heat** | HeatBox mit Toggle-to-Rank | bg-void border-neon-cyan | --neon-cyan, --glow-cyan |
+| **FR17-21 Bracket** | BracketTree mit Farbcodierung | text-winner-green text-loser-red | --winner-green, --loser-red |
+| **FR36 Branding** | Komplettes synthwave Theme | Alle custom colors | Alle CSS variables |
 
 ### Integration Points
 
