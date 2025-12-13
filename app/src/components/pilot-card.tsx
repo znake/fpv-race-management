@@ -5,7 +5,7 @@ type PilotCardProps = {
   pilot: Pilot
   selected?: boolean
   rank?: number
-  onEdit?: (id: string, updates: { name?: string; imageUrl?: string }) => boolean
+  onEdit?: (id: string, updates: { name?: string; imageUrl?: string; instagramHandle?: string }) => boolean
   onDelete?: (id: string) => boolean
   onMarkDroppedOut?: (id: string) => boolean
   tournamentStarted?: boolean
@@ -23,6 +23,7 @@ export function PilotCard({
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(pilot.name)
   const [editImageUrl, setEditImageUrl] = useState(pilot.imageUrl)
+  const [editInstagramHandle, setEditInstagramHandle] = useState(pilot.instagramHandle || '')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isHovered, setIsHovered] = useState(false)
@@ -55,7 +56,8 @@ export function PilotCard({
     if (onEdit) {
       const updates = { 
         name: editName !== pilot.name ? editName : undefined,
-        imageUrl: editImageUrl !== pilot.imageUrl ? editImageUrl : undefined
+        imageUrl: editImageUrl !== pilot.imageUrl ? editImageUrl : undefined,
+        instagramHandle: editInstagramHandle !== (pilot.instagramHandle || '') ? editInstagramHandle || undefined : undefined
       }
       
       const result = onEdit(pilot.id, updates)
@@ -72,6 +74,7 @@ export function PilotCard({
   const handleCancel = () => {
     setEditName(pilot.name)
     setEditImageUrl(pilot.imageUrl)
+    setEditInstagramHandle(pilot.instagramHandle || '')
     setIsEditing(false)
     setValidationErrors([])
   }
@@ -97,6 +100,12 @@ export function PilotCard({
     }
   }
 
+  const handleCardClick = () => {
+    if (!isEditing && !tournamentStarted && onEdit) {
+      setIsEditing(true)
+    }
+  }
+
   return (
     <div 
       className={`
@@ -110,6 +119,7 @@ export function PilotCard({
       `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
     >
       {/* Rank Badge - US-2.3: Scale-In Animation */}
       {rank && !pilot.droppedOut && (
@@ -141,7 +151,10 @@ export function PilotCard({
         `}>
           {!tournamentStarted && (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsEditing(true)
+              }}
               className="w-8 h-8 bg-neon-cyan text-void rounded-full flex items-center justify-center hover:bg-neon-pink hover:shadow-glow-pink transition-all duration-200"
               title="Bearbeiten"
             >
@@ -150,7 +163,10 @@ export function PilotCard({
           )}
           {!tournamentStarted && (
             <button
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDelete()
+              }}
               className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 hover:shadow-glow-red transition-all duration-200"
               title="Löschen"
             >
@@ -159,7 +175,10 @@ export function PilotCard({
           )}
           {tournamentStarted && !pilot.droppedOut && (
             <button
-              onClick={handleMarkDroppedOut}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleMarkDroppedOut()
+              }}
               className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 hover:shadow-glow-orange transition-all duration-200"
               title="Als ausgefallen markieren"
             >
@@ -207,6 +226,31 @@ export function PilotCard({
         <div className="font-display text-2xl font-bold text-chrome mb-2">
           {pilot.name}
         </div>
+      )}
+
+      {/* Instagram Handle - Edit Mode */}
+      {isEditing ? (
+        <input
+          type="text"
+          value={editInstagramHandle}
+          onChange={(e) => setEditInstagramHandle(e.target.value)}
+          className="font-ui text-sm text-steel mb-2 bg-void border border-neon-cyan rounded px-2 py-1 w-full text-center"
+          placeholder="@pilot_fpv"
+        />
+      ) : (
+        /* Instagram Handle - nur anzeigen wenn vorhanden */
+        !isEditing && pilot.instagramHandle && (
+          <div className="font-ui text-sm text-steel flex items-center justify-center gap-1">
+            <svg 
+              className="w-3 h-3" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+            >
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1 1 12.324 0 6.162 6.162 0 0 1-12.324 0zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm4.965-10.405a1.44 1.44 0 1 1 2.881.001 1.44 1.44 0 0 1-2.881-.001z"/>
+            </svg>
+            {pilot.instagramHandle}
+          </div>
+        )
       )}
 
       {/* Validation Errors */}
