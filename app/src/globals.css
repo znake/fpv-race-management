@@ -1,10 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Custom Property for animated border */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @layer base {
   :root {
-    --glow-pink: 330 100% 60%;
+    /* Synthwave Colors as CSS Variables */
+    --void: #0d0221;
+    --night: #1a0533;
+    --night-light: #2a0845;
+    --neon-pink: #ff2a6d;
+    --neon-cyan: #05d9e8;
+    --neon-magenta: #d300c5;
+    --gold: #f9c80e;
+    --winner-green: #39ff14;
+    --loser-red: #ff073a;
+    --chrome: #e0e0e0;
+    --steel: #888888;
+    
+    /* Glow Effects */
+    --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
+    --glow-cyan: 0 0 20px rgba(5, 217, 232, 0.5);
+    --glow-gold: 0 0 20px rgba(249, 200, 14, 0.5);
+    
+    /* Legacy shadcn variables */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -33,6 +59,201 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-void text-chrome;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .font-display {
+    font-family: 'Bebas Neue', sans-serif;
+  }
+  .font-ui {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer components {
+  /* Synthwave Grid Background */
+  .synthwave-grid {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: 
+      linear-gradient(180deg, transparent 0%, var(--void) 100%),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 60px,
+        rgba(255, 42, 109, 0.1) 60px,
+        rgba(255, 42, 109, 0.1) 62px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 60px,
+        rgba(255, 42, 109, 0.1) 60px,
+        rgba(255, 42, 109, 0.1) 62px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Tabs Container */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 24px 32px;
+    background: var(--void);
+  }
+
+  /* Tab Button */
+  .tab {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px 32px;
+    background: var(--night);
+    border: 2px solid var(--steel);
+    border-radius: 8px;
+    color: var(--steel);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tab:hover {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+  }
+
+  .tab.active {
+    background: var(--night-light);
+    border-color: var(--neon-pink);
+    color: var(--chrome);
+    box-shadow: var(--glow-pink);
+  }
+
+  /* Primary Button (Fertig) */
+  .btn-primary {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 20px 48px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--neon-pink);
+    color: var(--void);
+    box-shadow: var(--glow-pink);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(255, 42, 109, 0.7);
+  }
+
+  .btn-primary:disabled {
+    background: var(--steel);
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Main Content */
+  .main-content {
+    padding: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* On-Deck Preview */
+  .on-deck {
+    margin-top: 48px;
+    padding: 24px;
+    background: var(--night);
+    border: 2px solid var(--steel);
+    border-radius: 12px;
+  }
+
+  .on-deck-title {
+    font-size: 16px;
+    color: var(--steel);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* Animated Border for Selected Cards */
+  .pilot-card-selected::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: conic-gradient(
+      from var(--angle),
+      transparent 0deg,
+      var(--neon-magenta) 60deg,
+      transparent 120deg
+    );
+    border-radius: 19px;
+    animation: rotate-border 2s linear infinite;
+    z-index: -1;
+  }
+
+  @keyframes rotate-border {
+    from { --angle: 0deg; }
+    to { --angle: 360deg; }
+  }
+
+  /* RankBadge Scale-In Animation */
+  @keyframes scale-in {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .rank-badge-animate {
+    animation: scale-in 150ms ease-out;
+  }
+
+  /* Glow Pulse Animation */
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 42, 109, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(255, 42, 109, 0.7); }
+  }
+
+  @keyframes glow-pulse-gold {
+    0%, 100% { box-shadow: 0 0 20px rgba(249, 200, 14, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(249, 200, 14, 0.7); }
+  }
+
+  @keyframes glow-pulse-cyan {
+    0%, 100% { box-shadow: 0 0 20px rgba(5, 217, 232, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(5, 217, 232, 0.7); }
+  }
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .pilot-card-selected::before {
+    animation: none;
+    background: var(--neon-magenta);
+    opacity: 0.3;
+  }
+
+  .rank-badge-animate {
+    animation: none;
+  }
+
+  .tab,
+  .btn-primary,
+  .pilot-card {
+    transition: none;
   }
 }
