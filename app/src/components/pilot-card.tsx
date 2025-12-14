@@ -22,7 +22,7 @@ export function PilotCard({
 }: PilotCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(pilot.name)
-  const [editImageUrl, setEditImageUrl] = useState(pilot.imageUrl)
+  const [editImageUrl, setEditImageUrl] = useState(pilot.imageUrl || '')
   const [editInstagramHandle, setEditInstagramHandle] = useState(pilot.instagramHandle || '')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -54,10 +54,29 @@ export function PilotCard({
 
   const handleSave = () => {
     if (onEdit) {
-      const updates = { 
-        name: editName !== pilot.name ? editName : undefined,
-        imageUrl: editImageUrl !== pilot.imageUrl ? editImageUrl : undefined,
-        instagramHandle: editInstagramHandle !== (pilot.instagramHandle || '') ? editInstagramHandle || undefined : undefined
+      const currentImageUrl = pilot.imageUrl || ''
+      const currentInstagramHandle = pilot.instagramHandle || ''
+      
+      // Nur die Felder hinzufügen, die sich wirklich geändert haben
+      const updates: { name?: string; imageUrl?: string; instagramHandle?: string } = {}
+      
+      if (editName !== pilot.name) {
+        updates.name = editName
+      }
+      
+      if (editImageUrl !== currentImageUrl) {
+        updates.imageUrl = editImageUrl
+      }
+      
+      if (editInstagramHandle !== currentInstagramHandle) {
+        updates.instagramHandle = editInstagramHandle || undefined
+      }
+      
+      // Wenn nichts geändert wurde, einfach den Edit-Modus beenden
+      if (Object.keys(updates).length === 0) {
+        setIsEditing(false)
+        setValidationErrors([])
+        return
       }
       
       const result = onEdit(pilot.id, updates)
@@ -238,22 +257,12 @@ export function PilotCard({
           placeholder="@pilot_fpv"
         />
       ) : (
-        /* Instagram Handle - nur anzeigen wenn vorhanden */
-        pilot.instagramHandle && (
-          <div className="font-ui text-sm text-steel flex items-center justify-center gap-1">
-            <svg 
-              className="w-3 h-3" 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.615 6h-9.23c-.766 0-1.385.62-1.385 1.384v9.23c0 .766.619 1.386 1.385 1.386h9.23c.766 0 1.385-.62 1.385-1.385v-9.23c0-.765-.619-1.385-1.385-1.385zm-4.615 3.693c1.274 0 2.309 1.032 2.309 2.307s-1.035 2.307-2.309 2.307-2.307-1.033-2.307-2.307 1.033-2.307 2.307-2.307zm4.5 6.346c0 .255-.207.461-.461.461h-8.078c-.254 0-.461-.207-.461-.461v-5.039h.949c-.045.158-.078.32-.102.486-.023.168-.038.339-.038.514 0 2.04 1.652 3.693 3.691 3.693s3.691-1.653 3.691-3.693c0-.174-.015-.346-.039-.514-.023-.166-.058-.328-.102-.486h.95v5.039zm0-6.991c0 .255-.207.462-.461.462h-1.088c-.256 0-.461-.208-.461-.462v-1.087c0-.255.205-.461.461-.461h1.088c.254 0 .461.207.461.461v1.087z"/>
-            </svg>
-            {pilot.instagramHandle}
-          </div>
-        )
+         /* Instagram Handle - nur anzeigen wenn vorhanden */
+         pilot.instagramHandle && (
+           <div className="font-ui text-sm text-steel text-center">
+             {pilot.instagramHandle}
+           </div>
+         )
       )}
 
       {/* Validation Errors */}

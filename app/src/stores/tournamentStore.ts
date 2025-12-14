@@ -41,7 +41,7 @@ export const useTournamentStore = create<TournamentState>()(
         if (pilotIndex === -1) return false
 
         // Check for duplicate names if name is being updated
-        if (updates.name) {
+        if (updates.name && updates.name.trim() !== '') {
           const otherPilotsWithSameName = pilots.filter((p) => 
             p.id !== id && p.name.toLowerCase() === updates.name!.toLowerCase()
           )
