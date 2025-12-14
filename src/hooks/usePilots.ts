@@ -231,7 +231,7 @@ export function usePilots() {
     return tournamentStarted
   }
 
-  const canDeletePilot = (id: string) => {
+  const canDeletePilot = (_id: string) => {
     return !tournamentStarted
   }
 

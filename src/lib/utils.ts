@@ -28,10 +28,10 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
         if (results.errors.length > 0) {
           results.errors.forEach((error, index) => {
             errors.push({
-              row: error.row || index + 2, // +2 because of header and 0-based indexing
+              row: error.row ?? index + 2, // +2 because of header and 0-based indexing
               field: 'general',
               message: error.message || 'CSV parsing error',
-              value: error.data || undefined
+              value: undefined
             })
           })
         }
@@ -98,10 +98,11 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
           duplicates: [] // Will be filled during validation
         })
       },
-      error: (error) => {
+      error: (error: Error) => {
         resolve({
           totalRows: 0,
-          validRows: [],
+          validRows: 0,
+          pilots: [],
           errors: [{
             row: 1,
             field: 'general',
@@ -122,7 +123,7 @@ export async function validateImageUrl(url: string, timeout = 5000): Promise<boo
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
     
-    const response = await fetch(url, {
+    await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
       mode: 'no-cors' // Avoid CORS issues for validation

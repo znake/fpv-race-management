@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { parseCSV, validateImageUrl, debounce } from '../lib/utils'
-import { validateCSVRow, pilotSchema } from '../lib/schemas'
-import type { CSVImportResult, CSVImportState, DuplicatePilot } from '../../types/csv'
+import { parseCSV, debounce } from '../lib/utils'
+import { pilotSchema } from '../lib/schemas'
+import type { CSVImportResult, CSVImportState, DuplicatePilot } from '../types/csv'
 import { cn } from '../lib/utils'
 
 interface CSVImportProps {
@@ -88,11 +88,15 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
         const validation = pilotSchema.safeParse(pilot)
         
         if (!validation.success) {
+          const fieldPath = validation.error.issues[0]?.path[0]
+          const fieldName: 'Name' | 'Bild-URL' | 'general' = 
+            fieldPath === 'name' ? 'Name' : 
+            fieldPath === 'imageUrl' ? 'Bild-URL' : 'general'
           validationErrors.push({
             row: i + 2,
-            field: validation.error.issues[0]?.path[0] as 'name' | 'imageUrl' || 'general',
+            field: fieldName,
             message: validation.error.issues[0]?.message || 'Validation error',
-            value: pilot[validation.error.issues[0]?.path[0] as keyof typeof pilot]
+            value: pilot[fieldPath as keyof typeof pilot]
           })
         } else {
           validPilots.push(validation.data)

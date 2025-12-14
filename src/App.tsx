@@ -66,8 +66,8 @@ export function App() {
                 tournamentStarted={tournamentStarted}
                 onEdit={(id, updates) => {
                   const result = updatePilot(id, updates)
-                  // result ist ein Objekt { success, errors }
-                  return result?.success === true
+                  if (result === false) return false
+                  return result.success
                 }}
                 onDelete={deletePilot}
                 onMarkDroppedOut={markPilotAsDroppedOut}
