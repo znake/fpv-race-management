@@ -1,6 +1,11 @@
 # Story 4.2: Heat abschliessen & Bracket-Progression
 
-Status: done
+Status: in-progress
+
+> **⚠️ COURSE CORRECTION 2025-12-19**
+> Story wurde erneut geöffnet. Bracket-Progression ist nur für Quali → WB/LB R1 implementiert.
+> Vollständige Progression (WB/LB weitere Runden, WB→LB Einspeisung, Finale) fehlt.
+> Siehe: `docs/sprint-change-proposal-2025-12-19.md`
 
 > **⚠️ COURSE CORRECTION 2025-12-17**
 > Story wurde zurückgesetzt. Bracket-Progression (AC 2, 3, 4) unvollständig implementiert.
@@ -141,6 +146,45 @@ Status: done
   - [x] Test: Rang 3+4 landen in Loser-Bracket Heat
   - [x] Test: Nach Quali-Abschluss werden WB Heats generiert
   - [x] Test: Edge Case 3er-Heat (nur Rang 1-3)
+
+### NEUE TASKS - Vollständige Bracket-Progression (Course Correction 2025-12-19)
+
+- [x] Task 13: WB/LB Heat-Completion Handler erweitern (AC: 2, 3, 4)
+  - [x] `updateBracketAfterWBLBHeatCompletion()` für bracketType 'winner' und 'loser' implementiert
+  - [x] WB-Verlierer (Rang 3+4) ins LB einspeisen via neuer `targetLoserFromWB` Referenz
+  - [x] LB-Verlierer (Rang 3+4) zu `eliminatedPilots` hinzufügen
+  - [x] Piloten zum targetHeat der nächsten Runde hinzufügen
+
+- [x] Task 14: Runden-Completion Detection (AC: 4)
+  - [x] Neue Funktion `areAllHeatsInRoundCompleted(roundNumber, bracketType)` in bracket-logic.ts
+  - [x] Nach jedem Heat prüfen: Ist die aktuelle Runde komplett?
+  - [x] Wenn ja: Nächste Runde aktivieren
+
+- [x] Task 15: Generische `generateNextRoundHeats()` Funktion (AC: 4)
+  - [x] Neue Funktion `generateHeatsForNextRound()` erstellt (generisch für alle Runden)
+  - [x] Parameter: `completedRoundNumber`, `bracketType`
+  - [x] WB Runde N → WB Runde N+1 Heats erstellen
+  - [x] LB Runde N → LB Runde N+1 Heats erstellen
+
+- [x] Task 16: WB → LB Einspeisung (Cross-Bracket) (AC: 3)
+  - [x] Neue Referenz in BracketHeat: `targetLoserFromWB?: string` in bracket-structure-generator.ts
+  - [x] `linkBracketHeats()` in bracket-structure-generator.ts erweitert um WB→LB Verknüpfungen
+  - [x] Bei WB-Heat Completion: Rang 3+4 → targetLoserFromWB Heat
+  - [x] LB Heats können Piloten von WB UND LB erhalten
+
+- [x] Task 17: Finale Detection & Generation (AC: 4)
+  - [x] Neue Funktion `isGrandFinaleReady()`: WB Finale + LB Finale completed?
+  - [x] Neue Funktion `generateGrandFinaleHeat()`: Grand Finale Heat generieren
+  - [x] `tournamentPhase` auf 'finale' setzen wenn bereit
+
+- [x] Task 18: Bracket-Progression Tests erweitern
+  - [x] Test: WB Runde 1 → WB Runde 2 Progression (Winners advance, Losers to LB)
+  - [x] Test: LB Runde 1 → LB Runde 2 Progression (Winners advance, Losers eliminated)
+  - [x] Test: WB-Verlierer werden ins LB eingespeist
+  - [x] Test: LB-Verlierer werden eliminiert
+  - [x] Test: Finale wird erkannt und generiert
+  - [x] Test: Volles 8-Piloten-Turnier durchspielen
+  - [x] Test: Volles 16-Piloten-Turnier durchspielen
 
 ### Review Follow-ups (AI)
 
@@ -421,16 +465,30 @@ interface BracketState {
 - Created comprehensive test suite: 11 tests covering all bracket progression scenarios
 - All 180 tests passing, no regressions
 
+**Course Correction 2025-12-19 (Tasks 13-18):**
+- Implemented `updateBracketAfterWBLBHeatCompletion()` - handles WB/LB heat completion with cross-bracket progression
+- Implemented `findBracketHeatWithLocation()` - returns heat with full location context (bracketType, roundNumber, etc.)
+- Implemented `areAllHeatsInRoundCompleted()` - checks if all heats in a specific round are completed
+- Implemented `generateHeatsForNextRound()` - generic function for any bracket round (not just post-quali)
+- Implemented `isGrandFinaleReady()` - checks if WB+LB finals are complete and Grand Finale can be played
+- Implemented `generateGrandFinaleHeat()` - creates playable Grand Finale heat
+- Added `targetLoserFromWB` property to BracketHeat interface for WB→LB cross-bracket links
+- Extended `linkBracketHeats()` to create WB→LB connections
+- Refactored `submitHeatResults()` to handle all bracket types (qualification, winner, loser, finale)
+- 6 new comprehensive tests for full bracket progression
+- All 193 tests passing, TypeScript build successful
+
 ### File List
-- `src/stores/tournamentStore.ts` (MODIFIED) - Added winner/loser/eliminated state, reopenHeat action, bracket progression logic, integrated useBracketLogic functions
-- `src/hooks/useBracketLogic.ts` (NEW) - Bracket progression logic: syncQualiHeatsToStructure, updateBracketAfterHeatCompletion, generateNextRoundHeats, areAllQualiHeatsCompleted
+- `src/stores/tournamentStore.ts` (MODIFIED) - Added winner/loser/eliminated state, reopenHeat action, full bracket progression logic for all bracket types
+- `src/lib/bracket-logic.ts` (MODIFIED) - Added updateBracketAfterWBLBHeatCompletion, findBracketHeatWithLocation, areAllHeatsInRoundCompleted, generateHeatsForNextRound, isGrandFinaleReady, generateGrandFinaleHeat
+- `src/lib/bracket-structure-generator.ts` (MODIFIED) - Added targetLoserFromWB property to BracketHeat, extended linkBracketHeats() for WB→LB connections
 - `src/components/active-heat-view.tsx` (MODIFIED) - Added success-pulse animation on submit
 - `src/components/heat-card.tsx` (MODIFIED) - Added ranking display and edit button for completed heats
 - `src/components/heat-box.tsx` (MODIFIED) - Updated to use Heat interface, added ranking display and edit functionality
 - `src/components/heat-overview.tsx` (MODIFIED) - Added reopenHeat handler support
 - `src/globals.css` (MODIFIED) - Added success-pulse, glow-pulse-green animations
 - `tests/heat-completion.test.tsx` (NEW) - 13 comprehensive tests for bracket progression and edit functionality
-- `tests/bracket-progression.test.ts` (NEW) - 11 tests for bracket structure sync and pilot progression
+- `tests/bracket-progression.test.ts` (MODIFIED) - Extended with 6 new tests for Tasks 13-18 (20 total tests)
 
 ### Senior Developer Review (AI)
 
@@ -451,3 +509,10 @@ interface BracketState {
 
 - 2025-12-17: Senior Dev Review durchgeführt, Follow-ups als Tasks ergänzt, Status auf `in-progress` gesetzt.
 - 2025-12-19: Alle Review Follow-ups überprüft und als erledigt markiert. Story abgeschlossen (Status: done).
+- 2025-12-19: Course Correction - Tasks 13-18 für vollständige Bracket-Progression implementiert:
+  - `updateBracketAfterWBLBHeatCompletion()` für WB/LB Heats
+  - `areAllHeatsInRoundCompleted()` für Runden-Detection
+  - `generateHeatsForNextRound()` generische Funktion
+  - `targetLoserFromWB` Property für Cross-Bracket
+  - `isGrandFinaleReady()` und `generateGrandFinaleHeat()` für Finale
+  - 6 neue Tests für Bracket-Progression (193 Tests gesamt, alle grün)

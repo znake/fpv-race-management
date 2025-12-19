@@ -24,7 +24,8 @@ export interface BracketHeat {
   sourceHeats: string[]  // IDs of heats that feed into this heat
   targetWinnerHeat?: string  // Where winners go (for quali heats)
   targetLoserHeat?: string   // Where losers go (for quali heats)
-  targetHeat?: string  // Next heat in bracket progression
+  targetHeat?: string  // Next heat in bracket progression (same bracket)
+  targetLoserFromWB?: string  // WB losers feed into this LB heat (Task 16)
   position: { x: number; y: number }  // For rendering
 }
 
@@ -328,6 +329,15 @@ export function generateFullBracketStructure(pilotCount: number): FullBracketStr
 
 /**
  * Link heats with source/target references
+ * 
+ * Links include:
+ * - Quali → WB Round 1 (winners)
+ * - Quali → LB Round 1 (losers)
+ * - WB Round N → WB Round N+1 (winners)
+ * - WB Round N → LB (losers via targetLoserFromWB) - Task 16
+ * - LB Round N → LB Round N+1 (winners)
+ * - WB Finale → Grand Finale
+ * - LB Finale → Grand Finale
  */
 function linkBracketHeats(
   qualiHeats: BracketHeat[],
@@ -353,7 +363,7 @@ function linkBracketHeats(
     })
   }
   
-  // Link WB rounds
+  // Link WB rounds (winners to next WB round)
   for (let i = 0; i < winnerRounds.length - 1; i++) {
     const currentRound = winnerRounds[i]
     const nextRound = winnerRounds[i + 1]
@@ -367,7 +377,35 @@ function linkBracketHeats(
     })
   }
   
-  // Link LB rounds
+  // Task 16: Link WB heats to LB for losers (targetLoserFromWB)
+  // WB Round N losers feed into LB Round N (or N+1 depending on bracket structure)
+  // This is the cross-bracket progression
+  for (let wbRoundIdx = 0; wbRoundIdx < winnerRounds.length; wbRoundIdx++) {
+    const wbRound = winnerRounds[wbRoundIdx]
+    
+    // Determine which LB round receives WB losers
+    // Generally: WB Round 1 losers → LB Round 1 or 2
+    // This depends on tournament size, but a simple mapping:
+    // WB losers from round N go to LB round N (or later rounds if LB has more rounds)
+    const lbTargetRoundIdx = Math.min(wbRoundIdx, loserRounds.length - 1)
+    
+    if (lbTargetRoundIdx >= 0 && loserRounds[lbTargetRoundIdx]) {
+      const lbRound = loserRounds[lbTargetRoundIdx]
+      
+      wbRound.heats.forEach((wbHeat, heatIdx) => {
+        // Each WB heat's losers go to a corresponding LB heat
+        // Map: 2 WB heats feed into 1 LB heat (losers combine)
+        const lbTargetIdx = Math.floor(heatIdx / 2)
+        
+        if (lbRound.heats[lbTargetIdx]) {
+          wbHeat.targetLoserFromWB = lbRound.heats[lbTargetIdx].id
+          // Note: Don't add to sourceHeats here since losers come separately
+        }
+      })
+    }
+  }
+  
+  // Link LB rounds (winners to next LB round)
   for (let i = 0; i < loserRounds.length - 1; i++) {
     const currentRound = loserRounds[i]
     const nextRound = loserRounds[i + 1]

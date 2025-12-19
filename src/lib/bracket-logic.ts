@@ -8,16 +8,30 @@
  * - Calculate pilot progression (Winner/Loser Bracket)
  * - Generate next round heats when current round complete
  * - Rollback bracket state for heat corrections
+ * - Handle WB/LB heat completion with cross-bracket progression
+ * - Detect and generate Grand Finale
  * 
- * Story 4-2 Tasks 7-12 (Course Correction 2025-12-17)
+ * Story 4-2 Tasks 7-18 (Course Corrections 2025-12-17, 2025-12-19)
  */
 
 import type { Heat } from '../stores/tournamentStore'
 import type { 
   FullBracketStructure, 
   BracketHeat,
-  BracketHeatStatus 
+  BracketHeatStatus,
+  BracketType
 } from './bracket-structure-generator'
+
+/**
+ * Result of finding a bracket heat - includes context about its location
+ */
+export interface BracketHeatLocation {
+  heat: BracketHeat
+  bracketType: BracketType
+  roundNumber: number
+  roundIndex: number  // Index in the rounds array
+  heatIndex: number   // Index in the round's heats array
+}
 
 /**
  * Sync quali heats from heats[] to fullBracketStructure.qualification
@@ -172,9 +186,49 @@ export function areAllQualiHeatsCompleted(bracketStructure: FullBracketStructure
 }
 
 /**
+ * Task 14: Check if all heats in a specific round are completed
+ * 
+ * @param bracketStructure - The full bracket structure
+ * @param roundNumber - The round number to check
+ * @param bracketType - 'winner' or 'loser'
+ * @returns true if all heats in the round are completed
+ */
+export function areAllHeatsInRoundCompleted(
+  bracketStructure: FullBracketStructure,
+  roundNumber: number,
+  bracketType: 'winner' | 'loser'
+): boolean {
+  const rounds = bracketType === 'winner' 
+    ? bracketStructure.winnerBracket.rounds 
+    : bracketStructure.loserBracket.rounds
+  
+  // Find the round by roundNumber
+  const round = rounds.find(r => r.roundNumber === roundNumber)
+  
+  if (!round) {
+    // Round doesn't exist - consider it "complete" (no heats to play)
+    return true
+  }
+  
+  // Check if all heats in this round are completed
+  // Only check heats that have pilots assigned (not empty placeholders)
+  const heatsWithPilots = round.heats.filter(h => h.pilotIds.length > 0)
+  
+  if (heatsWithPilots.length === 0) {
+    // No heats with pilots yet - not complete
+    return false
+  }
+  
+  return heatsWithPilots.every(h => h.status === 'completed')
+}
+
+/**
  * Generate playable heats for the next bracket round
  * Called when all quali heats are completed
  * Returns new Heat[] entries to add to the store
+ * 
+ * NOTE: This is the legacy function for post-quali generation.
+ * For subsequent rounds, use generateHeatsForNextRound()
  */
 export function generateNextRoundHeats(
   bracketStructure: FullBracketStructure,
@@ -220,6 +274,70 @@ export function generateNextRoundHeats(
 }
 
 /**
+ * Task 15: Generic function to generate heats for the next round
+ * Works for ANY bracket round, not just post-quali
+ * 
+ * @param bracketStructure - The full bracket structure
+ * @param completedRoundNumber - The round number that was just completed
+ * @param bracketType - 'winner' or 'loser'
+ * @param existingHeats - Current heats array (for heat numbering)
+ * @returns New Heat[] entries to add to the store
+ */
+export function generateHeatsForNextRound(
+  bracketStructure: FullBracketStructure,
+  completedRoundNumber: number,
+  bracketType: 'winner' | 'loser',
+  existingHeats: Heat[]
+): Heat[] {
+  const newHeats: Heat[] = []
+  let heatNumber = existingHeats.length + 1
+  
+  const rounds = bracketType === 'winner'
+    ? bracketStructure.winnerBracket.rounds
+    : bracketStructure.loserBracket.rounds
+  
+  // Find the index of the completed round
+  const completedRoundIndex = rounds.findIndex(r => r.roundNumber === completedRoundNumber)
+  
+  if (completedRoundIndex === -1) {
+    return newHeats // Round not found
+  }
+  
+  // Get the next round (if exists)
+  const nextRoundIndex = completedRoundIndex + 1
+  if (nextRoundIndex >= rounds.length) {
+    // No more rounds in this bracket - might be finale time
+    return newHeats
+  }
+  
+  const nextRound = rounds[nextRoundIndex]
+  
+  // Generate playable heats for the next round
+  for (const bracketHeat of nextRound.heats) {
+    // Only create heat if it has enough pilots and is pending
+    if (bracketHeat.pilotIds.length >= 2 && bracketHeat.status === 'pending') {
+      // Check if this heat already exists in heats[]
+      const alreadyExists = existingHeats.some(h => h.id === bracketHeat.id)
+      if (!alreadyExists) {
+        newHeats.push({
+          id: bracketHeat.id,
+          heatNumber: heatNumber++,
+          pilotIds: [...bracketHeat.pilotIds],
+          status: 'pending',
+        })
+      }
+    }
+  }
+  
+  // Activate the first new heat if any were created
+  if (newHeats.length > 0) {
+    newHeats[0].status = 'active'
+  }
+  
+  return newHeats
+}
+
+/**
  * Map Heat status to BracketHeatStatus
  */
 function mapHeatStatus(status: Heat['status']): BracketHeatStatus {
@@ -232,32 +350,328 @@ function mapHeatStatus(status: Heat['status']): BracketHeatStatus {
 }
 
 /**
- * Find a bracket heat by ID across all sections
+ * Task 17: Check if Grand Finale is ready
+ * 
+ * Grand Finale is ready when:
+ * 1. WB Finale is completed (last round in WB)
+ * 2. LB Finale is completed (last round in LB)
+ * 3. Grand Finale heat has at least 2 pilots assigned
+ * 
+ * @returns true if Grand Finale can be played
+ */
+export function isGrandFinaleReady(bracketStructure: FullBracketStructure): boolean {
+  // Check if WB Finale is completed
+  const wbRounds = bracketStructure.winnerBracket.rounds
+  if (wbRounds.length === 0) return false
+  
+  const wbFinaleRound = wbRounds[wbRounds.length - 1]
+  const wbFinaleCompleted = wbFinaleRound.heats.every(h => 
+    h.pilotIds.length === 0 || h.status === 'completed'
+  )
+  
+  if (!wbFinaleCompleted) return false
+  
+  // Check if LB Finale is completed
+  const lbRounds = bracketStructure.loserBracket.rounds
+  if (lbRounds.length === 0) return false
+  
+  const lbFinaleRound = lbRounds[lbRounds.length - 1]
+  const lbFinaleCompleted = lbFinaleRound.heats.every(h =>
+    h.pilotIds.length === 0 || h.status === 'completed'
+  )
+  
+  if (!lbFinaleCompleted) return false
+  
+  // Check if Grand Finale has pilots
+  if (!bracketStructure.grandFinale) return false
+  
+  return bracketStructure.grandFinale.pilotIds.length >= 2 &&
+         bracketStructure.grandFinale.status === 'pending'
+}
+
+/**
+ * Generate Grand Finale heat for the playable heats array
+ * 
+ * @returns The Grand Finale Heat or null if not ready
+ */
+export function generateGrandFinaleHeat(
+  bracketStructure: FullBracketStructure,
+  existingHeats: Heat[]
+): Heat | null {
+  if (!bracketStructure.grandFinale) return null
+  if (!isGrandFinaleReady(bracketStructure)) return null
+  
+  // Check if already generated
+  const alreadyExists = existingHeats.some(h => h.id === bracketStructure.grandFinale!.id)
+  if (alreadyExists) return null
+  
+  return {
+    id: bracketStructure.grandFinale.id,
+    heatNumber: existingHeats.length + 1,
+    pilotIds: [...bracketStructure.grandFinale.pilotIds],
+    status: 'active',
+  }
+}
+
+/**
+ * Find a bracket heat by ID across all sections (simple version)
  */
 function findBracketHeatById(
   structure: FullBracketStructure, 
   heatId: string
 ): BracketHeat | undefined {
+  const location = findBracketHeatWithLocation(structure, heatId)
+  return location?.heat
+}
+
+/**
+ * Find a bracket heat by ID with full location context
+ * Returns the heat along with its bracket type, round, and indices
+ */
+export function findBracketHeatWithLocation(
+  structure: FullBracketStructure,
+  heatId: string
+): BracketHeatLocation | undefined {
   // Check quali heats
-  const qualiHeat = structure.qualification.heats.find(h => h.id === heatId)
-  if (qualiHeat) return qualiHeat
+  const qualiIdx = structure.qualification.heats.findIndex(h => h.id === heatId)
+  if (qualiIdx !== -1) {
+    return {
+      heat: structure.qualification.heats[qualiIdx],
+      bracketType: 'qualification',
+      roundNumber: 1,
+      roundIndex: 0,
+      heatIndex: qualiIdx
+    }
+  }
   
   // Check winner bracket rounds
-  for (const round of structure.winnerBracket.rounds) {
-    const wbHeat = round.heats.find(h => h.id === heatId)
-    if (wbHeat) return wbHeat
+  for (let roundIdx = 0; roundIdx < structure.winnerBracket.rounds.length; roundIdx++) {
+    const round = structure.winnerBracket.rounds[roundIdx]
+    const heatIdx = round.heats.findIndex(h => h.id === heatId)
+    if (heatIdx !== -1) {
+      return {
+        heat: round.heats[heatIdx],
+        bracketType: 'winner',
+        roundNumber: round.roundNumber,
+        roundIndex: roundIdx,
+        heatIndex: heatIdx
+      }
+    }
   }
   
   // Check loser bracket rounds
-  for (const round of structure.loserBracket.rounds) {
-    const lbHeat = round.heats.find(h => h.id === heatId)
-    if (lbHeat) return lbHeat
+  for (let roundIdx = 0; roundIdx < structure.loserBracket.rounds.length; roundIdx++) {
+    const round = structure.loserBracket.rounds[roundIdx]
+    const heatIdx = round.heats.findIndex(h => h.id === heatId)
+    if (heatIdx !== -1) {
+      return {
+        heat: round.heats[heatIdx],
+        bracketType: 'loser',
+        roundNumber: round.roundNumber,
+        roundIndex: roundIdx,
+        heatIndex: heatIdx
+      }
+    }
   }
   
   // Check grand finale
   if (structure.grandFinale?.id === heatId) {
-    return structure.grandFinale
+    return {
+      heat: structure.grandFinale,
+      bracketType: 'finale',
+      roundNumber: 99,
+      roundIndex: 0,
+      heatIndex: 0
+    }
   }
   
   return undefined
+}
+
+/**
+ * Update bracket after a Winner or Loser bracket heat is completed
+ * - WB Winners (rank 1+2) → next WB round via targetHeat
+ * - WB Losers (rank 3+4) → feed into LB via targetLoserFromWB
+ * - LB Winners (rank 1+2) → next LB round via targetHeat
+ * - LB Losers (rank 3+4) → eliminated
+ * 
+ * Returns: Updated structure AND list of eliminated pilot IDs
+ */
+export function updateBracketAfterWBLBHeatCompletion(
+  heatId: string,
+  rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[],
+  bracketStructure: FullBracketStructure,
+  isResubmission: boolean = false
+): { structure: FullBracketStructure; eliminatedPilotIds: string[] } {
+  // If resubmission, first rollback previous assignments
+  let updated = isResubmission
+    ? rollbackWBLBHeatAssignments(heatId, bracketStructure)
+    : structuredClone(bracketStructure)
+  
+  const eliminatedPilotIds: string[] = []
+  
+  // Find the heat location
+  const location = findBracketHeatWithLocation(updated, heatId)
+  if (!location) {
+    return { structure: updated, eliminatedPilotIds }
+  }
+  
+  const { heat, bracketType, roundIndex } = location
+  
+  // Mark heat as completed
+  heat.status = 'completed'
+  
+  // Get winners (rank 1+2) and losers (rank 3+4)
+  const winners = rankings.filter(r => r.rank === 1 || r.rank === 2).map(r => r.pilotId)
+  const losers = rankings.filter(r => r.rank === 3 || r.rank === 4).map(r => r.pilotId)
+  
+  if (bracketType === 'winner') {
+    // WB Winners → next WB round (targetHeat)
+    if (heat.targetHeat) {
+      const targetWBHeat = findBracketHeatById(updated, heat.targetHeat)
+      if (targetWBHeat) {
+        targetWBHeat.pilotIds.push(...winners)
+        if (targetWBHeat.pilotIds.length >= 4) {
+          targetWBHeat.status = 'pending'
+        }
+      }
+    } else {
+      // No targetHeat means this is WB Finale
+      // Winners go to Grand Finale
+      if (updated.grandFinale) {
+        updated.grandFinale.pilotIds.push(...winners)
+        if (updated.grandFinale.pilotIds.length >= 2) {
+          updated.grandFinale.status = 'pending'
+        }
+      }
+    }
+    
+    // WB Losers → feed into LB (targetLoserFromWB)
+    if (heat.targetLoserFromWB) {
+      const targetLBHeat = findBracketHeatById(updated, heat.targetLoserFromWB)
+      if (targetLBHeat) {
+        targetLBHeat.pilotIds.push(...losers)
+        if (targetLBHeat.pilotIds.length >= 4) {
+          targetLBHeat.status = 'pending'
+        }
+      }
+    } else {
+      // Fallback: If no targetLoserFromWB, try to find appropriate LB heat
+      // This happens for WB heats that feed into existing LB rounds
+      const lbRoundIdx = Math.min(roundIndex, updated.loserBracket.rounds.length - 1)
+      if (lbRoundIdx >= 0 && updated.loserBracket.rounds[lbRoundIdx]) {
+        const lbRound = updated.loserBracket.rounds[lbRoundIdx]
+        // Find first LB heat in this round that can accept pilots
+        const availableLBHeat = lbRound.heats.find(h => h.pilotIds.length < 4)
+        if (availableLBHeat) {
+          availableLBHeat.pilotIds.push(...losers)
+          if (availableLBHeat.pilotIds.length >= 4) {
+            availableLBHeat.status = 'pending'
+          }
+        }
+      }
+    }
+  } else if (bracketType === 'loser') {
+    // LB Winners → next LB round (targetHeat)
+    if (heat.targetHeat) {
+      const targetLBHeat = findBracketHeatById(updated, heat.targetHeat)
+      if (targetLBHeat) {
+        targetLBHeat.pilotIds.push(...winners)
+        if (targetLBHeat.pilotIds.length >= 4) {
+          targetLBHeat.status = 'pending'
+        }
+      }
+    } else {
+      // No targetHeat means this is LB Finale
+      // Winners go to Grand Finale
+      if (updated.grandFinale) {
+        updated.grandFinale.pilotIds.push(...winners)
+        if (updated.grandFinale.pilotIds.length >= 2) {
+          updated.grandFinale.status = 'pending'
+        }
+      }
+    }
+    
+    // LB Losers → ELIMINATED (out of tournament)
+    eliminatedPilotIds.push(...losers)
+  }
+  
+  return { structure: updated, eliminatedPilotIds }
+}
+
+/**
+ * Rollback WB/LB heat assignments when reopening for edit
+ */
+function rollbackWBLBHeatAssignments(
+  heatId: string,
+  bracketStructure: FullBracketStructure
+): FullBracketStructure {
+  const updated = structuredClone(bracketStructure)
+  
+  const location = findBracketHeatWithLocation(updated, heatId)
+  if (!location) return updated
+  
+  const { heat, bracketType } = location
+  const pilotsToRemove = new Set(heat.pilotIds)
+  
+  // Remove from target heats
+  if (bracketType === 'winner') {
+    // Remove winners from next WB heat
+    if (heat.targetHeat) {
+      const targetHeat = findBracketHeatById(updated, heat.targetHeat)
+      if (targetHeat) {
+        targetHeat.pilotIds = targetHeat.pilotIds.filter(id => !pilotsToRemove.has(id))
+        if (targetHeat.pilotIds.length < 4) {
+          targetHeat.status = 'empty'
+        }
+      }
+    }
+    
+    // Remove losers from LB target
+    if (heat.targetLoserFromWB) {
+      const targetLBHeat = findBracketHeatById(updated, heat.targetLoserFromWB)
+      if (targetLBHeat) {
+        targetLBHeat.pilotIds = targetLBHeat.pilotIds.filter(id => !pilotsToRemove.has(id))
+        if (targetLBHeat.pilotIds.length < 4) {
+          targetLBHeat.status = 'empty'
+        }
+      }
+    }
+    
+    // Also check Grand Finale
+    if (updated.grandFinale) {
+      updated.grandFinale.pilotIds = updated.grandFinale.pilotIds.filter(
+        id => !pilotsToRemove.has(id)
+      )
+      if (updated.grandFinale.pilotIds.length < 2) {
+        updated.grandFinale.status = 'empty'
+      }
+    }
+  } else if (bracketType === 'loser') {
+    // Remove winners from next LB heat
+    if (heat.targetHeat) {
+      const targetHeat = findBracketHeatById(updated, heat.targetHeat)
+      if (targetHeat) {
+        targetHeat.pilotIds = targetHeat.pilotIds.filter(id => !pilotsToRemove.has(id))
+        if (targetHeat.pilotIds.length < 4) {
+          targetHeat.status = 'empty'
+        }
+      }
+    }
+    
+    // Also check Grand Finale
+    if (updated.grandFinale) {
+      updated.grandFinale.pilotIds = updated.grandFinale.pilotIds.filter(
+        id => !pilotsToRemove.has(id)
+      )
+      if (updated.grandFinale.pilotIds.length < 2) {
+        updated.grandFinale.status = 'empty'
+      }
+    }
+  }
+  
+  // Reset heat status to active
+  heat.status = 'active'
+  
+  return updated
 }

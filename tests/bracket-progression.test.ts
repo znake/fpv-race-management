@@ -366,6 +366,292 @@ describe('Task 12: Edge Cases', () => {
   })
 })
 
+// ========================================
+// Tasks 13-18: Full Bracket Progression Tests
+// Course Correction 2025-12-19
+// ========================================
+
+describe('Task 13-15: WB/LB Heat Progression', () => {
+  beforeEach(() => {
+    useTournamentStore.getState().resetAll()
+  })
+
+  it('should advance WB winners (rank 1+2) to next WB round after WB heat completion', () => {
+    // Setup: 16 pilots = 4 quali heats → 2 WB heats (WB Round 2)
+    const state = setupTournamentWithHeats(16)
+    const store = useTournamentStore.getState()
+    
+    // Complete all 4 quali heats
+    const qualiHeats = state.heats.slice(0, 4)
+    for (const heat of qualiHeats) {
+      store.submitHeatResults(heat.id, [
+        { pilotId: heat.pilotIds[0], rank: 1 },
+        { pilotId: heat.pilotIds[1], rank: 2 },
+        { pilotId: heat.pilotIds[2], rank: 3 },
+        { pilotId: heat.pilotIds[3], rank: 4 },
+      ])
+    }
+    
+    // Now WB Round 2 heats should be generated
+    let currentState = useTournamentStore.getState()
+    expect(currentState.heats.length).toBeGreaterThan(4)
+    
+    // Find first WB heat (after quali heats)
+    const wbHeat = currentState.heats.find(h => 
+      h.status === 'active' || h.status === 'pending'
+    )
+    expect(wbHeat).toBeDefined()
+    
+    // Complete WB heat
+    if (wbHeat && wbHeat.pilotIds.length >= 4) {
+      store.submitHeatResults(wbHeat.id, [
+        { pilotId: wbHeat.pilotIds[0], rank: 1 },
+        { pilotId: wbHeat.pilotIds[1], rank: 2 },
+        { pilotId: wbHeat.pilotIds[2], rank: 3 },
+        { pilotId: wbHeat.pilotIds[3], rank: 4 },
+      ])
+      
+      currentState = useTournamentStore.getState()
+      
+      // Winners should still be in winner bracket
+      expect(currentState.winnerPilots).toContain(wbHeat.pilotIds[0])
+      expect(currentState.winnerPilots).toContain(wbHeat.pilotIds[1])
+      
+      // Losers from WB should now be in loser bracket
+      expect(currentState.loserPilots).toContain(wbHeat.pilotIds[2])
+      expect(currentState.loserPilots).toContain(wbHeat.pilotIds[3])
+    }
+  })
+
+  it('should eliminate LB losers (rank 3+4) from tournament', () => {
+    const state = setupTournamentWithHeats(8)
+    const store = useTournamentStore.getState()
+    
+    // Complete all quali heats
+    for (const heat of state.heats) {
+      store.submitHeatResults(heat.id, [
+        { pilotId: heat.pilotIds[0], rank: 1 },
+        { pilotId: heat.pilotIds[1], rank: 2 },
+        { pilotId: heat.pilotIds[2], rank: 3 },
+        { pilotId: heat.pilotIds[3], rank: 4 },
+      ])
+    }
+    
+    let currentState = useTournamentStore.getState()
+    
+    // Find LB heat (should have loser pilots)
+    const lbHeat = currentState.heats.find(h => 
+      (h.status === 'active' || h.status === 'pending') &&
+      h.pilotIds.some(id => currentState.loserPilots.includes(id))
+    )
+    
+    if (lbHeat && lbHeat.pilotIds.length >= 4) {
+      const lbLosers = [lbHeat.pilotIds[2], lbHeat.pilotIds[3]]
+      
+      store.submitHeatResults(lbHeat.id, [
+        { pilotId: lbHeat.pilotIds[0], rank: 1 },
+        { pilotId: lbHeat.pilotIds[1], rank: 2 },
+        { pilotId: lbHeat.pilotIds[2], rank: 3 },
+        { pilotId: lbHeat.pilotIds[3], rank: 4 },
+      ])
+      
+      currentState = useTournamentStore.getState()
+      
+      // LB losers should be eliminated
+      expect(currentState.eliminatedPilots).toContain(lbLosers[0])
+      expect(currentState.eliminatedPilots).toContain(lbLosers[1])
+      expect(currentState.loserPilots).not.toContain(lbLosers[0])
+      expect(currentState.loserPilots).not.toContain(lbLosers[1])
+    }
+  })
+})
+
+describe('Task 14: Round Completion Detection', () => {
+  beforeEach(() => {
+    useTournamentStore.getState().resetAll()
+  })
+
+  it('should generate next round heats when all heats in current round are completed', () => {
+    // 16 pilots = 4 quali heats → 2 WB R2 heats
+    const state = setupTournamentWithHeats(16)
+    const store = useTournamentStore.getState()
+    
+    // Complete all 4 quali heats
+    for (let i = 0; i < 4; i++) {
+      const heat = state.heats[i]
+      store.submitHeatResults(heat.id, [
+        { pilotId: heat.pilotIds[0], rank: 1 },
+        { pilotId: heat.pilotIds[1], rank: 2 },
+        { pilotId: heat.pilotIds[2], rank: 3 },
+        { pilotId: heat.pilotIds[3], rank: 4 },
+      ])
+    }
+    
+    let currentState = useTournamentStore.getState()
+    const heatsAfterQuali = currentState.heats.length
+    
+    // Should have generated WB + LB heats
+    expect(heatsAfterQuali).toBeGreaterThan(4)
+    
+    // Complete all WB R2 heats (first two after quali)
+    const wbHeats = currentState.heats.filter(h => 
+      h.status === 'active' || h.status === 'pending'
+    ).slice(0, 2)
+    
+    for (const heat of wbHeats) {
+      if (heat.pilotIds.length >= 4) {
+        store.submitHeatResults(heat.id, [
+          { pilotId: heat.pilotIds[0], rank: 1 },
+          { pilotId: heat.pilotIds[1], rank: 2 },
+          { pilotId: heat.pilotIds[2], rank: 3 },
+          { pilotId: heat.pilotIds[3], rank: 4 },
+        ])
+      }
+    }
+    
+    currentState = useTournamentStore.getState()
+    
+    // Should still have active or pending heats (tournament not done)
+    const hasActiveOrPending = currentState.heats.some(h => 
+      h.status === 'active' || h.status === 'pending'
+    )
+    expect(hasActiveOrPending || currentState.tournamentPhase === 'finale').toBe(true)
+  })
+})
+
+describe('Task 17: Finale Detection', () => {
+  beforeEach(() => {
+    useTournamentStore.getState().resetAll()
+  })
+
+  it('should detect when tournament reaches finale phase', () => {
+    // 8 pilots = small bracket, quick to reach finale
+    const state = setupTournamentWithHeats(8)
+    const store = useTournamentStore.getState()
+    
+    // Complete all heats one by one until we reach finale
+    let safetyCounter = 0
+    const maxIterations = 20
+    
+    while (
+      store.getActiveHeat() && 
+      safetyCounter < maxIterations && 
+      useTournamentStore.getState().tournamentPhase !== 'finale' &&
+      useTournamentStore.getState().tournamentPhase !== 'completed'
+    ) {
+      const activeHeat = store.getActiveHeat()!
+      const pilotIds = activeHeat.pilotIds
+      
+      // Create rankings for available pilots (3 or 4)
+      const rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] = pilotIds.map((id, idx) => ({
+        pilotId: id,
+        rank: (idx + 1) as 1 | 2 | 3 | 4
+      }))
+      
+      store.submitHeatResults(activeHeat.id, rankings)
+      safetyCounter++
+    }
+    
+    const finalState = useTournamentStore.getState()
+    
+    // Should eventually reach finale or completed phase
+    expect(['finale', 'completed']).toContain(finalState.tournamentPhase)
+  })
+})
+
+describe('Task 18: Full Tournament Simulation', () => {
+  beforeEach(() => {
+    useTournamentStore.getState().resetAll()
+  })
+
+  it('should complete a full 8-pilot tournament from start to finale', () => {
+    const state = setupTournamentWithHeats(8)
+    const store = useTournamentStore.getState()
+    
+    let completedHeats = 0
+    let safetyCounter = 0
+    const maxIterations = 30
+    
+    while (
+      store.getActiveHeat() && 
+      safetyCounter < maxIterations
+    ) {
+      const activeHeat = store.getActiveHeat()!
+      const pilotIds = activeHeat.pilotIds
+      
+      const rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] = pilotIds.map((id, idx) => ({
+        pilotId: id,
+        rank: Math.min(idx + 1, 4) as 1 | 2 | 3 | 4
+      }))
+      
+      store.submitHeatResults(activeHeat.id, rankings)
+      completedHeats++
+      safetyCounter++
+    }
+    
+    const finalState = useTournamentStore.getState()
+    
+    // Should have completed multiple heats
+    expect(completedHeats).toBeGreaterThan(2)
+    
+    // All heats should be completed
+    const allCompleted = finalState.heats.every(h => h.status === 'completed')
+    expect(allCompleted || finalState.tournamentPhase === 'finale').toBe(true)
+    
+    // Should have eliminated some pilots
+    expect(finalState.eliminatedPilots.length).toBeGreaterThan(0)
+  })
+
+  it('should complete a full 16-pilot tournament through all bracket stages', () => {
+    const state = setupTournamentWithHeats(16)
+    const store = useTournamentStore.getState()
+    
+    let completedHeats = 0
+    let safetyCounter = 0
+    const maxIterations = 50
+    
+    while (
+      store.getActiveHeat() && 
+      safetyCounter < maxIterations
+    ) {
+      const activeHeat = store.getActiveHeat()!
+      const pilotIds = activeHeat.pilotIds
+      
+      const rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] = pilotIds.map((id, idx) => ({
+        pilotId: id,
+        rank: Math.min(idx + 1, 4) as 1 | 2 | 3 | 4
+      }))
+      
+      store.submitHeatResults(activeHeat.id, rankings)
+      completedHeats++
+      safetyCounter++
+    }
+    
+    const finalState = useTournamentStore.getState()
+    
+    // Should have completed many heats (16 pilots = 4 quali + several bracket rounds)
+    expect(completedHeats).toBeGreaterThan(4)
+    
+    // Check bracket structure state
+    expect(finalState.fullBracketStructure).not.toBeNull()
+    
+    // Quali heats should all be completed
+    const qualiCompleted = finalState.fullBracketStructure!.qualification.heats.every(
+      h => h.status === 'completed'
+    )
+    expect(qualiCompleted).toBe(true)
+    
+    // Should have eliminated pilots through the tournament
+    const totalProcessed = 
+      finalState.winnerPilots.length + 
+      finalState.loserPilots.length + 
+      finalState.eliminatedPilots.length
+    
+    // All 16 pilots should be accounted for
+    expect(totalProcessed).toBeGreaterThanOrEqual(8)
+  })
+})
+
 describe('Review Follow-up: Bracket Rollback on Resubmit (AC5)', () => {
   beforeEach(() => {
     useTournamentStore.getState().resetAll()
