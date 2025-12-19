@@ -71,7 +71,7 @@ FR6: Organisator kann ein neues Turnier starten
 FR7: System schlägt automatisch eine Heat-Aufteilung basierend auf Pilotenanzahl vor  
 FR8: System unterstützt flexible Heat-Größen (3er- und 4er-Heats)  
 FR9: Organisator kann vorgeschlagene Heat-Aufteilung bestätigen oder anpassen  
-FR10: System berechnet optimale Verteilung für 7-35 Piloten  
+FR10: System berechnet optimale Verteilung für 7-60 Piloten  
 FR11: Organisator kann den aktuellen Heat starten  
 FR12: Organisator kann in normalen Heats zwei Gewinner durch sequentielles Anklicken auswählen (1. Klick = Platz 1, 2. Klick = Platz 2)  
 FR13: Organisator kann Heat-Ergebnis mit "Fertig"-Button bestätigen  
@@ -178,7 +178,7 @@ Total FRs in epics: 36
 | FR7 | System schlägt automatisch eine Heat-Aufteilung basierend auf Pilotenanzahl vor | Corresponding Epic | ✓ Covered |
 | FR8 | System unterstützt flexible Heat-Größen (3er- und 4er-Heats) | Corresponding Epic | ✓ Covered |
 | FR9 | Organisator kann vorgeschlagene Heat-Aufteilung bestätigen oder anpassen | Corresponding Epic | ✓ Covered |
-| FR10 | System berechnet optimale Verteilung für 7-35 Piloten | Corresponding Epic | ✓ Covered |
+| FR10 | System berechnet optimale Verteilung für 7-60 Piloten | Corresponding Epic | ✓ Covered |
 | FR11 | Organisator kann den aktuellen Heat starten | Corresponding Epic | ✓ Covered |
 | FR12 | Organisator kann in normalen Heats zwei Gewinner durch sequentielles Anklicken auswählen (1. Klick = Platz 1, 2. Klick = Platz 2) | Corresponding Epic | ✓ Covered |
 | FR13 | Organisator kann Heat-Ergebnis mit "Fertig"-Button bestätigen | Corresponding Epic | ✓ Covered |
@@ -290,7 +290,7 @@ Keine kritischen Issues gefunden.
 ### Recommended Next Steps
 1. **Sprint 1 starten:** Implementiere EPIC-1 bis EPIC-3 (Piloten, Setup, Heat-Core-Loop) für schnellen MVP-Fortschritt.
 2. **Tests laufen:** Nutze Playwright E2E-Tests für Beamer-Szenarien (1920x1080).
-3. **Review nach Sprint 1:** Validiere Bracket-Logic (FR17-21) mit realen Turnier-Szenarien (7-35 Piloten).
+3. **Review nach Sprint 1:** Validiere Bracket-Logic (FR17-21) mit realen Turnier-Szenarien (7-60 Piloten).
 
 ### Final Note
 Diese Bewertung identifizierte **0 kritische Issues** in allen Kategorien. PRD (36 FRs), UX (vollständige Spec + Mockup), Architecture (Vite/Zustand/Tailwind) und Epics/Stories (100% Coverage, Best Practices konform) sind implementation-ready. Der Bericht ist unter `docs/implementation-readiness-report-2025-12-12.md` gespeichert.

@@ -57,7 +57,7 @@ fpv-racing-heats/
 │   │   ├── schemas.ts          # Zod: pilotSchema, heatSchema, tournamentSchema
 │   │   ├── storage.ts          # StorageAdapter (localStorage/server)
 │   │   ├── utils.ts            # CSV Parser, Bracket Helpers
-│   │   └── constants.ts        # MAX_PILOTS=35, COLORS.void=#0d0221
+│   │   └── constants.ts        # MAX_PILOTS=60, COLORS.void=#0d0221
 │   ├── stores/
 │   │   └── tournamentStore.ts  # Zustand Store Definition
 │   └── types/

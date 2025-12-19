@@ -8,6 +8,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Inline SVG data URL for offline-first fallback pilot image
+ * No external dependencies - works completely offline
+ */
+export const FALLBACK_PILOT_IMAGE = `data:image/svg+xml,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
+  <rect width="150" height="150" fill="#0d0221"/>
+  <circle cx="75" cy="55" r="30" fill="#ff2a6d"/>
+  <ellipse cx="75" cy="130" rx="45" ry="35" fill="#ff2a6d"/>
+  <text x="75" y="60" font-family="sans-serif" font-size="24" fill="#0d0221" text-anchor="middle">?</text>
+</svg>
+`)}`
+
+/**
  * Parse CSV text using PapaParse with robust error handling
  */
 export function parseCSV(csvText: string): Promise<CSVImportResult> {
@@ -151,14 +164,73 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
-  
+
   return (...args: Parameters<T>) => {
     if (timeout) {
       clearTimeout(timeout)
     }
-    
+
     timeout = setTimeout(() => {
       func(...args)
     }, wait)
   }
+}
+
+/**
+ * Fisher-Yates Shuffle - unbiased random permutation
+ *
+ * @param array - Array to shuffle
+ * @param seed - Optional seed for deterministic shuffling (für Tests)
+ */
+export function shuffleArray<T>(array: T[], seed?: number): T[] {
+  const shuffled = [...array]
+
+  // Seeded random für deterministische Tests
+  let random: () => number
+  if (seed !== undefined) {
+    // Simple seeded PRNG (Mulberry32)
+    let s = seed
+    random = () => {
+      s |= 0
+      s = (s + 0x6D2B79F5) | 0
+      let t = Math.imul(s ^ (s >>> 15), 1 | s)
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+  } else {
+    random = Math.random
+  }
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  return shuffled
+}
+
+/**
+ * Get consistent rank badge styling for placements
+ * 
+ * Color scheme:
+ * - 1st place: Gold
+ * - 2nd place: Silver
+ * - 3rd place: Bronze
+ * - 4th place: Neon Cyan
+ */
+export function getRankBadgeClasses(rank: number): string {
+  if (rank === 1) return 'bg-gold text-void shadow-glow-gold'
+  if (rank === 2) return 'bg-silver text-void shadow-glow-silver'
+  if (rank === 3) return 'bg-bronze text-void shadow-glow-bronze'
+  return 'bg-neon-cyan text-void shadow-glow-cyan' // rank 4+
+}
+
+/**
+ * Get consistent border styling for ranked cards
+ */
+export function getRankBorderClasses(rank: number): string {
+  if (rank === 1) return 'border-gold shadow-glow-gold'
+  if (rank === 2) return 'border-silver shadow-glow-silver'
+  if (rank === 3) return 'border-bronze shadow-glow-bronze'
+  return 'border-neon-cyan shadow-glow-cyan' // rank 4+
 }

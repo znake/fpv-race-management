@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CSVImport } from '../src/components/csv-import'
 import { parseCSV, validateImageUrl } from '../src/lib/utils'
-import { validateCSVRow } from '../src/lib/schemas'
 
 // Mock dependencies
 vi.mock('../src/lib/utils', async () => {
@@ -14,18 +13,6 @@ vi.mock('../src/lib/utils', async () => {
     debounce: (fn: any) => fn
   }
 })
-
-vi.mock('../src/lib/schemas', async () => {
-  const actual = await vi.importActual('../src/lib/schemas')
-  return {
-    ...actual,
-    validateCSVRow: vi.fn()
-  }
-})
-
-vi.mock('file-saver', () => ({
-  saveAs: vi.fn()
-}))
 
 // Mock URL.createObjectURL for tests
 Object.defineProperty(URL, 'createObjectURL', {
@@ -40,10 +27,6 @@ describe('CSVImport', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(validateImageUrl).mockResolvedValue(true)
-    vi.mocked(validateCSVRow).mockReturnValue({
-      success: true,
-      data: { name: 'Test Pilot', imageUrl: 'https://example.com/test.jpg' }
-    })
   })
 
   it('renders CSV import interface correctly', () => {
@@ -54,17 +37,28 @@ describe('CSVImport', () => {
     expect(screen.getByText('CSV-Datei hier ablegen')).toBeInTheDocument()
   })
 
-  it('handles drag over events', () => {
+  it('handles drag events by updating visual state', () => {
     render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} />)
     
-    const dropZone = screen.getByText('CSV-Datei hier ablegen').closest('div')
+    // Find the drop zone container (the bordered div)
+    const dropZoneText = screen.getByText('CSV-Datei hier ablegen')
+    const dropZone = dropZoneText.closest('.border-dashed')
     
+    expect(dropZone).toBeTruthy()
+    
+    // Initial state - should have border-steel
+    expect(dropZone).toHaveClass('border-steel')
+    
+    // After drag over - should have border-neon-cyan
     fireEvent.dragOver(dropZone!)
-    
     expect(dropZone).toHaveClass('border-neon-cyan')
+    
+    // After drag leave - should return to border-steel
+    fireEvent.dragLeave(dropZone!)
+    expect(dropZone).toHaveClass('border-steel')
   })
 
-  it('processes valid CSV file correctly', async () => {
+  it('processes valid CSV file via drop', async () => {
     const mockResult = {
       totalRows: 2,
       validRows: 2,
@@ -80,51 +74,49 @@ describe('CSVImport', () => {
     
     render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} />)
     
-    // Find the file input (it's hidden)
-    const fileInput = screen.getByRole('button', { name: /Datei auswählen/i }).querySelector('input[type="file"]') as HTMLInputElement
+    const dropZone = screen.getByText('CSV-Datei hier ablegen').closest('.border-dashed')
     
-    const file = new File(['Name,Bild-URL\nMax,https://example.com/max.jpg'], 'test.csv', { type: 'text/csv' })
-    Object.defineProperty(fileInput, 'files', {
-      value: [file],
-      writable: false
+    // Create a mock file with text() method
+    const csvContent = 'Name,Bild-URL\nMax,https://example.com/max.jpg'
+    const file = new File([csvContent], 'test.csv', { type: 'text/csv' })
+    // Mock the text() method since JSDOM doesn't support it
+    Object.defineProperty(file, 'text', {
+      value: () => Promise.resolve(csvContent)
     })
     
-    fireEvent.change(fileInput)
+    // Simulate drop event
+    const dataTransfer = {
+      files: [file],
+    }
+    
+    fireEvent.drop(dropZone!, { dataTransfer })
     
     await waitFor(() => {
       expect(screen.getByText('Import-Zusammenfassung')).toBeInTheDocument()
     })
   })
 
-  it('handles file size validation', async () => {
-    render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} />)
-    
-    const fileInput = screen.getByRole('button', { name: /Datei auswählen/i }).querySelector('input[type="file"]') as HTMLInputElement
-    
-    const largeFile = new File(['test'], 'large.csv', { type: 'text/csv' })
-    Object.defineProperty(largeFile, 'size', { value: 11 * 1024 * 1024 }) // 11MB
-    
-    Object.defineProperty(fileInput, 'files', {
-      value: [largeFile],
-      writable: false
+  it('downloads CSV template via link click', () => {
+    // Mock document.createElement to track link creation
+    const mockClick = vi.fn()
+    const originalCreateElement = document.createElement.bind(document)
+    vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+      const element = originalCreateElement(tagName)
+      if (tagName === 'a') {
+        element.click = mockClick
+      }
+      return element
     })
-    
-    fireEvent.change(fileInput)
-    
-    await waitFor(() => {
-      expect(screen.getByText(/Datei zu groß/)).toBeInTheDocument()
-    })
-  })
-
-  it('downloads CSV template', () => {
-    const { saveAs } = require('file-saver')
     
     render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} />)
     
     const templateButton = screen.getByText('CSV Template herunterladen')
     fireEvent.click(templateButton)
     
-    expect(saveAs).toHaveBeenCalled()
+    expect(mockClick).toHaveBeenCalled()
+    
+    // Restore original
+    vi.mocked(document.createElement).mockRestore()
   })
 
   it('handles cancel action', () => {

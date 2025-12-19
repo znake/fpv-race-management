@@ -66,7 +66,7 @@ so dass ich schnell vorab oder on-site Piloten erfasse.
 - **Bilder:** URL von Google Forms/extern, lazy load, error-fallback zu public/images/default-pilot.svg (32x32 SVG, FPV-Heli-Silhouette erstellen)
 - **UX Beamer:** Große Schrift (text-2xl), hoher Kontrast (Synthwave: void-black BG, neon-pink accents)
 - **CSV-Vorschau:** Bild-URLs aus CSV validieren vor Import (US-1.2 Prep)
-- **Edge Cases:** 0 Piloten → Warnung "Min. 7 für Turnier", MAX 35 → Disable Add
+- **Edge Cases:** 0 Piloten → Warnung "Min. 7 für Turnier", MAX 60 → Disable Add
 - **Performance:** Debounce Suche/Filter (useDebounce aus lib)
 
 ### Project Structure Notes

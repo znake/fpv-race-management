@@ -132,7 +132,7 @@ interface TournamentState {
 #### Validation Schemas
 - **pilotSchema:** Name (min 3 Zeichen), Bild-URL, Instagram-Handle (optional)
 - **csvImportSchema:** Unicode-Normalisierung, automatische @-Ergänzung
-- **Performance NFRs:** <3s für Piloten-Add, <5s für CSV-Import (35 Piloten)
+- **Performance NFRs:** <3s für Piloten-Add, <5s für CSV-Import (60 Piloten)
 
 ---
 
@@ -194,7 +194,7 @@ interface TournamentState {
 | Risiko | Wahrscheinlichkeit | Mitigation |
 |--------|-------------------|------------|
 | **Bracket-Algorithmus Komplexität** | Mittel | Frühzeitiger Prototyp, schrittweise Implementierung |
-| **localStorage Limit** | Niedrig | 35 Piloten ≈ 1MB, Limit 5-10MB ausreichend |
+| **localStorage Limit** | Niedrig | 60 Piloten ≈ 2MB, Limit 5-10MB ausreichend |
 | **Performance bei großen Events** | Mittel | Optimierung mit debouncing, lazy loading |
 
 ### Business Risiken

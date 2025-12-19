@@ -1,17 +1,22 @@
 import type { Pilot } from '../lib/schemas'
+import type { Heat } from '../stores/tournamentStore'
+import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
 
 type HeatBoxProps = {
-  heat: {
-    id: string
-    name: string
-    pilots: Pilot[]
-  }
+  heat: Heat
+  pilots: Pilot[]
+  onEdit?: (heatId: string) => void
   showByeHandling?: boolean
 }
 
-export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
-  const activePilots = heat.pilots.filter(p => !p.droppedOut && p.status !== 'withdrawn')
-  const withdrawnPilots = heat.pilots.filter(p => p.droppedOut || p.status === 'withdrawn')
+export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBoxProps) {
+  // Get pilot objects from pilotIds
+  const heatPilots = heat.pilotIds
+    .map((id) => pilots.find((p) => p.id === id))
+    .filter(Boolean) as Pilot[]
+    
+  const activePilots = heatPilots.filter(p => !p.droppedOut && p.status !== 'withdrawn')
+  const withdrawnPilots = heatPilots.filter(p => p.droppedOut || p.status === 'withdrawn')
   const hasBye = activePilots.length < 4 // Assuming 4 pilots per heat
 
   const getPilotStyling = (pilot: Pilot) => {
@@ -32,11 +37,34 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
     return null
   }
 
+  const getRankDisplay = (pilotId: string) => {
+    if (!heat.results) return null
+    const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
+    if (!ranking) return null
+    
+    return (
+      <span className={`
+        ml-2 px-2 py-1 rounded-full text-xs font-bold
+        ${ranking.rank === 1 ? 'bg-gold text-void shadow-glow-gold' : ''}
+        ${ranking.rank === 2 ? 'bg-neon-cyan text-void shadow-glow-cyan' : ''}
+        ${ranking.rank >= 3 ? 'bg-neon-pink text-void shadow-glow-pink' : ''}
+      `}>
+        {ranking.rank}
+      </span>
+    )
+  }
+
+  const getBorderClass = () => {
+    if (heat.status === 'completed') return 'border-winner-green shadow-glow-green'
+    if (heat.status === 'active') return 'border-neon-cyan shadow-glow-cyan'
+    return 'border-steel'
+  }
+
   return (
-    <div className="bg-night border-3 border-neon-cyan rounded-2xl p-6">
+    <div className={`bg-night border-3 rounded-2xl p-6 ${getBorderClass()}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-xl font-bold text-chrome">
-          {heat.name}
+          HEAT {heat.heatNumber}
         </h3>
         <div className="flex items-center gap-2">
           <span className="font-ui text-sm text-steel">
@@ -46,6 +74,17 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
             <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full font-bold">
               FREILOS
             </span>
+          )}
+          {heat.status === 'completed' && onEdit && (
+            <button
+              onClick={() => onEdit(heat.id)}
+              className="p-1 text-steel hover:text-neon-cyan transition-colors"
+              title="Heat bearbeiten"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
@@ -68,7 +107,7 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
                 alt={pilot.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150/ff2a6d/0d0221?text=Pilot'
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                 }}
               />
             </div>
@@ -76,6 +115,7 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
               <div className="font-display text-base font-bold text-chrome flex items-center">
                 {pilot.name}
                 {getPilotBadge(pilot)}
+                {getRankDisplay(pilot.id)}
               </div>
               <div className="font-ui text-xs text-steel">
                 Position {index + 1}
@@ -109,7 +149,7 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
                     alt={pilot.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150/ff2a6d/0d0221?text=Pilot'
+                      (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                     }}
                   />
                 </div>
@@ -149,7 +189,7 @@ export function HeatBox({ heat, showByeHandling = true }: HeatBoxProps) {
       )}
 
       {/* Empty State */}
-      {heat.pilots.length === 0 && (
+      {heatPilots.length === 0 && (
         <div className="text-center py-8">
           <div className="font-ui text-steel">
             Keine Piloten in diesem Heat

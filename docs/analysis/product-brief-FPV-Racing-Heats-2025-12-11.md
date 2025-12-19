@@ -98,7 +98,7 @@ Eine **digitale Magnettafel** – eine browserbasierte App, die:
 #### 2. Die Piloten – "Die Racer"
 
 **Profil:**
-- 20-35 Piloten pro Event
+- 20-60 Piloten pro Event
 - ~50% fliegen zum ersten Mal ein Turnier in diesem Format
 - Kein App-Zugriff, schauen auf Beamer
 
@@ -161,7 +161,7 @@ Eine **digitale Magnettafel** – eine browserbasierte App, die:
 
 | Metrik | Ziel |
 |--------|------|
-| **Turnier-Start** | App startet ohne Fehler mit beliebiger Pilotenanzahl (7-35) |
+| **Turnier-Start** | App startet ohne Fehler mit beliebiger Pilotenanzahl (7-60) |
 | **Heat-Eingabe** | Ergebnis in <10 Sekunden eingetragen (2 Klicks + Fertig) |
 | **Keine Nachfragen** | Piloten schauen auf Beamer statt Orga zu fragen |
 | **Wiederverwendung** | "Würden wir beim nächsten Event wieder nutzen" |
@@ -232,7 +232,7 @@ Da FPV Racing Heats ein Community-Tool für FPV OÖ ist, keine klassischen Busin
 #### Turnier-Logik
 
 - Automatische Heat-Aufteilung (App schlägt vor, User bestätigt)
-- Bye-System für ungerade Pilotenanzahlen (7-35 Piloten)
+- Bye-System für ungerade Pilotenanzahlen (7-60 Piloten)
 - Double Elimination: Winner-Bracket + Loser-Bracket
 - Gewinner-Auswahl: 2 Piloten anklicken → "Fertig" → nächster Heat
 

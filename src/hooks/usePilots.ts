@@ -5,11 +5,15 @@ import { useRef } from 'react'
 export function usePilots() {
   const pilots = useTournamentStore((state) => state.pilots)
   const tournamentStarted = useTournamentStore((state) => state.tournamentStarted)
+  const tournamentPhase = useTournamentStore((state) => state.tournamentPhase)
+  const heats = useTournamentStore((state) => state.heats)
   const addPilotToStore = useTournamentStore((state) => state.addPilot)
   const updatePilotInStore = useTournamentStore((state) => state.updatePilot)
   const deletePilotFromStore = useTournamentStore((state) => state.deletePilot)
   const markPilotAsDroppedOutInStore = useTournamentStore((state) => state.markPilotAsDroppedOut)
   const startTournamentInStore = useTournamentStore((state) => state.startTournament)
+  const confirmTournamentStartInStore = useTournamentStore((state) => state.confirmTournamentStart)
+  const resetTournamentInStore = useTournamentStore((state) => state.resetTournament)
   const clearAllPilotsInStore = useTournamentStore((state) => state.clearAllPilots)
   
   // Refs for optimistic updates and rollback
@@ -48,7 +52,7 @@ export function usePilots() {
   }
 
   const importPilots = async (csvPilots: Array<{ name: string; imageUrl: string; instagramHandle?: string }>) => {
-    // Performance NFR: <5s für 35 Piloten
+    // Performance NFR: <5s für 60 Piloten
     const startTime = performance.now()
     let successCount = 0
     let errorCount = 0
@@ -245,24 +249,42 @@ export function usePilots() {
     startTournamentInStore()
   }
 
+  const confirmTournamentStart = () => {
+    return confirmTournamentStartInStore()
+  }
+
+  const resetTournament = () => {
+    resetTournamentInStore()
+  }
+
   const clearAllPilots = () => {
     return clearAllPilotsInStore()
+  }
+
+  // Helper to check if we can start tournament (7-60 pilots)
+  const canStartTournament = () => {
+    return pilots.length >= 7 && pilots.length <= 60
   }
 
   return {
     pilots,
     tournamentStarted,
+    tournamentPhase,
+    heats,
     addPilot,
     importPilots,
     updatePilot,
     deletePilot,
     markPilotAsDroppedOut,
     startTournament,
+    confirmTournamentStart,
+    resetTournament,
     clearAllPilots,
     validatePilotUpdate,
     rollbackPilotUpdate,
     isTournamentStarted,
     canDeletePilot,
     canEditPilot,
+    canStartTournament,
   }
 }

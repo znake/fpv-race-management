@@ -14,7 +14,7 @@ so dass ich 20+ Piloten in Sekunden importiere.
 2. CSV-Format: Name,Bild-URL (exakt diese Spaltenreihenfolge)
 3. Zod-Validierung mit klaren Fehlermeldungen bei ungültigen Daten
 4. Duplikate werden erkannt und bieten Optionen: mergen oder überspringen
-5. Performance: <5s für 35 Piloten (useDebounce für UI-Performance)
+5. Performance: <5s für 60 Piloten (useDebounce für UI-Performance)
 6. Live-Preview während des Imports mit Fortschrittsanzeige
 7. Fehlerhafte Zeilen werden markiert, aber Import wird nicht blockiert
 8. CSV Import Interface folgt exaktem synthwave Design:
@@ -67,7 +67,7 @@ so dass ich 20+ Piloten in Sekunden importiere.
   - [ ] CSV Parser Unit Tests (malformed CSV, BOM handling, encoding)
   - [ ] Import Integration Tests (duplicates, partial imports, rollbacks)
   - [ ] Error Scenarios (large files, network errors, invalid formats)
-  - [ ] Performance Tests (35 pilots in <5s, memory usage)
+  - [ ] Performance Tests (60 pilots in <5s, memory usage)
 
 ## Dev Notes
 
@@ -101,7 +101,7 @@ so dass ich 20+ Piloten in Sekunden importiere.
 ### UX Requirements
 - **Drag&Drop Zone:** Groß, sichtbar, klare visuelle Feedbacks (hover/drop states)
 - **Preview Table:** Zeigt Validierungs-Status mit Icons (✅/❌) und Fehlerbeschreibungen
-- **Import Confirmation:** Summary vor Import: "35 Piloten gefunden, 2 Duplikate, 1 Fehler"
+- **Import Confirmation:** Summary vor Import: "X Piloten gefunden, Y Duplikate, Z Fehler"
 - **Success Feedback:** Import-Complete mit Anzahl und Link zur Pilotenliste
 
 ### Project Structure Notes

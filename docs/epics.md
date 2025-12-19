@@ -82,10 +82,20 @@ Alle Nutzer können zwischen Tabs wechseln (Piloten/Bracket/Heat), optimiert fü
 
 ### Epic 7: Offline & Persistenz
 
-Daten bleiben erhalten bei Browser-Neustart, Auto-Save nach jeder Aktion, App funktioniert vollständig offline.
+Daten bleiben erhalten bei Browser-Neustart, Auto-Save nach jeder Aktion, App funktioniert vollständig offline. Reset-Funktionen ermöglichen Neustart des Turniers oder komplettes Zurücksetzen der App.
 
 **FRs covered:** FR32, FR33, FR34, FR35  
-**Stories:** US-7.1
+**Stories:** US-7.1 (Reset-Funktionen)
+
+---
+
+### Epic 8: Zeiterfassung (Post-MVP)
+
+Thomas kann optional Zeiten pro Pilot erfassen, um Ranglisten zu erstellen oder bei Gleichstand zu entscheiden. Zeiten werden in Sekunden eingegeben (z.B. "140"), optional mit Millisekunden (z.B. "140.532"). Anzeige in Heat-Ansicht und Bracket.
+
+**FRs covered:** FR37, FR38, FR39, FR40  
+**Stories:** US-8.1 (Zeiteingabe in Heat), US-8.2 (Zeitanzeige im Bracket)  
+**MVP:** ❌ Nein – Growth Feature Phase 2
 
 ---
 
@@ -99,7 +109,8 @@ Daten bleiben erhalten bei Browser-Neustart, Auto-Save nach jeder Aktion, App fu
 | **Epic 4** | Heat-Durchführung & Bracket | FR11-21 | ✅ Must | 3 |
 | **Epic 5** | Finale & Siegerehrung | FR22-25 | ✅ Must | 1 |
 | **Epic 6** | Navigation & Beamer-Optimierung | FR26-31 | ✅ Must | 2 |
-| **Epic 7** | Offline & Persistenz | FR32-35 | ✅ Must | 1 |
+| **Epic 7** | Offline & Persistenz + Reset | FR32-35 | ✅ Must | 1 |
+| **Epic 8** | Zeiterfassung | FR37-40 | ❌ Growth | 2 |
 
 ## FR Coverage Map
 
@@ -114,7 +125,7 @@ Daten bleiben erhalten bei Browser-Neustart, Auto-Save nach jeder Aktion, App fu
 | FR7 | Epic 3 | Heat-Aufteilung Vorschlag |
 | FR8 | Epic 3 | Flexible Heat-Größen (3er/4er) |
 | FR9 | Epic 3 | Heat-Aufteilung anpassen |
-| FR10 | Epic 3 | Optimale Verteilung 7-35 Piloten |
+| FR10 | Epic 3 | Optimale Verteilung 7-60 Piloten |
 | FR11 | Epic 4 | Heat starten |
 | FR12 | Epic 4 | Gewinner auswählen (Toggle-to-Rank) |
 | FR13 | Epic 4 | Heat abschließen (Fertig-Button) |
@@ -141,6 +152,10 @@ Daten bleiben erhalten bei Browser-Neustart, Auto-Save nach jeder Aktion, App fu
 | FR34 | Epic 7 | Auto-Save nach Aktion |
 | FR35 | Epic 7 | Offline-fähig |
 | FR36 | Epic 2 | Synthwave Design (Farben, Fonts, Grid-BG, Glow, Animationen) |
+| FR37 | Epic 8 | Optionale Zeit pro Pilot eingeben (Post-MVP) |
+| FR38 | Epic 8 | Zeiteingabe in Sekunden, optional mit Millisekunden (Post-MVP) |
+| FR39 | Epic 8 | Zeitanzeige in Heat-Ansicht und Bracket (Post-MVP) |
+| FR40 | Epic 8 | Automatische lesbare Zeitformatierung (Post-MVP) |
 
 ## Sprint-Planung
 

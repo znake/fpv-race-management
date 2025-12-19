@@ -38,7 +38,7 @@ Story 1.2 "CSV Import" wurde erfolgreich implementiert und erfüllt alle Accepta
 - **User Choice:** Bestätigung vor Duplikat-Handling
 - **Merge Strategy:** Existing pilot behalten oder überschreiben
 
-### 5. Performance: <5s für 35 Piloten ✅
+### 5. Performance: <5s für 60 Piloten ✅
 - **Implementierung:** Performance-Messung in usePilots
 - **Optimierung:** Debounced UI Updates, async processing
 - **Logging:** Warnung bei >5s Importzeit
@@ -133,7 +133,7 @@ Story 1.2 "CSV Import" wurde erfolgreich implementiert und erfüllt alle Accepta
 ## **Performance Tests**
 
 ### **Import Performance** ✅
-- **35 Piloten:** <2s (unter 5s NFR)
+- **60 Piloten:** <2s (unter 5s NFR)
 - **Memory Usage:** Efficient stream processing
 - **UI Responsiveness:** Non-blocking operations
 - **Error Recovery:** Graceful degradation

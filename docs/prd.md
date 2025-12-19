@@ -116,7 +116,7 @@ Da FPV Racing Heats ein Community-Tool ist, gelten Community-Ziele statt klassis
 | Piloten-Verwaltung | Name + Bild-URL eingeben, bearbeiten, löschen |
 | CSV-Import | Google Forms Export → App in Sekunden |
 | Heat-Aufteilung | App schlägt vor, User bestätigt |
-| Flexible Heat-Größen | Unterstützt 3er- und 4er-Heats für beliebige Pilotenanzahlen (7-35) |
+| Flexible Heat-Größen | Unterstützt 3er- und 4er-Heats für beliebige Pilotenanzahlen (7-60) |
 | Gewinner-Auswahl | 2x Klicken + "Fertig" → automatische Bracket-Zuordnung |
 | Double Elimination | Winner-Bracket + Loser-Bracket |
 | Bracket-Visualisierung | Baum mit Farbcodierung (Grün/Rot) |
@@ -293,6 +293,7 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 
 | Feature | Priorität | Nutzen |
 |---------|-----------|--------|
+| **Zeiterfassung pro Pilot** | Hoch | Zeitmessung für Ranglisten und Tie-Breaking |
 | Countdown-Timer | Hoch | Piloten kommen selbstständig zum Start |
 | Nachrichten-Textfeld | Mittel | Ansagen ohne Rufen |
 | Turnier-Templates | Mittel | Einstellungen für wiederkehrende Events |
@@ -314,7 +315,7 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 | Risiko | Wahrscheinlichkeit | Mitigation |
 |--------|-------------------|------------|
 | Bracket-Algorithmus komplex | Mittel | Früh prototypen, mit 8 Piloten testen |
-| localStorage-Limit erreicht | Niedrig | 35 Piloten + Bilder = ~1MB, Limit ist 5-10MB |
+| localStorage-Limit erreicht | Niedrig | 60 Piloten + Bilder = ~2MB, Limit ist 5-10MB |
 | Browser-Absturz = Datenverlust | Mittel | Auto-Save nach jeder Aktion |
 
 **Markt-Risiken:**
@@ -347,7 +348,7 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 - **FR7:** System schlägt automatisch eine Heat-Aufteilung basierend auf Pilotenanzahl vor
 - **FR8:** System unterstützt flexible Heat-Größen (3er- und 4er-Heats)
 - **FR9:** Organisator kann vorgeschlagene Heat-Aufteilung bestätigen oder anpassen
-- **FR10:** System berechnet optimale Verteilung für 7-35 Piloten
+- **FR10:** System berechnet optimale Verteilung für 7-60 Piloten
 
 ### Heat-Durchführung
 
@@ -392,6 +393,13 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 ### Branding
 
 - **FR36:** System zeigt FPV OÖ Branding (Farben und Logo)
+
+### Zeiterfassung (Post-MVP Growth Feature)
+
+- **FR37:** Organisator kann optional eine Zeit pro Pilot nach Heat-Ergebnis eingeben
+- **FR38:** System akzeptiert Zeiteingabe in Sekunden (z.B. "140" = 140 Sekunden), optional mit Millisekunden (z.B. "140.532")
+- **FR39:** System zeigt erfasste Zeiten in der Heat-Ansicht und im Bracket an (wenn vorhanden)
+- **FR40:** System formatiert Zeiten automatisch lesbar (z.B. "2:20" für 140 Sekunden)
 
 ## Non-Functional Requirements
 

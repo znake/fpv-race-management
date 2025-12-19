@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Pilot } from '../lib/schemas'
+import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
 
 type PilotCardProps = {
   pilot: Pilot
@@ -164,9 +165,9 @@ export function PilotCard({
       {/* Action Buttons - nur auf Hover sichtbar */}
       {!isEditing && (
         <div className={`
-          absolute -top-2 -left-2 flex gap-1
+          absolute -top-2 -left-2 flex gap-1 z-10
           transition-opacity duration-200
-          ${isHovered ? 'opacity-100' : 'opacity-0'}
+          ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}>
           {!tournamentStarted && (
             <button
@@ -225,7 +226,7 @@ export function PilotCard({
               className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150/ff2a6d/0d0221?text=Pilot'
+                (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
               }}
             />
           )}

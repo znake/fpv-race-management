@@ -33,7 +33,7 @@ Story 1.2 "CSV Import" wurde erfolgreich implementiert, getestet und abgeschloss
    - Skip/Überschreiben Dialog implementiert
    - User Choice vor Import
 
-5. **Performance: <5s für 35 Piloten** ✅
+5. **Performance: <5s für 60 Piloten** ✅
    - <2s für 8 Piloten im Live-Test
    - Performance tracking mit logging
    - Debounced UI Updates

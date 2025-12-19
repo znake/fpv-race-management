@@ -22,8 +22,7 @@ describe('PilotCard', () => {
   it('renders pilot information correctly', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={false}
+        pilot={mockPilot}
       />
     )
 
@@ -35,11 +34,10 @@ describe('PilotCard', () => {
     expect(image).toHaveAttribute('alt', 'Test Pilot')
   })
 
-  it('shows action buttons when showActions is true', () => {
+  it('shows action buttons in DOM (visible on hover)', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -47,6 +45,7 @@ describe('PilotCard', () => {
       />
     )
 
+    // Buttons are always in DOM, just with opacity-0 until hover
     expect(screen.getByTitle('Bearbeiten')).toBeInTheDocument()
     expect(screen.getByTitle('Löschen')).toBeInTheDocument()
   })
@@ -54,8 +53,7 @@ describe('PilotCard', () => {
   it('shows dropout button when tournament is started', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={true}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -71,8 +69,7 @@ describe('PilotCard', () => {
   it('enters edit mode when edit button is clicked', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -92,8 +89,7 @@ describe('PilotCard', () => {
   it('calls onEdit when save is clicked with valid data', async () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -115,8 +111,7 @@ describe('PilotCard', () => {
 
     await waitFor(() => {
       expect(mockOnEdit).toHaveBeenCalledWith('test-pilot-1', {
-        name: 'Updated Pilot',
-        imageUrl: undefined
+        name: 'Updated Pilot'
       })
     })
   })
@@ -124,8 +119,7 @@ describe('PilotCard', () => {
   it('shows delete confirmation dialog when delete button is clicked', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -144,8 +138,7 @@ describe('PilotCard', () => {
   it('calls onDelete when delete is confirmed', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -167,8 +160,7 @@ describe('PilotCard', () => {
   it('calls onMarkDroppedOut when dropout button is clicked', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={true}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -187,8 +179,7 @@ describe('PilotCard', () => {
 
     render(
       <PilotCard 
-        pilot={droppedOutPilot} 
-        showActions={true}
+        pilot={droppedOutPilot}
         tournamentStarted={true}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -202,8 +193,7 @@ describe('PilotCard', () => {
   it('cancels edit mode when cancel button is clicked', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={true}
+        pilot={mockPilot}
         tournamentStarted={false}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
@@ -234,7 +224,6 @@ describe('PilotCard', () => {
       <PilotCard 
         pilot={mockPilot} 
         rank={1}
-        showActions={false}
       />
     )
 
@@ -246,14 +235,15 @@ describe('PilotCard', () => {
   it('handles image error gracefully', () => {
     render(
       <PilotCard 
-        pilot={mockPilot} 
-        showActions={false}
+        pilot={mockPilot}
       />
     )
 
     const image = screen.getByRole('img')
     fireEvent.error(image)
 
-    expect(image).toHaveAttribute('src', 'https://via.placeholder.com/150/ff2a6d/0d0221?text=Pilot')
+    // Should use offline-first SVG fallback (data URL)
+    const src = image.getAttribute('src')
+    expect(src).toMatch(/^data:image\/svg\+xml/)
   })
 })

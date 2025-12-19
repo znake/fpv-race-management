@@ -56,8 +56,8 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
     return () => subscription.unsubscribe()
   }, [form])
 
-  // Edge Cases: MAX 35 → Disable Add
-  const isMaxPilotsReached = pilots.length >= 35
+  // Edge Cases: MAX 60 → Disable Add
+  const isMaxPilotsReached = pilots.length >= 60
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 font-ui">
@@ -121,7 +121,7 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
         disabled={isMaxPilotsReached}
         className="w-full bg-neon-pink hover:shadow-glow-pink text-void font-display text-xl font-bold py-6 disabled:bg-steel disabled:shadow-none transition-all duration-200"
       >
-        {isMaxPilotsReached ? 'Max. 35 Piloten erreicht' : 'PILOT HINZUFÜGEN'}
+        {isMaxPilotsReached ? 'Max. 60 Piloten erreicht' : 'PILOT HINZUFÜGEN'}
       </Button>
 
       {/* Edge Case: 0 Piloten → Warnung */}
