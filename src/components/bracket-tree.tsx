@@ -524,6 +524,60 @@ function GrandFinaleHeatBox({
 }
 
 /**
+ * Dynamic LB Heats Section - shows dynamically generated LB heats
+ * These are heats that exist in heats[] but are NOT in the bracket structure
+ */
+function DynamicLBHeatsSection({
+  heats,
+  fullBracket,
+  pilots,
+  onHeatClick
+}: {
+  heats: Heat[]
+  fullBracket: FullBracketStructure
+  pilots: Pilot[]
+  onHeatClick: (heatId: string) => void
+}) {
+  // Get all LB heat IDs from bracket structure
+  const bracketLBHeatIds = new Set<string>()
+  for (const round of fullBracket.loserBracket.rounds) {
+    for (const heat of round.heats) {
+      bracketLBHeatIds.add(heat.id)
+    }
+  }
+
+  // Filter heats that are dynamic LB heats:
+  // - Not in bracket structure
+  // - Have bracketType === 'loser' OR have ID starting with 'lb-heat-'
+  const dynamicLBHeats = heats.filter(h =>
+    !bracketLBHeatIds.has(h.id) &&
+    (h.bracketType === 'loser' || h.id.startsWith('lb-heat-')) &&
+    !h.isFinale // Exclude LB Finale
+  )
+
+  if (dynamicLBHeats.length === 0) return null
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h3 className="font-display text-beamer-body text-loser-red text-center mb-2">
+        Dynamische LB-Heats
+      </h3>
+      <div className="space-y-3">
+        {dynamicLBHeats.map((heat) => (
+          <BracketHeatBox
+            key={heat.id}
+            heat={heat}
+            pilots={pilots}
+            bracketType="loser"
+            onClick={() => onHeatClick(heat.id)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
  * Loser Pool Visualization Component (Story 9-2 AC6)
  * Shows pilots waiting in the pool for the next LB heat
  */
@@ -539,11 +593,11 @@ function LoserPoolVisualization({
   const minPilotsNeeded = hasActiveWBHeats ? 4 : 3
   const poolSize = loserPool.length
   const isReady = poolSize >= minPilotsNeeded
-  
+
   if (poolSize === 0) return null
-  
+
   return (
-    <div 
+    <div
       className={`
         bg-night border-2 rounded-xl p-4 min-w-[180px] max-w-[220px]
         ${isReady ? 'border-loser-red shadow-glow-red' : 'border-steel border-dashed'}
@@ -553,14 +607,14 @@ function LoserPoolVisualization({
       <h3 className="font-display text-beamer-caption text-loser-red mb-2 text-center">
         LOSER POOL
       </h3>
-      
+
       {/* Pool Pilots */}
       <div className="space-y-2 mb-3">
         {loserPool.slice(0, 6).map((pilotId) => {
           const pilot = pilots.find(p => p.id === pilotId)
           return (
             <div key={pilotId} className="flex items-center gap-2">
-              <img 
+              <img
                 src={pilot?.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={pilot?.name}
                 className="w-8 h-8 rounded-full object-cover border border-steel"
@@ -580,12 +634,12 @@ function LoserPoolVisualization({
           </div>
         )}
       </div>
-      
+
       {/* Status */}
       <div className={`
         text-center py-1 px-2 rounded text-xs font-ui
-        ${isReady 
-          ? 'bg-loser-red/20 text-loser-red' 
+        ${isReady
+          ? 'bg-loser-red/20 text-loser-red'
           : 'bg-steel/20 text-steel'}
       `}>
         {poolSize}/{minPilotsNeeded} Piloten
@@ -597,31 +651,38 @@ function LoserPoolVisualization({
 
 /**
  * Loser Bracket Section - tree structure from left to right
- * Includes Pool Visualization (Story 9-2)
+ * Includes Pool Visualization and Dynamic LB Heats (Story 9-2)
  */
 function LoserBracketSection({
   fullBracket,
   pilots,
   heats,
   loserPool,
-  hasActiveWBHeats
+  hasActiveWBHeats,
+  onHeatClick
 }: {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
   loserPool: string[]
   hasActiveWBHeats: boolean
+  onHeatClick: (heatId: string) => void
 }) {
-  // Show section if there are LB rounds OR if there are pilots in the pool
-  if (!fullBracket.loserBracket.rounds.length && loserPool.length === 0) return null
-  
+  // Show section if there are LB rounds OR if there are pilots in the pool OR dynamic LB heats exist
+  const hasDynamicLBHeats = heats.some(h =>
+    (h.bracketType === 'loser' || h.id.startsWith('lb-heat-')) &&
+    !h.isFinale
+  )
+
+  if (!fullBracket.loserBracket.rounds.length && loserPool.length === 0 && !hasDynamicLBHeats) return null
+
   return (
     <section className="loser-bracket-section bg-void/50 border-2 border-loser-red/30 rounded-2xl p-6">
       <h2 className="font-display text-beamer-heat text-loser-red mb-4">
         LOSER BRACKET
       </h2>
       <div className="flex gap-8 overflow-x-auto pb-4 min-w-fit">
-        {/* Pool Visualization first (Story 9-2 AC6) */}
+        {/* Pool Visualization (Story 9-2 AC6) */}
         <div className="flex flex-col gap-4">
           <h3 className="font-display text-beamer-body text-steel text-center mb-2">
             Pool
@@ -632,7 +693,15 @@ function LoserBracketSection({
             hasActiveWBHeats={hasActiveWBHeats}
           />
         </div>
-        
+
+        {/* Dynamic LB Heats Section */}
+        <DynamicLBHeatsSection
+          heats={heats}
+          fullBracket={fullBracket}
+          pilots={pilots}
+          onHeatClick={onHeatClick}
+        />
+
         {/* LB Rounds */}
         {fullBracket.loserBracket.rounds.map((round) => (
           <BracketRoundColumn
@@ -807,6 +876,7 @@ export function BracketTree({
             heats={heats}
             loserPool={loserPool}
             hasActiveWBHeats={hasActiveWBHeats}
+            onHeatClick={handleHeatClick}
           />
           
           {/* 5. GRAND FINALE Section */}
@@ -870,7 +940,8 @@ export function BracketTree({
         heats={heats}
         loserPool={loserPool}
         hasActiveWBHeats={hasActiveWBHeats}
-          />
+        onHeatClick={handleHeatClick}
+      />
       
       {/* 5. GRAND FINALE Section - at the very bottom */}
       <GrandFinaleSection

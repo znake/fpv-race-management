@@ -1220,38 +1220,44 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Story 9-2: Get next recommended heat based on alternation (AC7)
+      // Now includes dynamic LB heats (heats with bracketType='loser' or ID starting with 'lb-heat-')
       getNextRecommendedHeat: () => {
         const { heats, lastCompletedBracketType, fullBracketStructure } = get()
-        
+
         if (!fullBracketStructure) return null
-        
-        // Get pending heats from WB and LB
+
+        // Get pending heats from WB
         const wbHeatIds = new Set<string>()
         for (const round of fullBracketStructure.winnerBracket.rounds) {
           for (const heat of round.heats) {
             wbHeatIds.add(heat.id)
           }
         }
-        
+
+        // Get all LB heat IDs from bracket structure
         const lbHeatIds = new Set<string>()
         for (const round of fullBracketStructure.loserBracket.rounds) {
           for (const heat of round.heats) {
             lbHeatIds.add(heat.id)
           }
         }
-        
-        const pendingWB = heats.filter(h => 
+
+        const pendingWB = heats.filter(h =>
           h.status === 'pending' && wbHeatIds.has(h.id)
         )
-        const pendingLB = heats.filter(h => 
-          h.status === 'pending' && lbHeatIds.has(h.id)
+
+        // Include BOTH bracket structure LB heats AND dynamic LB heats
+        // Dynamic LB heats are those with bracketType='loser' OR ID starting with 'lb-heat-'
+        const pendingLB = heats.filter(h =>
+          h.status === 'pending' &&
+          (lbHeatIds.has(h.id) || h.bracketType === 'loser' || h.id.startsWith('lb-heat-'))
         )
-        
+
         // If only one bracket has heats, return from that
         if (pendingWB.length === 0 && pendingLB.length === 0) return null
         if (pendingWB.length === 0) return pendingLB[0] ?? null
         if (pendingLB.length === 0) return pendingWB[0] ?? null
-        
+
         // Both have heats → alternate
         if (lastCompletedBracketType === 'winner' || lastCompletedBracketType === 'qualifier') {
           return pendingLB[0] // LB is next
