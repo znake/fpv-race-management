@@ -154,8 +154,9 @@ export function updateBracketAfterHeatCompletion(
       if (wbHeat) {
         wbHeat.pilotIds.push(...winners)
         
-        // If heat is full (4 pilots), set to pending
-        if (wbHeat.pilotIds.length >= 4) {
+        // Set to pending if heat has enough pilots (2+ for smaller brackets)
+        // Heat will be playable when all source heats have contributed
+        if (wbHeat.pilotIds.length >= 2) {
           wbHeat.status = 'pending'
         }
       }
@@ -167,8 +168,9 @@ export function updateBracketAfterHeatCompletion(
       if (lbHeat) {
         lbHeat.pilotIds.push(...losers)
         
-        // If heat is full (4 pilots), set to pending
-        if (lbHeat.pilotIds.length >= 4) {
+        // Set to pending if heat has enough pilots (2+ is playable)
+        // Note: 3-pilot quali heats only produce 1 loser, so LB heats may have <4 pilots
+        if (lbHeat.pilotIds.length >= 2) {
           lbHeat.status = 'pending'
         }
       }
@@ -365,10 +367,13 @@ export function isGrandFinaleReady(bracketStructure: FullBracketStructure): bool
   if (wbRounds.length === 0) return false
   
   const wbFinaleRound = wbRounds[wbRounds.length - 1]
-  const wbFinaleCompleted = wbFinaleRound.heats.every(h => 
-    h.pilotIds.length === 0 || h.status === 'completed'
-  )
+  // Only check heats that have pilots assigned (not empty placeholders)
+  const activeWBFinaleHeats = wbFinaleRound.heats.filter(h => h.pilotIds.length > 0)
   
+  // If no heats have pilots yet, WB Finale is not ready
+  if (activeWBFinaleHeats.length === 0) return false
+  
+  const wbFinaleCompleted = activeWBFinaleHeats.every(h => h.status === 'completed')
   if (!wbFinaleCompleted) return false
   
   // Check if LB Finale is completed
@@ -376,10 +381,13 @@ export function isGrandFinaleReady(bracketStructure: FullBracketStructure): bool
   if (lbRounds.length === 0) return false
   
   const lbFinaleRound = lbRounds[lbRounds.length - 1]
-  const lbFinaleCompleted = lbFinaleRound.heats.every(h =>
-    h.pilotIds.length === 0 || h.status === 'completed'
-  )
+  // Only check heats that have pilots assigned (not empty placeholders)
+  const activeLBFinaleHeats = lbFinaleRound.heats.filter(h => h.pilotIds.length > 0)
   
+  // If no heats have pilots yet, LB Finale is not ready
+  if (activeLBFinaleHeats.length === 0) return false
+  
+  const lbFinaleCompleted = activeLBFinaleHeats.every(h => h.status === 'completed')
   if (!lbFinaleCompleted) return false
   
   // Check if Grand Finale has pilots
@@ -531,7 +539,8 @@ export function updateBracketAfterWBLBHeatCompletion(
       const targetWBHeat = findBracketHeatById(updated, heat.targetHeat)
       if (targetWBHeat) {
         targetWBHeat.pilotIds.push(...winners)
-        if (targetWBHeat.pilotIds.length >= 4) {
+        // Set to pending if heat has at least 2 pilots (playable)
+        if (targetWBHeat.pilotIds.length >= 2) {
           targetWBHeat.status = 'pending'
         }
       }
@@ -551,7 +560,8 @@ export function updateBracketAfterWBLBHeatCompletion(
       const targetLBHeat = findBracketHeatById(updated, heat.targetLoserFromWB)
       if (targetLBHeat) {
         targetLBHeat.pilotIds.push(...losers)
-        if (targetLBHeat.pilotIds.length >= 4) {
+        // Set to pending if heat has at least 2 pilots (playable)
+        if (targetLBHeat.pilotIds.length >= 2) {
           targetLBHeat.status = 'pending'
         }
       }
@@ -565,7 +575,8 @@ export function updateBracketAfterWBLBHeatCompletion(
         const availableLBHeat = lbRound.heats.find(h => h.pilotIds.length < 4)
         if (availableLBHeat) {
           availableLBHeat.pilotIds.push(...losers)
-          if (availableLBHeat.pilotIds.length >= 4) {
+          // Set to pending if heat has at least 2 pilots (playable)
+          if (availableLBHeat.pilotIds.length >= 2) {
             availableLBHeat.status = 'pending'
           }
         }
@@ -577,7 +588,8 @@ export function updateBracketAfterWBLBHeatCompletion(
       const targetLBHeat = findBracketHeatById(updated, heat.targetHeat)
       if (targetLBHeat) {
         targetLBHeat.pilotIds.push(...winners)
-        if (targetLBHeat.pilotIds.length >= 4) {
+        // Set to pending if heat has at least 2 pilots (playable)
+        if (targetLBHeat.pilotIds.length >= 2) {
           targetLBHeat.status = 'pending'
         }
       }
