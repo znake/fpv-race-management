@@ -6,15 +6,16 @@ type HeatCardProps = {
   heat: Heat
   pilotsById: Map<string, Pilot>
   onEdit?: (heatId: string) => void
+  isRecommended?: boolean  // Story 9-2 AC7: Highlight recommended heat
 }
 
-export function HeatCard({ heat, pilotsById, onEdit }: HeatCardProps) {
+export function HeatCard({ heat, pilotsById, onEdit, isRecommended }: HeatCardProps) {
   const pilots = heat.pilotIds
     .map((id) => pilotsById.get(id))
     .filter(Boolean) as Pilot[]
-
+  
   const count = pilots.length
-
+  
   const getRankDisplay = (pilotId: string) => {
     if (!heat.results) return null
     const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
@@ -29,16 +30,30 @@ export function HeatCard({ heat, pilotsById, onEdit }: HeatCardProps) {
       </span>
     )
   }
-
-  const borderClass =
-    heat.status === 'active'
+  
+  // Story 9-2 AC7: Enhanced border for recommended heat
+  const getBorderClass = () => {
+    if (isRecommended && heat.status === 'pending') {
+      return 'border-neon-cyan shadow-glow-cyan animate-pulse'
+    }
+    return heat.status === 'active'
       ? 'border-neon-cyan shadow-glow-cyan'
       : heat.status === 'completed'
       ? 'border-winner-green shadow-glow-green'
       : 'border-steel'
-
+  }
+  
+  const borderClass = getBorderClass()
+  
   return (
-    <div className={`bg-night border-2 ${borderClass} rounded-2xl p-5`}>
+    <div className={`bg-night border-2 ${borderClass} rounded-2xl p-5 relative`}>
+      {/* Story 9-2 AC7: Recommended badge */}
+      {isRecommended && (
+        <div className="absolute -top-2 -right-2 bg-neon-cyan text-void text-xs font-bold px-2 py-1 rounded-full shadow-glow-cyan">
+          Empfohlen
+        </div>
+      )}
+      
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-2xl font-bold text-chrome">HEAT {heat.heatNumber}</h3>
         <div className="flex items-center gap-2">
@@ -56,7 +71,7 @@ export function HeatCard({ heat, pilotsById, onEdit }: HeatCardProps) {
           )}
         </div>
       </div>
-
+      
       <div className="space-y-3">
         {pilots.map((pilot) => (
           <div key={pilot.id} className="flex items-center gap-3 bg-void border-2 border-steel rounded-xl p-3">

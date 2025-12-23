@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useTournamentStore, type Heat, type TournamentPhase } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
 import { HeatDetailModal } from './heat-detail-modal'
@@ -524,18 +524,96 @@ function GrandFinaleHeatBox({
 }
 
 /**
+ * Loser Pool Visualization Component (Story 9-2 AC6)
+ * Shows pilots waiting in the pool for the next LB heat
+ */
+function LoserPoolVisualization({
+  loserPool,
+  pilots,
+  hasActiveWBHeats
+}: {
+  loserPool: string[]
+  pilots: Pilot[]
+  hasActiveWBHeats: boolean
+}) {
+  const minPilotsNeeded = hasActiveWBHeats ? 4 : 3
+  const poolSize = loserPool.length
+  const isReady = poolSize >= minPilotsNeeded
+  
+  if (poolSize === 0) return null
+  
+  return (
+    <div 
+      className={`
+        bg-night border-2 rounded-xl p-4 min-w-[180px] max-w-[220px]
+        ${isReady ? 'border-loser-red shadow-glow-red' : 'border-steel border-dashed'}
+      `}
+      data-testid="loser-pool-visualization"
+    >
+      <h3 className="font-display text-beamer-caption text-loser-red mb-2 text-center">
+        LOSER POOL
+      </h3>
+      
+      {/* Pool Pilots */}
+      <div className="space-y-2 mb-3">
+        {loserPool.slice(0, 6).map((pilotId) => {
+          const pilot = pilots.find(p => p.id === pilotId)
+          return (
+            <div key={pilotId} className="flex items-center gap-2">
+              <img 
+                src={pilot?.imageUrl || FALLBACK_PILOT_IMAGE}
+                alt={pilot?.name}
+                className="w-8 h-8 rounded-full object-cover border border-steel"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                }}
+              />
+              <span className="font-ui text-xs text-chrome truncate">
+                {pilot?.name}
+              </span>
+            </div>
+          )
+        })}
+        {loserPool.length > 6 && (
+          <div className="text-center text-steel text-xs">
+            +{loserPool.length - 6} weitere
+          </div>
+        )}
+      </div>
+      
+      {/* Status */}
+      <div className={`
+        text-center py-1 px-2 rounded text-xs font-ui
+        ${isReady 
+          ? 'bg-loser-red/20 text-loser-red' 
+          : 'bg-steel/20 text-steel'}
+      `}>
+        {poolSize}/{minPilotsNeeded} Piloten
+        {isReady ? ' → Heat bereit!' : ' → Warte...'}
+      </div>
+    </div>
+  )
+}
+
+/**
  * Loser Bracket Section - tree structure from left to right
+ * Includes Pool Visualization (Story 9-2)
  */
 function LoserBracketSection({
   fullBracket,
   pilots,
-  heats
+  heats,
+  loserPool,
+  hasActiveWBHeats
 }: {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
+  loserPool: string[]
+  hasActiveWBHeats: boolean
 }) {
-  if (!fullBracket.loserBracket.rounds.length) return null
+  // Show section if there are LB rounds OR if there are pilots in the pool
+  if (!fullBracket.loserBracket.rounds.length && loserPool.length === 0) return null
   
   return (
     <section className="loser-bracket-section bg-void/50 border-2 border-loser-red/30 rounded-2xl p-6">
@@ -543,6 +621,19 @@ function LoserBracketSection({
         LOSER BRACKET
       </h2>
       <div className="flex gap-8 overflow-x-auto pb-4 min-w-fit">
+        {/* Pool Visualization first (Story 9-2 AC6) */}
+        <div className="flex flex-col gap-4">
+          <h3 className="font-display text-beamer-body text-steel text-center mb-2">
+            Pool
+          </h3>
+          <LoserPoolVisualization
+            loserPool={loserPool}
+            pilots={pilots}
+            hasActiveWBHeats={hasActiveWBHeats}
+          />
+        </div>
+        
+        {/* LB Rounds */}
         {fullBracket.loserBracket.rounds.map((round) => (
           <BracketRoundColumn
             key={round.id}
@@ -580,6 +671,25 @@ export function BracketTree({
   const heats = useTournamentStore(state => state.heats)
   const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
+  const loserPool = useTournamentStore(state => state.loserPool)
+  
+  // Check if WB has pending/active heats locally (for pool visualization)
+  const hasActiveWBHeats = useMemo(() => {
+    if (!fullBracketStructure) return false
+    for (const round of fullBracketStructure.winnerBracket.rounds) {
+      for (const bracketHeat of round.heats) {
+        const actualHeat = heats.find(h => h.id === bracketHeat.id)
+        if (actualHeat) {
+          if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
+            return true
+          }
+        } else if (bracketHeat.pilotIds.length > 0 && bracketHeat.status !== 'completed') {
+          return true
+        }
+      }
+    }
+    return false
+  }, [fullBracketStructure, heats])
   
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)
@@ -695,6 +805,8 @@ export function BracketTree({
             fullBracket={fullBracketStructure}
             pilots={pilots}
             heats={heats}
+            loserPool={loserPool}
+            hasActiveWBHeats={hasActiveWBHeats}
           />
           
           {/* 5. GRAND FINALE Section */}
@@ -756,7 +868,9 @@ export function BracketTree({
         fullBracket={fullBracketStructure}
         pilots={pilots}
         heats={heats}
-      />
+        loserPool={loserPool}
+        hasActiveWBHeats={hasActiveWBHeats}
+          />
       
       {/* 5. GRAND FINALE Section - at the very bottom */}
       <GrandFinaleSection

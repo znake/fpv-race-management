@@ -99,6 +99,17 @@ Thomas kann optional Zeiten pro Pilot erfassen, um Ranglisten zu erstellen oder 
 
 ---
 
+### Epic 9: Loser Bracket Pooling
+
+Refactoring des Loser Brackets von vorberechneter Struktur zu dynamischem Pool-System. Verlierer werden in einem Pool gesammelt bis genug für einen Heat vorhanden sind (3-4 Piloten). Löst das Problem von nicht-spielbaren LB-Heats mit nur 1-2 Piloten.
+
+**Quelle:** Change Proposal LB-Pooling (2025-12-23)  
+**Severity:** Critical - Blocking Tournament Functionality  
+**Stories:** US-9.1, US-9.2, US-9.3  
+**MVP:** ✅ Must – Korrektur der bestehenden LB-Logik
+
+---
+
 ## Epics-Übersicht
 
 | Epic | Beschreibung | FRs | MVP? | Stories |
@@ -111,6 +122,7 @@ Thomas kann optional Zeiten pro Pilot erfassen, um Ranglisten zu erstellen oder 
 | **Epic 6** | Navigation & Beamer-Optimierung | FR26-31 | ✅ Must | 2 |
 | **Epic 7** | Offline & Persistenz + Reset | FR32-35 | ✅ Must | 1 |
 | **Epic 8** | Zeiterfassung | FR37-40 | ❌ Growth | 2 |
+| **Epic 9** | Loser Bracket Pooling | CP-LB | ✅ Must | 3 |
 
 ## FR Coverage Map
 
@@ -162,3 +174,4 @@ Thomas kann optional Zeiten pro Pilot erfassen, um Ranglisten zu erstellen oder 
 1. **Sprint 1:** Epic 1 (Piloten-Verwaltung) + Epic 2 (Synthwave Design)
 2. **Sprint 2:** Epic 3 (Turnier-Setup) + Epic 4 (Heat & Bracket)
 3. **Sprint 3:** Epic 5 (Finale) + Epic 6 (Navigation) + Epic 7 (Persistenz)
+4. **Sprint 4:** Epic 9 (Loser Bracket Pooling) – Critical Bug Fix

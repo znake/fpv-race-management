@@ -102,6 +102,13 @@ interface TournamentState {
     place4: Pilot | undefined 
   } | null
   completeTournament: () => void
+  
+  // Story 9-2: Dynamic LB Heat Generation
+  lastCompletedBracketType: 'winner' | 'loser' | 'qualifier' | null
+  canGenerateLBHeat: () => boolean
+  generateLBHeat: () => Heat | null
+  getNextRecommendedHeat: () => Heat | null
+  hasActiveWBHeats: () => boolean
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -117,6 +124,7 @@ export const useTournamentStore = create<TournamentState>()(
       eliminatedPilots: [],
       loserPool: [],
       fullBracketStructure: null,
+      lastCompletedBracketType: null as 'winner' | 'loser' | 'qualifier' | null,
       
       addPilot: (input) => {
         const { pilots } = get()
@@ -288,7 +296,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
-          fullBracketStructure: null
+          fullBracketStructure: null,
+          lastCompletedBracketType: null
           // pilots bleiben unverändert!
         })
       },
@@ -304,7 +313,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
-          fullBracketStructure: null
+          fullBracketStructure: null,
+          lastCompletedBracketType: null
         })
       },
 
@@ -320,7 +330,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
-          fullBracketStructure: null
+          fullBracketStructure: null,
+          lastCompletedBracketType: null
         })
         // localStorage komplett leeren für sauberen Neustart
         localStorage.removeItem('tournament-storage')
@@ -427,7 +438,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
-          fullBracketStructure: null
+          fullBracketStructure: null,
+          lastCompletedBracketType: null
         })
         return true
       },
@@ -688,6 +700,79 @@ export const useTournamentStore = create<TournamentState>()(
           newPhase = 'finale'
         }
         
+        // Story 9-2: Track lastCompletedBracketType for alternation
+        let completedBracketType: 'winner' | 'loser' | 'qualifier' | null = null
+        if (bracketType === 'qualification') {
+          completedBracketType = 'qualifier'
+        } else if (bracketType === 'winner') {
+          completedBracketType = 'winner'
+        } else if (bracketType === 'loser') {
+          completedBracketType = 'loser'
+          
+          // Story 9-2 AC3: LB winners (rank 1+2) go back to pool
+          for (const ranking of rankings) {
+            if (ranking.rank === 1 || ranking.rank === 2) {
+              newLoserPool.add(ranking.pilotId)
+            } else if (ranking.rank === 3 || ranking.rank === 4) {
+              // LB losers are eliminated - remove from pool if they're there
+              newLoserPool.delete(ranking.pilotId)
+              newEliminatedPilots.add(ranking.pilotId)
+            }
+          }
+        }
+        
+        // Story 9-2 Task 4-5: Auto-generate LB heat after WB/LB heat if pool >= 4
+        // This must happen AFTER updating newLoserPool but BEFORE set()
+        const loserPoolArray = Array.from(newLoserPool)
+        
+        // Check if WB still has pending/active heats
+        let hasActiveWB = false
+        if (updatedBracketStructure) {
+          for (const round of updatedBracketStructure.winnerBracket.rounds) {
+            for (const wbHeat of round.heats) {
+              const actualHeat = updatedHeats.find(h => h.id === wbHeat.id)
+              if (actualHeat) {
+                if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
+                  hasActiveWB = true
+                  break
+                }
+              } else if (wbHeat.pilotIds.length > 0 && wbHeat.status !== 'completed') {
+                hasActiveWB = true
+                break
+              }
+            }
+            if (hasActiveWB) break
+          }
+        }
+        
+        // Determine if we should auto-generate LB heat
+        // Note: We allow generation during 'finale' phase if WB is still active
+        // because 'finale' might be set prematurely when heats[] doesn't reflect full bracket yet
+        const minPoolForLB = hasActiveWB ? 4 : 3
+        const shouldAutoGenerate = loserPoolArray.length >= minPoolForLB && 
+                                   newPhase !== 'completed' &&
+                                   (newPhase !== 'finale' || hasActiveWB)
+        if (shouldAutoGenerate) {
+          const heatSize = hasActiveWB ? 4 : Math.min(4, loserPoolArray.length)
+          const shuffledPool = shuffleArray([...loserPoolArray])
+          const pilotsForNewLBHeat = shuffledPool.slice(0, heatSize)
+          
+          // Remove selected pilots from pool
+          for (const pilotId of pilotsForNewLBHeat) {
+            newLoserPool.delete(pilotId)
+          }
+          
+          // Create new LB heat
+          const newLBHeat: Heat = {
+            id: `lb-heat-${crypto.randomUUID()}`,
+            heatNumber: updatedHeats.length + 1,
+            pilotIds: pilotsForNewLBHeat,
+            status: 'pending',
+          }
+          
+          updatedHeats = [...updatedHeats, newLBHeat]
+        }
+        
         set({ 
           heats: updatedHeats,
           currentHeatIndex: newCurrentHeatIndex,
@@ -696,7 +781,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
           loserPool: Array.from(newLoserPool),
-          fullBracketStructure: updatedBracketStructure
+          fullBracketStructure: updatedBracketStructure,
+          lastCompletedBracketType: completedBracketType
         })
       },
 
@@ -918,6 +1004,123 @@ export const useTournamentStore = create<TournamentState>()(
           tournamentPhase: 'completed',
           fullBracketStructure: updatedBracket
         })
+      },
+
+      // Story 9-2: Check if there are pending/active WB heats
+      hasActiveWBHeats: () => {
+        const { fullBracketStructure, heats } = get()
+        if (!fullBracketStructure) return false
+        
+        // Check all WB rounds for pending/active heats
+        for (const round of fullBracketStructure.winnerBracket.rounds) {
+          for (const bracketHeat of round.heats) {
+            // Find actual heat in heats[]
+            const actualHeat = heats.find(h => h.id === bracketHeat.id)
+            if (actualHeat) {
+              if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
+                return true
+              }
+            } else {
+              // Heat not in heats[] yet but has pilots → considered pending
+              if (bracketHeat.pilotIds.length > 0 && bracketHeat.status !== 'completed') {
+                return true
+              }
+            }
+          }
+        }
+        
+        return false
+      },
+
+      // Story 9-2: Check if LB heat can be generated (AC1, AC5)
+      canGenerateLBHeat: () => {
+        const { loserPool, hasActiveWBHeats } = get()
+        const poolSize = loserPool.length
+        
+        if (poolSize === 0) return false
+        
+        const isWBActive = hasActiveWBHeats()
+        
+        if (isWBActive) {
+          // Während WB aktiv: Warte auf volle 4er-Heats
+          return poolSize >= 4
+        } else {
+          // Nach WB: Auch 3er-Heats erlaubt
+          return poolSize >= 3
+        }
+      },
+
+      // Story 9-2: Generate LB heat from pool (AC1, AC2)
+      generateLBHeat: () => {
+        const { loserPool, heats, canGenerateLBHeat, hasActiveWBHeats, removeFromLoserPool } = get()
+        
+        if (!canGenerateLBHeat()) {
+          return null
+        }
+        
+        const isWBActive = hasActiveWBHeats()
+        const heatSize = isWBActive ? 4 : Math.min(4, loserPool.length)
+        
+        // Shuffle pool and take pilots for heat
+        const shuffledPool = shuffleArray([...loserPool])
+        const pilotsForHeat = shuffledPool.slice(0, heatSize)
+        
+        // Remove from pool
+        removeFromLoserPool(pilotsForHeat)
+        
+        // Create new heat
+        const newHeat: Heat = {
+          id: `lb-heat-${crypto.randomUUID()}`,
+          heatNumber: heats.length + 1,
+          pilotIds: pilotsForHeat,
+          status: 'pending',
+        }
+        
+        // Add to heats array
+        set({ heats: [...heats, newHeat] })
+        
+        return newHeat
+      },
+
+      // Story 9-2: Get next recommended heat based on alternation (AC7)
+      getNextRecommendedHeat: () => {
+        const { heats, lastCompletedBracketType, fullBracketStructure } = get()
+        
+        if (!fullBracketStructure) return null
+        
+        // Get pending heats from WB and LB
+        const wbHeatIds = new Set<string>()
+        for (const round of fullBracketStructure.winnerBracket.rounds) {
+          for (const heat of round.heats) {
+            wbHeatIds.add(heat.id)
+          }
+        }
+        
+        const lbHeatIds = new Set<string>()
+        for (const round of fullBracketStructure.loserBracket.rounds) {
+          for (const heat of round.heats) {
+            lbHeatIds.add(heat.id)
+          }
+        }
+        
+        const pendingWB = heats.filter(h => 
+          h.status === 'pending' && wbHeatIds.has(h.id)
+        )
+        const pendingLB = heats.filter(h => 
+          h.status === 'pending' && lbHeatIds.has(h.id)
+        )
+        
+        // If only one bracket has heats, return from that
+        if (pendingWB.length === 0 && pendingLB.length === 0) return null
+        if (pendingWB.length === 0) return pendingLB[0] ?? null
+        if (pendingLB.length === 0) return pendingWB[0] ?? null
+        
+        // Both have heats → alternate
+        if (lastCompletedBracketType === 'winner' || lastCompletedBracketType === 'qualifier') {
+          return pendingLB[0] // LB is next
+        } else {
+          return pendingWB[0] // WB is next
+        }
       },
     }),
     {

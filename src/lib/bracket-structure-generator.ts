@@ -459,6 +459,12 @@ export function generateFullBracketStructure(pilotCount: number): FullBracketStr
   // =====================================
   // LOSER BRACKET (NEW: Using calculated structure)
   // =====================================
+  // STORY 9-2 NOTE: The LB structure is pre-calculated for VISUALIZATION ONLY.
+  // Actual LB heats are generated DYNAMICALLY via generateLBHeat() in tournamentStore
+  // when the loserPool has >= 4 pilots (or >= 3 after WB is complete).
+  // The pre-calculated structure shows the expected bracket shape, but heats are
+  // filled dynamically as pilots lose in WB and LB.
+  //
   // Use the new calculateLBRoundStructure to get the correct number of heats
   // per round, ensuring no heat exceeds 4 pilots.
   

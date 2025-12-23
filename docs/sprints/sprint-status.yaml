@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2025-12-12
-updated: 2025-12-20T12:20:00Z
+updated: 2025-12-23T10:00:00Z
 project: FPV Racing Heats
 project_key: 
 tracking_system: file-system
@@ -88,3 +88,12 @@ development_status:
   epic-7: done  # Alle FRs erfüllt 2025-12-20
   7-1-reset-funktionen: done  # Implementiert inkl. UI-Dialoge und Tests
   epic-7-retrospective: optional
+
+  # Epic 9 - Loser Bracket Pooling (Critical Bug Fix)
+  # Quelle: Change Proposal LB-Pooling 2025-12-23
+  # Ersetzt vorberechnete LB-Struktur durch dynamisches Pool-System
+  epic-9: backlog
+  9-1-loser-pool-state: ready-for-dev  # Pool State & Basis-Logik
+  9-2-dynamische-lb-heat-generierung: ready-for-dev  # LB-Heats aus Pool generieren + Visualisierung
+  9-3-lb-finale-grand-finale: ready-for-dev  # Finale-Erkennung, Grand Finale
+  epic-9-retrospective: optional
