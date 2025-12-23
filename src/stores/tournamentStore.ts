@@ -49,7 +49,17 @@ interface TournamentState {
   tournamentPhase: TournamentPhase
   heats: Heat[]
   currentHeatIndex: number
-  
+
+  // Story 4-2: NEU für Dynamisches Bracket
+  winnerPool: string[]        // Gewinner für nächsten WB-Heat (FIFO)
+  grandFinalePool: string[]   // WB-Finale-Gewinner + LB-Finale-Gewinner
+
+  // Status-Flags (Story 4-2)
+  isQualificationComplete: boolean
+  isWBFinaleComplete: boolean
+  isLBFinaleComplete: boolean
+  isGrandFinaleComplete: boolean
+
   // Pilot management actions
   addPilot: (input: { name: string; imageUrl: string; instagramHandle?: string }) => boolean
   updatePilot: (id: string, updates: { name?: string; imageUrl?: string; instagramHandle?: string }) => boolean
@@ -87,12 +97,16 @@ interface TournamentState {
   // Story 9-1: Loser Pool State
   // Pool sammelt WB-Verlierer bis genug für LB-Heat vorhanden sind
   loserPool: string[]
-  
+
   // Story 9-1: Loser Pool Actions
   addToLoserPool: (pilotIds: string[]) => void
   removeFromLoserPool: (pilotIds: string[]) => void
   eliminatePilots: (pilotIds: string[]) => void
-  
+
+  // Story 4-2: Winner Pool Actions
+  addToWinnerPool: (pilotIds: string[]) => void
+  removeFromWinnerPool: (count: number) => void
+
   // NEW: Full bracket structure with 3 sections (Story 4.3 REDESIGN)
   fullBracketStructure: FullBracketStructure | null
   getFullBracketStructure: () => FullBracketStructure | null
@@ -115,7 +129,7 @@ interface TournamentState {
   hasActiveWBHeats: () => boolean
 
   // Story 9-3: LB Finale & Grand Finale
-  isWBFinaleComplete: () => boolean
+  checkWBFinaleComplete: () => boolean  // Renamed from isWBFinaleComplete to avoid conflict with state flag
   checkForLBFinale: () => boolean
   generateLBFinale: () => Heat | null
   generateGrandFinale: () => Heat | null
@@ -134,9 +148,16 @@ export const useTournamentStore = create<TournamentState>()(
       loserPilots: [],
       eliminatedPilots: [],
       loserPool: [],
+      // Story 4-2: NEU für Dynamisches Bracket
+      winnerPool: [],
+      grandFinalePool: [],
+      isQualificationComplete: false,
+      isWBFinaleComplete: false,
+      isLBFinaleComplete: false,
+      isGrandFinaleComplete: false,
       fullBracketStructure: null,
       lastCompletedBracketType: null as 'winner' | 'loser' | 'qualifier' | null,
-      
+
       addPilot: (input) => {
         const { pilots } = get()
         if (pilots.length >= 60) return false
@@ -307,6 +328,13 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
+          // Story 4-2: Reset neue Pool States
+          winnerPool: [],
+          grandFinalePool: [],
+          isQualificationComplete: false,
+          isWBFinaleComplete: false,
+          isLBFinaleComplete: false,
+          isGrandFinaleComplete: false,
           fullBracketStructure: null,
           lastCompletedBracketType: null
           // pilots bleiben unverändert!
@@ -324,6 +352,13 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
+          // Story 4-2: Reset neue Pool States
+          winnerPool: [],
+          grandFinalePool: [],
+          isQualificationComplete: false,
+          isWBFinaleComplete: false,
+          isLBFinaleComplete: false,
+          isGrandFinaleComplete: false,
           fullBracketStructure: null,
           lastCompletedBracketType: null
         })
@@ -341,6 +376,13 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: [],
           eliminatedPilots: [],
           loserPool: [],
+          // Story 4-2: Reset neue Pool States
+          winnerPool: [],
+          grandFinalePool: [],
+          isQualificationComplete: false,
+          isWBFinaleComplete: false,
+          isLBFinaleComplete: false,
+          isGrandFinaleComplete: false,
           fullBracketStructure: null,
           lastCompletedBracketType: null
         })
@@ -475,17 +517,36 @@ export const useTournamentStore = create<TournamentState>()(
         const { loserPool, eliminatedPilots } = get()
         const existingEliminated = new Set(eliminatedPilots)
         const idsToEliminate = new Set(pilotIds)
-        
+
         // Remove from loserPool
         const newLoserPool = loserPool.filter(id => !idsToEliminate.has(id))
-        
+
         // Add to eliminatedPilots (avoiding duplicates)
         const newEliminated = pilotIds.filter(id => !existingEliminated.has(id))
-        
-        set({ 
+
+        set({
           loserPool: newLoserPool,
           eliminatedPilots: [...eliminatedPilots, ...newEliminated]
         })
+      },
+
+      // Story 4-2: Winner Pool Actions
+      addToWinnerPool: (pilotIds) => {
+        const { winnerPool } = get()
+        const existingIds = new Set(winnerPool)
+        const newPilots = pilotIds.filter(id => !existingIds.has(id))
+        if (newPilots.length > 0) {
+          set({ winnerPool: [...winnerPool, ...newPilots] })
+        }
+      },
+
+      removeFromWinnerPool: (count) => {
+        const { winnerPool } = get()
+        // FIFO: Entferne die ersten N Piloten
+        const toRemove = winnerPool.slice(0, count)
+        const remaining = winnerPool.slice(count)
+        set({ winnerPool: remaining })
+        return toRemove
       },
 
       // Story 4.1 + 4.2: Heat result actions with bracket progression
@@ -1047,7 +1108,7 @@ export const useTournamentStore = create<TournamentState>()(
       // Story 9-3: LB Finale & Grand Finale
 
       // Check if WB Finale is completed
-      isWBFinaleComplete: () => {
+      checkWBFinaleComplete: () => {
         const { fullBracketStructure, heats } = get()
         if (!fullBracketStructure) return false
 
@@ -1085,13 +1146,13 @@ export const useTournamentStore = create<TournamentState>()(
 
       // Check if LB Finale can be generated
       checkForLBFinale: () => {
-        const { isWBFinaleComplete, loserPool, hasActiveLBHeats } = get()
+        const { checkWBFinaleComplete, loserPool, hasActiveLBHeats } = get()
 
         // LB Finale wenn:
         // 1. WB Finale ist abgeschlossen
         // 2. Pool hat noch Piloten (1-4)
         // 3. Kein weiterer LB-Heat (nicht finale) läuft
-        return isWBFinaleComplete() &&
+        return checkWBFinaleComplete() &&
                loserPool.length >= 1 &&
                loserPool.length <= 4 &&
                !hasActiveLBHeats()

@@ -1,518 +1,358 @@
-# Story 4.2: Heat abschliessen & Bracket-Progression
+# Story 4.2: Heat abschliessen & Dynamische Bracket-Progression
 
-Status: done
+**Status:** in-progress
+**Updated:** 2025-12-23
+**Source:** [Course Correction Dynamic Brackets 2025-12-23](../change-proposals/course-correction-dynamic-brackets-2025-12-23.md)
 
-> **⚠️ COURSE CORRECTION 2025-12-19**
-> Story wurde erneut geöffnet. Bracket-Progression ist nur für Quali → WB/LB R1 implementiert.
-> Vollständige Progression (WB/LB weitere Runden, WB→LB Einspeisung, Finale) fehlt.
-> Siehe: `docs/sprint-change-proposal-2025-12-19.md`
-
-> **⚠️ COURSE CORRECTION 2025-12-17**
-> Story wurde zurückgesetzt. Bracket-Progression (AC 2, 3, 4) unvollständig implementiert.
-> Siehe: `docs/sprint-change-proposal-2025-12-17.md`
+> **🔄 COURSE CORRECTION 2025-12-23**
+> Story wurde überarbeitet für vollständiges dynamisches Bracket-System.
+> Keine vorberechneten Strukturen mehr. WB + LB sind beide dynamisch.
+> Siehe: `docs/sprints/change-proposals/course-correction-dynamic-brackets-2025-12-23.md`
 
 ## Story
 
-**Als ein** Organisator (Thomas),  
-**möchte ich** nach Eingabe der Platzierungen den Heat abschließen und die Piloten automatisch in Winner- oder Loser-Bracket einordnen lassen,  
-**so dass** ich nicht manuell rechnen muss, wer wohin kommt, und das Turnier flüssig weiterläuft.
+**Als ein** Organisator (Thomas),
+**möchte ich** nach Eingabe der Platzierungen den Heat abschließen und die Piloten automatisch in Winner- oder Loser-Bracket Pools einordnen lassen,
+**so dass** neue Heats dynamisch erstellt werden, basierend auf den Ergebnissen, ohne vorberechnete Bracket-Strukturen.
 
 ## Acceptance Criteria
 
 ### AC 1: Heat abschließen mit Fertig-Button
 
-**Given** ich bin in der ActiveHeatView  
-**And** mindestens 2 Piloten haben Platzierungen (Rang 1 + Rang 2)  
-**When** ich auf den "Fertig"-Button klicke  
-**Then** wird der Heat-Status auf 'completed' gesetzt  
-**And** die eingegebenen Rankings werden im Heat gespeichert  
+**Given** ich bin in der ActiveHeatView
+**And** mindestens 2 Piloten haben Platzierungen (Rang 1 + Rang 2)
+**When** ich auf den "Fertig"-Button klicke
+**Then** wird der Heat-Status auf 'completed' gesetzt
+**And** die eingegebenen Rankings werden im Heat gespeichert
 **And** ein `completedAt` Timestamp wird gesetzt
 
-### AC 2: Automatische Bracket-Zuordnung (Winner)
+### AC 2: Dynamische WB-Progression (NEU)
 
-**Given** ein Heat wurde abgeschlossen  
-**And** der Heat hat mindestens 2 platzierte Piloten  
-**When** das Bracket aktualisiert wird  
-**Then** werden Piloten mit Rang 1 und 2 dem Winner-Bracket zugeordnet  
-**And** ihre neue Position im Bracket wird berechnet
+**Given** ein Qualifikations-Heat wurde abgeschlossen
+**And** alle Quali-Heats sind fertig
+**When** das WB Pool >= 4 Piloten hat
+**Then** wird ein neuer WB-Heat automatisch erstellt
+**And** die ersten 4 Piloten aus dem WB Pool werden dem Heat zugewiesen
+**And** die Piloten werden aus dem Pool entfernt
 
-### AC 3: Automatische Bracket-Zuordnung (Loser)
+### AC 3: WB-Heat Progression
 
-**Given** ein Heat wurde abgeschlossen  
-**And** der Heat hat mehr als 2 platzierte Piloten  
-**When** das Bracket aktualisiert wird  
-**Then** werden Piloten mit Rang 3 und 4 dem Loser-Bracket zugeordnet  
-**And** sie haben noch eine zweite Chance (Double Elimination)
+**Given** ein WB-Heat wurde abgeschlossen
+**When** das Bracket aktualisiert wird
+**Then** werden Piloten mit Rang 1 und 2 in den WB Pool eingefügt (am Ende)
+**And** wenn WB Pool >= 4 Piloten hat → Neuer WB-Heat wird erstellt
+**And** wenn WB Pool + Gewinner <= 2 Piloten → WB Finale wird erstellt
+**And** Piloten mit Rang 3 und 4 gehen in den Loser Pool (am Ende)
 
-### AC 4: Nächster Heat wird automatisch aktiviert
+### AC 4: Dynamische LB-Progression (NEU)
 
-**Given** ein Heat wurde abgeschlossen  
-**When** es noch weitere Heats mit Status 'pending' gibt  
-**Then** wird der nächste Heat automatisch auf 'active' gesetzt  
-**And** `currentHeatIndex` wird aktualisiert  
+**Given** ein WB- oder LB-Heat wurde abgeschlossen
+**And** noch weitere WB-Heats sind aktiv
+**When** der Loser Pool >= 4 Piloten hat
+**Then** wird ein neuer LB-Heat mit den ersten 4 Piloten aus dem Pool erstellt (FIFO)
+**And** die Piloten werden aus dem Pool entfernt
+
+### AC 5: Warten auf Verlierer wenn WB noch aktiv (NEU)
+
+**Given** ein WB-Heat wurde abgeschlossen
+**And** noch weitere WB-Heats sind ausstehend
+**And** der Loser Pool hat nur 2-3 Piloten
+**When** das System prüft ob ein LB-Heat erstellt werden kann
+**Then** wird gewartet, bis weitere WB-Verlierer hinzukommen
+**And** erst wenn Pool >= 4 Piloten wird LB-Heat erstellt
+
+### AC 6: LB-Heat Progression
+
+**Given** ein LB-Heat wurde abgeschlossen
+**When** das Bracket aktualisiert wird
+**Then** werden Piloten mit Rang 1 und 2 in den Loser Pool eingefügt (am Ende)
+**And** wenn noch WB-Heats aktiv und Pool >= 4 → Neuer LB-Heat wird erstellt
+**And** wenn WB fertig und Pool >= 3 → LB Finale wird erstellt
+**And** Piloten mit Rang 3 und 4 werden eliminiert
+
+### AC 7: Nächster Heat wird automatisch aktiviert
+
+**Given** ein Heat wurde abgeschlossen
+**When** es noch weitere Heats mit Status 'pending' gibt
+**Then** wird der nächste Heat automatisch auf 'active' gesetzt
+**And** `currentHeatIndex` wird aktualisiert
 **And** die ActiveHeatView zeigt den neuen Heat
 
-**Given** ein Heat wurde abgeschlossen  
-**When** alle Heats der aktuellen Runde completed sind  
-**Then** werden die nächsten Bracket-Heats generiert (wenn nötig)
+### AC 8: Heat-Ergebnis korrigieren (Edit-Mode)
 
-### AC 5: Heat-Ergebnis korrigieren (Edit-Mode)
+**Given** ein Heat hat Status 'completed'
+**When** ich auf den Edit-Button (Stift-Icon) am Heat klicke
+**Then** öffnet sich der Heat im Edit-Modus
+**And** ich kann die Platzierungen neu vergeben
+**And** nach "Fertig" wird das Pool-System rückwirkend aktualisiert
 
-**Given** ein Heat hat Status 'completed'  
-**When** ich auf den Edit-Button (Stift-Icon) am Heat klicke  
-**Then** öffnet sich der Heat im Edit-Modus  
-**And** ich kann die Platzierungen neu vergeben  
-**And** nach "Fertig" wird das Bracket rückwirkend aktualisiert
+### AC 9: Visuelles Feedback bei Abschluss
 
-### AC 6: Visuelles Feedback bei Abschluss
-
-**Given** ich klicke auf "Fertig"  
-**When** der Heat erfolgreich abgeschlossen wird  
-**Then** erscheint ein kurzer visueller Success-Pulse (300ms)  
-**And** die HeatBox im Bracket zeigt die vergebenen Ränge  
+**Given** ich klicke auf "Fertig"
+**When** der Heat erfolgreich abgeschlossen wird
+**Then** erscheint ein kurzer visueller Success-Pulse (300ms)
+**And** die HeatBox im Bracket zeigt die vergebenen Ränge
 **And** der Border der HeatBox wechselt zu Winner-Green mit Glow
 
 ## Tasks / Subtasks
 
-- [x] Task 1: submitHeatResults Store-Action implementieren (AC: 1, 2, 3, 4)
-  - [x] Action-Signatur: `submitHeatResults(heatId: string, rankings: { pilotId: string; rank: 1|2|3|4 }[])`
-  - [x] Heat-Status auf 'completed' setzen
-  - [x] Rankings im Heat.results speichern
-  - [x] completedAt Timestamp setzen
-  - [x] Nächsten Heat aktivieren
+### Phase 1: Store Erweiterung für Dynamisches Bracket
 
-- [x] Task 2: Bracket-Progression Logik (AC: 2, 3)
-  - [x] Winner-Bracket Zuordnung (Rang 1+2)
-  - [x] Loser-Bracket Zuordnung (Rang 3+4)
-  - [x] Bracket-State aktualisieren
-  - [x] Edge Case: 3er-Heat (nur Rang 1-3)
+- [x] Task 1: `winnerPool: string[]` State zum TournamentStore hinzufügen (AC: 2, 3)
+  - [x] Gewinner für den nächsten WB-Heat
+  - [x] FIFO: Am Ende der Liste anfügen
 
-- [x] Task 3: Fertig-Button Integration (AC: 1, 6)
-  - [x] Button in ActiveHeatView einbinden
-  - [x] onClick ruft submitHeatResults auf
-  - [x] Success-Pulse Animation (300ms)
-  - [x] Transition zur nächsten Heat-Ansicht
+- [x] Task 2: `loserPool: string[]` State zum TournamentStore hinzufügen (AC: 3, 4, 6)
+  - [x] Verlierer für den nächsten LB-Heat
+  - [x] FIFO: Am Ende der Liste anfügen
 
-- [x] Task 4: Edit-Mode für abgeschlossene Heats (AC: 5)
-  - [x] Edit-Button auf HeatBox (nur bei status='completed')
-  - [x] reopenHeat Store-Action
-  - [x] Rankings neu vergeben
-  - [x] Bracket-Neuberechnung nach Re-Submit
+- [x] Task 3: `grandFinalePool: string[]` State zum TournamentStore hinzufügen (Grand Finale)
+  - [x] WB-Finale-Gewinner + LB-Finale-Gewinner
 
-- [x] Task 5: HeatBox Status-Styling erweitern (AC: 6)
-  - [x] Completed-State: Winner-Green Border + Glow
-  - [x] Ränge neben Piloten-Namen anzeigen
-  - [x] Edit-Button (Stift-Icon) hinzufügen
+- [x] Task 4: `eliminatedPilots: string[]` State zum TournamentStore hinzufügen (AC: 6)
+  - [x] Endgültig ausgeschiedene Piloten (2x verloren)
 
-- [x] Task 6: Unit-Tests (AC: 1-6)
-  - [x] Test: submitHeatResults setzt Status
-  - [x] Test: Rankings werden gespeichert
-  - [x] Test: Nächster Heat wird aktiviert
-  - [x] Test: Edit-Mode funktioniert
+- [x] Task 5: Status-Flags hinzufügen (AC: 3, 6)
+  - [x] `isQualificationComplete: boolean`
+  - [x] `isWBFinaleComplete: boolean`
+  - [x] `isLBFinaleComplete: boolean`
+  - [x] `isGrandFinaleComplete: boolean`
 
-### NEUE TASKS - Bracket-Progression (Course Correction 2025-12-17)
+- [x] Task 6: Pool Actions implementieren (AC: 2, 3, 4, 6)
+  - [x] `addToWinnerPool(pilotIds: string[])`
+  - [x] `addToLoserPool(pilotIds: string[])`
+  - [x] `removeFromWinnerPool(count: number)`
+  - [x] `removeFromLoserPool(count: number)` (bereits vorhanden, Signatur angepasst)
+  - [x] `eliminatePilots(pilotIds: string[])` (bereits vorhanden)
 
-- [x] Task 7: useBracketLogic Hook erstellen (AC: 2, 3, 4)
-  - [x] Neuer Hook `src/hooks/useBracketLogic.ts` gemäß Architecture
-  - [x] Bracket-Logik aus tournamentStore extrahieren
-  - [x] Funktionen: syncQualiHeatsToStructure(), updateBracketAfterHeatCompletion(), generateNextRoundHeats()
+### Phase 2: Dynamische WB-Heat Generierung
 
-- [x] Task 8: Bracket-Struktur mit Quali-Heats synchronisieren (AC: 2, 3)
-  - [x] Bei Turnier-Start: Quali-Heats IDs in fullBracketStructure.qualification eintragen
-  - [x] pilotIds aus heats[] in fullBracketStructure synchronisieren
-  - [x] Status synchron halten (pending/active/completed)
+- [ ] Task 7: Nach Quali-Abschluss WB-Heats erstellen (AC: 2)
+  - [ ] Prüfen ob alle Quali-Heats completed sind
+  - [ ] Sammle alle Gewinner (Platz 1+2) in WB Pool
+  - [ ] Wenn WB Pool >= 4 → `generateWBHeat()` aufrufen
 
-- [x] Task 9: Winner-Bracket Heats mit Piloten befüllen (AC: 2)
-  - [x] Nach Quali-Heat Abschluss: Rang 1+2 Piloten finden
-  - [x] Via targetWinnerHeat Referenz das Ziel-Heat ermitteln
-  - [x] pilotIds zum Winner-Bracket Heat hinzufügen
-  - [x] Wenn Heat voll (4 Piloten): status = 'pending'
+- [ ] Task 8: Nach WB-Heat Abschluss Pool füllen (AC: 3)
+  - [ ] Gewinner (Platz 1+2) → WB Pool (am Ende anfügen)
+  - [ ] Verlierer (Platz 3+4) → Loser Pool (am Ende anfügen)
 
-- [x] Task 10: Loser-Bracket Heats mit Piloten befüllen (AC: 3)
-  - [x] Nach Quali-Heat Abschluss: Rang 3+4 Piloten finden
-  - [x] Via targetLoserHeat Referenz das Ziel-Heat ermitteln
-  - [x] pilotIds zum Loser-Bracket Heat hinzufügen
-  - [x] Wenn Heat voll (4 Piloten): status = 'pending'
+- [ ] Task 9: `generateWBHeat()` implementieren (AC: 2, 3)
+  - [ ] Nimm die ersten 4 Piloten aus dem WB Pool
+  - [ ] Erstelle neuen Heat mit `bracketType: 'winner'`
+  - [ ] Heat zu `heats` Array hinzufügen
 
-- [x] Task 11: Spielbare Heats aus Bracket-Struktur generieren (AC: 4)
-  - [x] Prüfen ob alle Quali-Heats completed sind
-  - [x] WB Runde 1 Heats aus fullBracketStructure.winnerBracket.rounds[0] erstellen
-  - [x] Diese als spielbare Heats zu heats[] Array hinzufügen
-  - [x] Ersten neuen Heat auf 'active' setzen
+- [ ] Task 10: WB Finale Erkennung & Generierung (AC: 3)
+  - [ ] Prüfen ob WB Pool + Gewinner <= 2 Piloten
+  - [ ] Wenn ja → `generateWBFinale()` aufrufen
+  - [ ] WB-Finale hat 2 Piloten
 
-- [x] Task 12: Bracket-Progression Tests
-  - [x] Test: Quali-Heats werden in fullBracketStructure synchronisiert
-  - [x] Test: Rang 1+2 landen in Winner-Bracket Heat
-  - [x] Test: Rang 3+4 landen in Loser-Bracket Heat
-  - [x] Test: Nach Quali-Abschluss werden WB Heats generiert
-  - [x] Test: Edge Case 3er-Heat (nur Rang 1-3)
+### Phase 3: Dynamische LB-Heat Generierung
 
-### NEUE TASKS - Vollständige Bracket-Progression (Course Correction 2025-12-19)
+- [ ] Task 11: `checkForMoreWBHeats()` implementieren (AC: 4, 5)
+  - [ ] Prüft ob noch WB-Heats mit Status 'pending' existieren
+  - [ ] Rückgabewert: boolean
 
-- [x] Task 13: WB/LB Heat-Completion Handler erweitern (AC: 2, 3, 4)
-  - [x] `updateBracketAfterWBLBHeatCompletion()` für bracketType 'winner' und 'loser' implementiert
-  - [x] WB-Verlierer (Rang 3+4) ins LB einspeisen via neuer `targetLoserFromWB` Referenz
-  - [x] LB-Verlierer (Rang 3+4) zu `eliminatedPilots` hinzufügen
-  - [x] Piloten zum targetHeat der nächsten Runde hinzufügen
+- [ ] Task 12: `generateLBHeat()` implementieren (AC: 4)
+  - [ ] Nimm die ersten 4 Piloten aus dem Loser Pool (FIFO)
+  - [ ] Erstelle neuen Heat mit `bracketType: 'loser'`
+  - [ ] Heat zu `heats` Array hinzufügen
 
-- [x] Task 14: Runden-Completion Detection (AC: 4)
-  - [x] Neue Funktion `areAllHeatsInRoundCompleted(roundNumber, bracketType)` in bracket-logic.ts
-  - [x] Nach jedem Heat prüfen: Ist die aktuelle Runde komplett?
-  - [x] Wenn ja: Nächste Runde aktivieren
+- [ ] Task 13: Warten-Logik implementieren (AC: 5)
+  - [ ] Wenn Pool < 4 UND noch WB-Heats aktiv → Nichts tun
+  - [ ] Wenn Pool >= 4 → `generateLBHeat()` aufrufen
 
-- [x] Task 15: Generische `generateNextRoundHeats()` Funktion (AC: 4)
-  - [x] Neue Funktion `generateHeatsForNextRound()` erstellt (generisch für alle Runden)
-  - [x] Parameter: `completedRoundNumber`, `bracketType`
-  - [x] WB Runde N → WB Runde N+1 Heats erstellen
-  - [x] LB Runde N → LB Runde N+1 Heats erstellen
+- [ ] Task 14: Nach LB-Heat Abschluss Pool füllen (AC: 6)
+  - [ ] Gewinner (Platz 1+2) → Loser Pool (am Ende anfügen)
+  - [ ] Verlierer (Platz 3+4) → Eliminiert
 
-- [x] Task 16: WB → LB Einspeisung (Cross-Bracket) (AC: 3)
-  - [x] Neue Referenz in BracketHeat: `targetLoserFromWB?: string` in bracket-structure-generator.ts
-  - [x] `linkBracketHeats()` in bracket-structure-generator.ts erweitert um WB→LB Verknüpfungen
-  - [x] Bei WB-Heat Completion: Rang 3+4 → targetLoserFromWB Heat
-  - [x] LB Heats können Piloten von WB UND LB erhalten
+### Phase 4: Fertig-Button Integration
 
-- [x] Task 17: Finale Detection & Generation (AC: 4)
-  - [x] Neue Funktion `isGrandFinaleReady()`: WB Finale + LB Finale completed?
-  - [x] Neue Funktion `generateGrandFinaleHeat()`: Grand Finale Heat generieren
-  - [x] `tournamentPhase` auf 'finale' setzen wenn bereit
+- [ ] Task 15: Fertig-Button in ActiveHeatView einbinden (AC: 1, 9)
+  - [ ] onClick ruft `submitHeatResults` auf
+  - [ ] Success-Pulse Animation (300ms)
+  - [ ] Transition zur nächsten Heat-Ansicht
 
-- [x] Task 18: Bracket-Progression Tests erweitern
-  - [x] Test: WB Runde 1 → WB Runde 2 Progression (Winners advance, Losers to LB)
-  - [x] Test: LB Runde 1 → LB Runde 2 Progression (Winners advance, Losers eliminated)
-  - [x] Test: WB-Verlierer werden ins LB eingespeist
-  - [x] Test: LB-Verlierer werden eliminiert
-  - [x] Test: Finale wird erkannt und generiert
-  - [x] Test: Volles 8-Piloten-Turnier durchspielen
-  - [x] Test: Volles 16-Piloten-Turnier durchspielen
+- [ ] Task 16: `submitHeatResults()` überarbeiten (AC: 1-9)
+  - [ ] Heat auf 'completed' setzen
+  - [ ] Rankings speichern
+  - [ ] Je nach BracketType die richtige Progression aufrufen:
+    - [ ] `onQualiHeatComplete()` (AC: 2)
+    - [ ] `onWBHeatComplete()` (AC: 3)
+    - [ ] `onLBHeatComplete()` (AC: 6)
+    - [ ] `onWBFinaleComplete()` (Grand Finale Pool)
+    - [ ] `onLBFinaleComplete()` (Grand Finale Pool)
+  - [ ] Nächsten Heat aktivieren (AC: 7)
 
-### Review Follow-ups (AI)
+### Phase 5: Edit-Mode
 
-- [x] [AI-Review][HIGH] Edit-Mode/Resubmit korrumpiert `fullBracketStructure`: ✅ ERLEDIGT - `rollbackBracketForHeat()` implementiert und in `submitHeatResults` mit `isResubmission` Flag integriert. Tests in `bracket-progression.test.ts` bestätigen De-Dupe-Funktionalität.
-- [x] [AI-Review][HIGH] `reopenHeat()` setzt Bracket-Struktur nicht zurück: ✅ ERLEDIGT - `reopenHeat()` ruft jetzt `rollbackBracketForHeat()` auf. Piloten werden aus WB/LB entfernt, Quali-Heat-Status auf 'active' gesetzt. Tests bestätigen Funktionalität.
-- [x] [AI-Review][HIGH] Offline-first verletzt: ✅ ERLEDIGT - `FALLBACK_PILOT_IMAGE` ist ein Inline SVG Data-URL (keine externen Dependencies). Kein `via.placeholder.com` im Code.
-- [x] [AI-Review][MEDIUM] React Testing Warnings: ✅ ERLEDIGT - Tests laufen ohne act()-Warnings. Fake timers korrekt mit `act()` wrapped.
-- [x] [AI-Review][MEDIUM] `submitHeatResults()` semantisch korrigiert: ✅ ERLEDIGT - Active Heats werden nur auf 'completed' gesetzt wenn sie results haben (Zeile 500-504).
-- [x] [AI-Review][MEDIUM] Naming/Layering: ✅ ERLEDIGT - Funktionen sind bereits in `src/lib/bracket-logic.ts` (pure functions, kein Hook).
-- [x] [AI-Review][MEDIUM] `structuredClone` Browser-Kompatibilität: ✅ ERLEDIGT - Alle Browser in browserslist unterstützen `structuredClone` (Chrome 98+, Firefox 94+, Safari 15.4+).
-- [x] [AI-Review][MEDIUM] Tests für Resubmit/Rollback: ✅ ERLEDIGT - Tests "should NOT create duplicate pilotIds in WB/LB when resubmitting", "should rollback bracket structure when reopenHeat is called", und "should correctly update bracket after resubmit with different winners" in `bracket-progression.test.ts` vorhanden.
+- [ ] Task 17: Edit-Mode für abgeschlossene Heats (AC: 8)
+  - [ ] Edit-Button auf HeatBox (nur bei status='completed')
+  - [ ] `reopenHeat` Store-Action
+  - [ ] Rankings neu vergeben
+  - [ ] Pools und Bracket rückwirkend neu berechnen
+
+- [ ] Task 18: Pool-Rollback bei Re-Open (AC: 8)
+  - [ ] Piloten aus Pools entfernen, die aus diesem Heat kamen
+  - [ ] Piloten zurück in Pools einfügen, die zu diesem Heat gehört haben
+  - [ ] Bei Quali-Heat: Alle Piloten zurück in Quali-Heat (nicht in Pools)
+
+### Phase 6: Tests
+
+- [ ] Task 19: Unit-Tests für WB-Progression
+  - [ ] Test: Quali-Heat Abschluss → WB Pool gefüllt
+  - [ ] Test: WB Pool >= 4 → WB Heat erstellt
+  - [ ] Test: WB Heat Abschluss → Gewinner in Pool, Verlierer in LB Pool
+  - [ ] Test: WB Finale wird korrekt erkannt und erstellt
+
+- [ ] Task 20: Unit-Tests für LB-Progression
+  - [ ] Test: WB-Heat Verlierer → LB Pool (FIFO)
+  - [ ] Test: LB Pool >= 4 → LB Heat erstellt (FIFO)
+  - [ ] Test: LB Heat Abschluss → Gewinner in Pool, Verlierer eliminiert
+  - [ ] Test: Warten auf Verlierer wenn noch WB aktiv
+
+- [ ] Task 21: Integration-Tests
+  - [ ] Test: Volles 8-Piloten-Turnier durchspielen
+  - [ ] Test: Volles 16-Piloten-Turnier durchspielen
+  - [ ] Test: Edit-Mode mit Pool-Rollback
 
 ## Dev Notes
 
-### Store-Erweiterungen
+### Neue State-Struktur
 
 ```typescript
 interface TournamentState {
   // Bestehend
   heats: Heat[]
   currentHeatIndex: number
-  
-  // NEU für US-4.2
+  piloten: Pilot[]
+
+  // NEU für Dynamisches Bracket
+  winnerPool: string[]       // Gewinner für nächsten WB-Heat (FIFO)
+  loserPool: string[]        // Verlierer für nächsten LB-Heat (FIFO)
+  grandFinalePool: string[]  // WB-Finale-Gewinner + LB-Finale-Gewinner
+  eliminatedPilots: string[]  // Endgültig ausgeschieden
+
+  // NEU Status-Flags
+  isQualificationComplete: boolean
+  isWBFinaleComplete: boolean
+  isLBFinaleComplete: boolean
+  isGrandFinaleComplete: boolean
+
+  // Bestehende Actions
   submitHeatResults: (heatId: string, rankings: { pilotId: string; rank: 1|2|3|4 }[]) => void
   reopenHeat: (heatId: string) => void
-  
-  // Für Bracket-Progression (später)
-  winnerBracket: BracketRound[]
-  loserBracket: BracketRound[]
-}
 
-interface Heat {
-  // Bestehend
-  id: string
-  heatNumber: number
-  pilotIds: string[]
-  status: 'pending' | 'active' | 'completed'
-  
-  // NEU - Results
-  results?: {
-    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
-    completedAt?: string
-  }
+  // NEU Actions
+  addToWinnerPool: (pilotIds: string[]) => void
+  addToLoserPool: (pilotIds: string[]) => void
+  removeFromWinnerPool: (count: number) => void
+  removeFromLoserPool: (count: number) => void
+  eliminatePilots: (pilotIds: string[]) => void
 }
 ```
 
-### submitHeatResults Implementation
+### Dynamische Heat-Generierung
 
 ```typescript
-submitHeatResults: (heatId, rankings) => {
-  const { heats, currentHeatIndex } = get()
-  
-  const heatIndex = heats.findIndex(h => h.id === heatId)
-  if (heatIndex === -1) return
-  
-  const updatedHeats = [...heats]
-  updatedHeats[heatIndex] = {
-    ...updatedHeats[heatIndex],
-    status: 'completed',
-    results: {
-      rankings,
-      completedAt: new Date().toISOString()
-    }
+// WB Heat Generierung
+function generateWBHeat() {
+  const pilotsForHeat = winnerPool.splice(0, 4)  // FIFO
+
+  const newHeat: Heat = {
+    id: `wb-heat-${Date.now()}`,
+    heatNumber: heats.length + 1,
+    pilotIds: pilotsForHeat,
+    bracketType: 'winner',
+    status: 'pending'
   }
-  
-  // Nächsten Heat aktivieren (wenn vorhanden)
-  const nextPendingIndex = heats.findIndex((h, i) => 
-    i > heatIndex && h.status === 'pending'
-  )
-  
-  if (nextPendingIndex !== -1) {
-    updatedHeats[nextPendingIndex] = {
-      ...updatedHeats[nextPendingIndex],
-      status: 'active'
-    }
+
+  heats.push(newHeat)
+}
+
+// LB Heat Generierung
+function generateLBHeat() {
+  const pilotsForHeat = loserPool.splice(0, 4)  // FIFO
+
+  const newHeat: Heat = {
+    id: `lb-heat-${Date.now()}`,
+    heatNumber: heats.length + 1,
+    pilotIds: pilotsForHeat,
+    bracketType: 'loser',
+    status: 'pending'
   }
-  
-  set({ 
-    heats: updatedHeats,
-    currentHeatIndex: nextPendingIndex !== -1 ? nextPendingIndex : currentHeatIndex
-  })
-  
-  // TODO: Bracket-Progression Logik
-  // updateBracketProgression(heatId, rankings)
+
+  heats.push(newHeat)
 }
 ```
 
-### reopenHeat Implementation
+### FIFO (First In, First Out) Logik
 
 ```typescript
-reopenHeat: (heatId) => {
-  const { heats } = get()
-  
-  const heatIndex = heats.findIndex(h => h.id === heatId)
-  if (heatIndex === -1) return
-  
-  // Nur completed Heats können reopened werden
-  if (heats[heatIndex].status !== 'completed') return
-  
-  const updatedHeats = [...heats]
-  updatedHeats[heatIndex] = {
-    ...updatedHeats[heatIndex],
-    status: 'active',
-    // Results bleiben erhalten für Pre-Fill
-  }
-  
-  set({ 
-    heats: updatedHeats,
-    currentHeatIndex: heatIndex
-  })
+// Alle Piloten werden am Ende der Liste angefügt
+function addToWinnerPool(pilotIds: string[]) {
+  winnerPool.push(...pilotIds)  // FIFO: An Ende anfügen
+}
+
+// Bei Heat-Generierung werden die ersten Piloten genommen
+function generateWBHeat() {
+  const pilotsForHeat = winnerPool.splice(0, 4)  // FIFO: Von vorne nehmen
 }
 ```
 
-### HeatBox Erweiterung
-
-```tsx
-// Erweiterte HeatBox für completed Status
-interface HeatBoxProps {
-  heat: Heat
-  pilots: Pilot[]
-  onEdit?: (heatId: string) => void
-  showEditButton?: boolean
-}
-
-// Ranking-Anzeige in HeatBox
-const getRankDisplay = (pilotId: string) => {
-  if (!heat.results) return null
-  const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
-  if (!ranking) return null
-  
-  return (
-    <span className={`
-      ml-2 px-2 py-1 rounded-full text-xs font-bold
-      ${ranking.rank === 1 ? 'bg-gold text-void' : ''}
-      ${ranking.rank === 2 ? 'bg-neon-cyan text-void' : ''}
-      ${ranking.rank >= 3 ? 'bg-neon-pink text-void' : ''}
-    `}>
-      {ranking.rank}
-    </span>
-  )
-}
-
-// Status-Border
-const getBorderClass = () => {
-  if (heat.status === 'completed') return 'border-winner-green shadow-glow-green'
-  if (heat.status === 'active') return 'border-neon-cyan shadow-glow-cyan'
-  return 'border-steel border-dashed'
-}
-```
-
-### Success-Pulse Animation
-
-```css
-/* In globals.css */
-@keyframes success-pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.02); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.success-pulse {
-  animation: success-pulse 300ms ease-out;
-}
-```
-
-### Bracket-Progression (Vereinfacht für MVP)
-
-Für das MVP wird die Bracket-Progression vereinfacht:
-
-1. **Runde 1 Heats:** Alle Initial-Heats aus der Heat-Aufteilung
-2. **Nach Abschluss:** Piloten werden in Winner/Loser kategorisiert
-3. **Nächste Runden:** Werden erst generiert wenn alle Heats einer Runde completed sind
+### Warten auf Verlierer wenn noch WB aktiv
 
 ```typescript
-// Vereinfachte Bracket-Struktur für MVP
-interface BracketState {
-  round: number
-  winnerPilots: string[]  // Piloten noch im Winner-Bracket
-  loserPilots: string[]   // Piloten im Loser-Bracket
-  eliminatedPilots: string[]  // Aus dem Turnier ausgeschieden
+function checkForLBHeatGeneration() {
+  const hasMoreWBHeats = checkForMoreWBHeats()
+
+  if (loserPool.length >= 4 && hasMoreWBHeats) {
+    // WB noch aktiv: Warten bis 4 Piloten im Pool
+    generateLBHeat()
+  } else if (!hasMoreWBHeats && loserPool.length >= 3) {
+    // WB fertig: Sofort LB-Finale erstellen
+    generateLBFinale()
+  }
+  // Sonst: Warten
 }
 ```
-
-### NFR-Compliance
-
-| NFR | Anforderung | Umsetzung |
-|-----|-------------|-----------|
-| NFR4 | Bracket-Update < 200ms | Store-Update ist synchron, UI reagiert instant |
-| NFR8 | Auto-Save nach Aktion | submitHeatResults persisted automatisch via Zustand |
-| NFR10 | Bracket 100% korrekt | Unit-Tests für alle Zuordnungen |
-
-### Edge Cases
-
-| Case | Handling |
-|------|----------|
-| 3er-Heat | Max Rang 3, Rang 1+2 → Winner, Rang 3 → Loser |
-| Alle Heats completed | Nächste Bracket-Runde generieren oder Finale |
-| Edit nach Progression | Bracket wird rückwirkend neu berechnet |
-| Pilot dropped out | Gegner erhält Freilos/automatischen Win |
-
-### Bestehende Komponenten
-
-| Komponente | Status | Anpassung für US-4.2 |
-|------------|--------|---------------------|
-| `HeatBox` | ✅ Existiert | Border-Farben, Ranking-Anzeige, Edit-Button |
-| `tournamentStore` | ✅ Existiert | submitHeatResults, reopenHeat Actions |
-| `globals.css` | ✅ Existiert | success-pulse Animation |
-
-### References
-
-- [Source: docs/prd.md#FR13] - Heat mit "Fertig"-Button bestätigen
-- [Source: docs/prd.md#FR14] - Winner-Bracket Zuordnung
-- [Source: docs/prd.md#FR15] - Loser-Bracket Zuordnung
-- [Source: docs/prd.md#FR18] - Bracket auto-update
-- [Source: docs/ux-design-specification.md#Error-Handling] - Edit-Button für Korrektur
-- [Source: src/stores/tournamentStore.ts] - Bestehende Store-Struktur
-- [Source: src/components/heat-box.tsx] - Bestehende HeatBox-Komponente
 
 ## Definition of Done
 
 ### Funktional
-- [x] submitHeatResults speichert Rankings im Heat
-- [x] Heat-Status wechselt zu 'completed'
-- [x] completedAt Timestamp wird gesetzt
-- [x] Nächster Heat wird automatisch aktiviert
-- [x] Piloten werden Winner/Loser-Bracket zugeordnet
-- [x] Edit-Mode ermöglicht Korrektur abgeschlossener Heats
+- [ ] Dynamisches WB-System: Heats werden on-the-fly erstellt basierend auf WB Pool
+- [ ] Dynamisches LB-System: Heats werden on-the-fly erstellt basierend auf LB Pool (FIFO)
+- [ ] FIFO in beiden Brackets: Wer zuerst verliert, fliegt zuerst wieder
+- [ ] Warten auf Verlierer wenn noch WB aktiv: Pool wird erst geleert wenn 4 Piloten da sind
+- [ ] WB Finale: Wird korrekt erkannt wenn <= 2 Piloten übrig
+- [ ] LB Finale: Wird erstellt nach WB-Finale mit allen verbleibenden Pool-Piloten
+- [ ] Edit-Mode: Pools werden rückwirkend korrekt aktualisiert
 
 ### UI/Design
-- [x] Fertig-Button ruft submitHeatResults auf
-- [x] Success-Pulse Animation bei Abschluss (300ms)
-- [x] HeatBox zeigt Ränge neben Piloten-Namen
-- [x] Completed HeatBox hat Winner-Green Border + Glow
-- [x] Edit-Button (Stift) auf completed HeatBoxen
+- [ ] Fertig-Button ruft submitHeatResults auf
+- [ ] Success-Pulse Animation bei Abschluss (300ms)
+- [ ] HeatBox zeigt Ränge neben Piloten-Namen
+- [ ] Completed HeatBox hat Winner-Green Border + Glow
+- [ ] Edit-Button (Stift) auf completed HeatBoxen
 
 ### Tests
-- [x] Unit-Test: submitHeatResults setzt Status korrekt
-- [x] Unit-Test: Rankings werden gespeichert
-- [x] Unit-Test: Nächster Heat wird aktiviert
-- [x] Unit-Test: reopenHeat funktioniert
-- [x] Unit-Test: Edge Case 3er-Heat
-- [x] Integration-Test: Heat abschließen Flow
+- [ ] Unit-Test: WB-Progression (Pool → Heat → Pool)
+- [ ] Unit-Test: LB-Progression (FIFO, Warten auf Verlierer)
+- [ ] Unit-Test: WB Finale Erkennung
+- [ ] Unit-Test: LB Finale Erkennung
+- [ ] Integration-Test: Volles Turnier durchspielen (8 Piloten)
+- [ ] Integration-Test: Edit-Mode mit Pool-Rollback
 
 ### Qualität
-- [x] Keine TypeScript-Fehler
-- [x] Keine Console-Errors
-- [x] NFR4 erfüllt (< 200ms Bracket-Update)
-- [x] Code-Review bestanden (2025-12-19)
+- [ ] Keine TypeScript-Fehler
+- [ ] Keine Console-Errors
+- [ ] NFR4 erfüllt (< 200ms Bracket-Update)
+- [ ] Alle Tests grün
 
-## Dev Agent Record
+## References
 
-### Context Reference
-- Story 4-2 ready-for-dev
-- Abhängigkeit von US-4.1 (Heat-Ergebnis eingeben)
-- Zweite Story im Epic 4 (Heat-Durchführung & Bracket)
-
-### Agent Model Used
-{{agent_model_name_version}}
-
-### Completion Notes List
-- Extended tournamentStore with winnerPilots, loserPilots, eliminatedPilots state tracking
-- Implemented reopenHeat action for edit mode functionality on completed heats
-- Enhanced submitHeatResults with full bracket progression logic (winner/loser/eliminated)
-- Added success-pulse CSS animation for visual feedback on heat completion
-- Updated HeatCard and HeatBox components to display rankings and edit buttons for completed heats
-- Added winner-green border styling with glow effect for completed heats
-- Comprehensive unit tests covering all new functionality (13 tests in heat-completion.test.tsx)
-- All 106 total tests passing, build successful
-- Full TypeScript compilation without errors
-
-**Course Correction 2025-12-17 (Tasks 7-12):**
-- Created `useBracketLogic.ts` Hook with bracket progression functions
-- Implemented `syncQualiHeatsToStructure()` - syncs heats[] to fullBracketStructure at tournament start
-- Implemented `updateBracketAfterHeatCompletion()` - updates bracket structure after heat results
-- Implemented `generateNextRoundHeats()` - creates WB/LB round 1 heats after all quali heats complete
-- Integrated bracket logic into `submitHeatResults` store action
-- Added `areAllQualiHeatsCompleted()` check for round progression
-- Created comprehensive test suite: 11 tests covering all bracket progression scenarios
-- All 180 tests passing, no regressions
-
-**Course Correction 2025-12-19 (Tasks 13-18):**
-- Implemented `updateBracketAfterWBLBHeatCompletion()` - handles WB/LB heat completion with cross-bracket progression
-- Implemented `findBracketHeatWithLocation()` - returns heat with full location context (bracketType, roundNumber, etc.)
-- Implemented `areAllHeatsInRoundCompleted()` - checks if all heats in a specific round are completed
-- Implemented `generateHeatsForNextRound()` - generic function for any bracket round (not just post-quali)
-- Implemented `isGrandFinaleReady()` - checks if WB+LB finals are complete and Grand Finale can be played
-- Implemented `generateGrandFinaleHeat()` - creates playable Grand Finale heat
-- Added `targetLoserFromWB` property to BracketHeat interface for WB→LB cross-bracket links
-- Extended `linkBracketHeats()` to create WB→LB connections
-- Refactored `submitHeatResults()` to handle all bracket types (qualification, winner, loser, finale)
-- 6 new comprehensive tests for full bracket progression
-- All 193 tests passing, TypeScript build successful
-
-### File List
-- `src/stores/tournamentStore.ts` (MODIFIED) - Added winner/loser/eliminated state, reopenHeat action, full bracket progression logic for all bracket types
-- `src/lib/bracket-logic.ts` (MODIFIED) - Added updateBracketAfterWBLBHeatCompletion, findBracketHeatWithLocation, areAllHeatsInRoundCompleted, generateHeatsForNextRound, isGrandFinaleReady, generateGrandFinaleHeat
-- `src/lib/bracket-structure-generator.ts` (MODIFIED) - Added targetLoserFromWB property to BracketHeat, extended linkBracketHeats() for WB→LB connections
-- `src/components/active-heat-view.tsx` (MODIFIED) - Added success-pulse animation on submit
-- `src/components/heat-card.tsx` (MODIFIED) - Added ranking display and edit button for completed heats
-- `src/components/heat-box.tsx` (MODIFIED) - Updated to use Heat interface, added ranking display and edit functionality
-- `src/components/heat-overview.tsx` (MODIFIED) - Added reopenHeat handler support
-- `src/globals.css` (MODIFIED) - Added success-pulse, glow-pulse-green animations
-- `tests/heat-completion.test.tsx` (NEW) - 13 comprehensive tests for bracket progression and edit functionality
-- `tests/bracket-progression.test.ts` (MODIFIED) - Extended with 6 new tests for Tasks 13-18 (20 total tests)
-
-### Senior Developer Review (AI)
-
-**Reviewer:** Jakob
-**Datum:** 2025-12-17
-
-**Ergebnis:** ✅ Approved (2025-12-19)
-
-- Tests laufen grün (183/183)
-- Build erfolgreich
-- Alle Review Follow-ups erledigt
-- Bracket-Rollback bei Resubmit funktioniert korrekt
-- Offline-first gewährleistet (Inline SVG Fallback)
-
-**Action Items:** 8/8 erledigt (siehe "Review Follow-ups (AI)")
-
-### Change Log
-
-- 2025-12-17: Senior Dev Review durchgeführt, Follow-ups als Tasks ergänzt, Status auf `in-progress` gesetzt.
-- 2025-12-19: Alle Review Follow-ups überprüft und als erledigt markiert. Story abgeschlossen (Status: done).
-- 2025-12-19: Course Correction - Tasks 13-18 für vollständige Bracket-Progression implementiert:
-  - `updateBracketAfterWBLBHeatCompletion()` für WB/LB Heats
-  - `areAllHeatsInRoundCompleted()` für Runden-Detection
-  - `generateHeatsForNextRound()` generische Funktion
-  - `targetLoserFromWB` Property für Cross-Bracket
-  - `isGrandFinaleReady()` und `generateGrandFinaleHeat()` für Finale
-  - 6 neue Tests für Bracket-Progression (193 Tests gesamt, alle grün)
+- [Course Correction: Dynamic Brackets 2025-12-23](../change-proposals/course-correction-dynamic-brackets-2025-12-23.md)
+- [PRD: FR13] - Heat mit "Fertig"-Button bestätigen
+- [PRD: FR14] - Winner-Bracket Zuordnung (dynamisch)
+- [PRD: FR15] - Loser-Bracket Zuordnung (dynamisch)
+- [PRD: FR18] - Bracket auto-update (dynamisch)
+- [Architecture: TournamentStore](../../architecture.md#TournamentStore)

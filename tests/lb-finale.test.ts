@@ -28,10 +28,10 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
     })
   })
 
-  describe('Task 1: isWBFinaleComplete() - Helper', () => {
+  describe('Task 1: checkWBFinaleComplete() - Helper', () => {
     it('should return false when bracket structure is null', () => {
-      const { isWBFinaleComplete } = useTournamentStore.getState()
-      expect(isWBFinaleComplete()).toBe(false)
+      const { checkWBFinaleComplete } = useTournamentStore.getState()
+      expect(checkWBFinaleComplete()).toBe(false)
     })
 
     it('should return false when WB finale heat is pending', () => {
@@ -68,8 +68,8 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
         fullBracketStructure: bracketStructure as any
       })
 
-      const { isWBFinaleComplete } = useTournamentStore.getState()
-      expect(isWBFinaleComplete()).toBe(false)
+      const { checkWBFinaleComplete } = useTournamentStore.getState()
+      expect(checkWBFinaleComplete()).toBe(false)
     })
 
     it('should return true when WB finale heat is completed', () => {
@@ -124,8 +124,8 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
         fullBracketStructure: bracketStructure as any
       })
 
-      const { isWBFinaleComplete } = useTournamentStore.getState()
-      expect(isWBFinaleComplete()).toBe(true)
+      const { checkWBFinaleComplete } = useTournamentStore.getState()
+      expect(checkWBFinaleComplete()).toBe(true)
     })
 
     it('should return false when WB has multiple rounds and finale is not yet completed', () => {
@@ -173,8 +173,8 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
         fullBracketStructure: bracketStructure as any
       })
 
-      const { isWBFinaleComplete } = useTournamentStore.getState()
-      expect(isWBFinaleComplete()).toBe(false)
+      const { checkWBFinaleComplete } = useTournamentStore.getState()
+      expect(checkWBFinaleComplete()).toBe(false)
     })
   })
 
@@ -830,9 +830,9 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
         tournamentPhase: 'running',
       })
 
-      const { isWBFinaleComplete, checkForLBFinale, generateLBFinale, generateGrandFinale } = useTournamentStore.getState()
+      const { checkWBFinaleComplete, checkForLBFinale, generateLBFinale, generateGrandFinale } = useTournamentStore.getState()
 
-      expect(isWBFinaleComplete()).toBe(true)
+      expect(checkWBFinaleComplete()).toBe(true)
       expect(checkForLBFinale()).toBe(true)
 
       // Generate LB Finale
@@ -879,9 +879,9 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
         tournamentPhase: 'running',
       })
 
-      const { isWBFinaleComplete, checkForLBFinale, generateLBFinale } = useTournamentStore.getState()
+      const { checkWBFinaleComplete, checkForLBFinale, generateLBFinale } = useTournamentStore.getState()
 
-      expect(isWBFinaleComplete()).toBe(true)
+      expect(checkWBFinaleComplete()).toBe(true)
       expect(checkForLBFinale()).toBe(true)
 
       // Generate LB Finale (Wildcard)
