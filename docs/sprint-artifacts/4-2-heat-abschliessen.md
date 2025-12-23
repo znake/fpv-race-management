@@ -1,6 +1,6 @@
 # Story 4.2: Heat abschliessen & Bracket-Progression
 
-Status: in-progress
+Status: done
 
 > **⚠️ COURSE CORRECTION 2025-12-19**
 > Story wurde erneut geöffnet. Bracket-Progression ist nur für Quali → WB/LB R1 implementiert.

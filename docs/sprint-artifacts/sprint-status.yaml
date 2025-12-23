@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2025-12-12
-updated: 2025-12-19T08:00:00Z
+updated: 2025-12-20T12:20:00Z
 project: FPV Racing Heats
 project_key: 
 tracking_system: file-system
@@ -64,24 +64,27 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4 - Heat-Durchführung & Bracket
-  epic-4: in-progress
+  epic-4: done  # Alle Stories abgeschlossen 2025-12-20
   4-1-heat-ergebnis-eingeben: done
-  4-2-heat-abschliessen: done  # Review: Approved 2025-12-19
-  4-3-bracket-visualisierung: in-progress  # ÜBERARBEITET 2025-12-16 - Bracket-Struktur Redesign
+  4-2-heat-abschliessen: done  # Vollständige Bracket-Progression implementiert, Code Review bestanden
+  4-3-bracket-visualisierung: done  # Kernfunktionalität done, SVG-Linien Post-MVP
   epic-4-retrospective: optional
 
   # Epic 5 - Finale & Siegerehrung
-  epic-5: backlog
-  5-1-finale-siegerehrung: backlog
+  epic-5: done  # Alle Stories abgeschlossen 2025-12-20
+  5-1-finale-siegerehrung: done  # VictoryCeremony, getTop4Pilots, Tournament Completion
   epic-5-retrospective: optional
 
   # Epic 6 - Navigation & Beamer-Optimierung
-  epic-6: backlog
-  6-1-tabs-navigation: backlog
-  6-2-beamer-optimierung: backlog
+  epic-6: in-progress
+  6-1-tabs-navigation: cancelled  # Ersetzt durch 6-3 Tab-Merge (nur noch 2 Tabs statt 3)
+  6-2-beamer-optimierung: review  # Story implementiert 2025-12-20
+  6-3-tab-merge-turnier: done  # Heats & Bracket Tabs zusammengeführt 2025-12-20
   epic-6-retrospective: optional
 
   # Epic 7 - Offline & Persistenz
-  epic-7: backlog
-  7-1-localstorage-persistenz: backlog
+  # FR32-35: localStorage via Zustand persist Middleware (implizit implementiert)
+  # Story 7-1: Reset-Funktionen (resetTournament, deleteAllPilots, resetAll)
+  epic-7: done  # Alle FRs erfüllt 2025-12-20
+  7-1-reset-funktionen: done  # Implementiert inkl. UI-Dialoge und Tests
   epic-7-retrospective: optional
