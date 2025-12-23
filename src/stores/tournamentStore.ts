@@ -37,6 +37,10 @@ export interface Heat {
     rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
     completedAt?: string
   }
+  // Story 9-3: LB Finale & Grand Finale
+  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
+  isFinale?: boolean
+  roundName?: string
 }
 
 interface TournamentState {
@@ -109,6 +113,13 @@ interface TournamentState {
   generateLBHeat: () => Heat | null
   getNextRecommendedHeat: () => Heat | null
   hasActiveWBHeats: () => boolean
+
+  // Story 9-3: LB Finale & Grand Finale
+  isWBFinaleComplete: () => boolean
+  checkForLBFinale: () => boolean
+  generateLBFinale: () => Heat | null
+  generateGrandFinale: () => Heat | null
+  hasActiveLBHeats: () => boolean
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -652,10 +663,10 @@ export const useTournamentStore = create<TournamentState>()(
               }
             }
           }
-        } else if (bracketType === 'finale') {
+        } else if (bracketType === 'finale' || bracketType === 'grand_finale' || updatedHeats[heatIndex]?.isFinale === true) {
           // GRAND FINALE COMPLETED
           newPhase = 'completed'
-          
+
           // Update grand finale status in bracket structure
           if (updatedBracketStructure?.grandFinale) {
             updatedBracketStructure = structuredClone(updatedBracketStructure)
@@ -1010,7 +1021,7 @@ export const useTournamentStore = create<TournamentState>()(
       hasActiveWBHeats: () => {
         const { fullBracketStructure, heats } = get()
         if (!fullBracketStructure) return false
-        
+
         // Check all WB rounds for pending/active heats
         for (const round of fullBracketStructure.winnerBracket.rounds) {
           for (const bracketHeat of round.heats) {
@@ -1028,8 +1039,134 @@ export const useTournamentStore = create<TournamentState>()(
             }
           }
         }
-        
+
         return false
+      },
+
+      // Story 9-3: LB Finale & Grand Finale
+
+      // Check if WB Finale is completed
+      isWBFinaleComplete: () => {
+        const { fullBracketStructure, heats } = get()
+        if (!fullBracketStructure) return false
+
+        // Get WB Finale (last round in WB bracket)
+        const wbRounds = fullBracketStructure.winnerBracket.rounds
+        if (wbRounds.length === 0) return false
+
+        const wbFinaleRound = wbRounds[wbRounds.length - 1]
+
+        // Check if all heats in WB Finale round are completed
+        for (const bracketHeat of wbFinaleRound.heats) {
+          const actualHeat = heats.find(h => h.id === bracketHeat.id)
+          // Only check heats with pilots assigned (not empty placeholders)
+          if (bracketHeat.pilotIds.length > 0) {
+            if (!actualHeat || actualHeat.status !== 'completed') {
+              return false
+            }
+          }
+        }
+
+        return true
+      },
+
+      // Check if there are pending/active LB heats
+      hasActiveLBHeats: () => {
+        const { heats } = get()
+        // Check all heats that are explicitly LB finale heats
+        const lbFinaleHeats = heats.filter(h =>
+          h.bracketType === 'loser' && h.isFinale === true
+        )
+
+        // Check if any LB finale heat is pending or active
+        return lbFinaleHeats.some(h => h.status === 'pending' || h.status === 'active')
+      },
+
+      // Check if LB Finale can be generated
+      checkForLBFinale: () => {
+        const { isWBFinaleComplete, loserPool, hasActiveLBHeats } = get()
+
+        // LB Finale wenn:
+        // 1. WB Finale ist abgeschlossen
+        // 2. Pool hat noch Piloten (1-4)
+        // 3. Kein weiterer LB-Heat (nicht finale) läuft
+        return isWBFinaleComplete() &&
+               loserPool.length >= 1 &&
+               loserPool.length <= 4 &&
+               !hasActiveLBHeats()
+      },
+
+      // Generate LB Finale with variable pilot count (1-4)
+      generateLBFinale: () => {
+        const { checkForLBFinale, loserPool, heats, removeFromLoserPool } = get()
+
+        if (!checkForLBFinale()) {
+          return null
+        }
+
+        // Take all remaining pool pilots (1-4)
+        const pilotsForFinale = [...loserPool]
+
+        // Remove from pool
+        removeFromLoserPool(pilotsForFinale)
+
+        // Create LB Finale heat
+        const lbFinale: Heat = {
+          id: crypto.randomUUID(),
+          heatNumber: heats.length + 1,
+          pilotIds: pilotsForFinale,
+          status: 'pending',
+          bracketType: 'loser',
+          isFinale: true,
+          roundName: 'LB Finale'
+        }
+
+        // Add to heats array
+        set({ heats: [...heats, lbFinale] })
+
+        return lbFinale
+      },
+
+      // Generate Grand Finale (2 pilots: WB Winner + LB Winner)
+      generateGrandFinale: () => {
+        const { heats, fullBracketStructure } = get()
+
+        if (!fullBracketStructure?.grandFinale) {
+          return null
+        }
+
+        // Check if Grand Finale is already generated
+        const alreadyExists = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
+        if (alreadyExists) {
+          return null
+        }
+
+        // WB Winner is in grandFinale.pilotIds (from bracket structure)
+        const wbWinnerId = fullBracketStructure.grandFinale.pilotIds[0]
+        const lbWinnerId = fullBracketStructure.grandFinale.pilotIds[1]
+
+        if (!wbWinnerId || !lbWinnerId) {
+          return null
+        }
+
+        // Create Grand Finale heat
+        const grandFinale: Heat = {
+          id: crypto.randomUUID(),
+          heatNumber: heats.length + 1,
+          pilotIds: [wbWinnerId, lbWinnerId],
+          status: 'active',
+          bracketType: 'grand_finale',
+          isFinale: true,
+          roundName: 'Grand Finale'
+        }
+
+        // Add to heats array and set phase to finale
+        set({
+          heats: [...heats, grandFinale],
+          tournamentPhase: 'finale'
+        })
+
+        return grandFinale
       },
 
       // Story 9-2: Check if LB heat can be generated (AC1, AC5)
