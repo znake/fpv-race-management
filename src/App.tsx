@@ -4,15 +4,13 @@ import { AddPilotForm } from './components/add-pilot-form'
 import { CSVImport } from './components/csv-import'
 import { Header } from './components/header'
 import { TournamentStartDialog } from './components/tournament-start-dialog'
-import { HeatOverview } from './components/heat-overview'
 import { HeatAssignmentView } from './components/heat-assignment-view'
-import { ActiveHeatView } from './components/active-heat-view'
 import { BracketTree } from './components/bracket-tree'
 import { ResetConfirmationDialog } from './components/reset-confirmation-dialog'
 import { usePilots } from './hooks/usePilots'
 import { useTournamentStore } from './stores/tournamentStore'
 
-type Tab = 'piloten' | 'heats' | 'bracket'
+type Tab = 'piloten' | 'turnier'
 
 export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('piloten')
@@ -37,20 +35,14 @@ export function App() {
   const [showDeleteAllPilotsDialog, setShowDeleteAllPilotsDialog] = useState(false)
   const [showResetAllDialog, setShowResetAllDialog] = useState(false)
   
-  // State for showing "Continue to next heat" button on bracket tab
-  const [showContinueToHeats, setShowContinueToHeats] = useState(false)
-  
-  // Callback when heat is completed - auto switch to bracket tab (AC 4)
+  // Callback when heat is completed - scroll to active heat (no tab switch needed)
   const handleHeatComplete = useCallback(() => {
-    // Switch to bracket tab to show results
-    setActiveTab('bracket')
-    // Show "Continue to next heat" button
-    setShowContinueToHeats(true)
-    
-    // Auto-hide the button after 10 seconds
-    setTimeout(() => {
-      setShowContinueToHeats(false)
-    }, 10000)
+    // Stay on turnier tab - the scroll is handled by BracketTree
+  }, [])
+  
+  // Callback for starting a new tournament after completion
+  const handleNewTournament = useCallback(() => {
+    setShowResetTournamentDialog(true)
   }, [])
 
   return (
@@ -123,19 +115,22 @@ export function App() {
 
       {/* Tabs */}
       <nav className="tabs">
-        {(['piloten', 'heats', 'bracket'] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`tab ${activeTab === tab ? 'active' : ''}`}
-          >
-            {tab.toUpperCase()}
-          </button>
-        ))}
+        <button
+          onClick={() => setActiveTab('piloten')}
+          className={`tab ${activeTab === 'piloten' ? 'active' : ''}`}
+        >
+          PILOTEN
+        </button>
+        <button
+          onClick={() => setActiveTab('turnier')}
+          className={`tab ${activeTab === 'turnier' ? 'active' : ''}`}
+        >
+          TURNIER
+        </button>
       </nav>
       
-      {/* Main Content */}
-      <main className="main-content">
+      {/* Main Content - Beamer-optimiert */}
+      <main className="main-content overflow-x-hidden">
 
       {activeTab === 'piloten' && (
         <div className="max-w-6xl mx-auto">
@@ -164,11 +159,11 @@ export function App() {
           <div className="max-w-md mx-auto bg-night/30 p-6 rounded-2xl border border-neon-pink/20">
             <h2 className="text-2xl font-bold text-neon-pink mb-4">Piloten hinzufügen</h2>
             
-            {/* Action Buttons */}
+            {/* Action Buttons - Beamer-optimiert (min 48px Höhe) */}
             <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setShowCSVImport(true)}
-                className="flex-1 bg-neon-cyan text-void px-4 py-3 rounded-lg font-semibold hover:shadow-[0_0_20px_rgba(5,217,232,0.5)] transition-all duration-200"
+                className="flex-1 bg-neon-cyan text-void px-4 py-3 min-h-[48px] rounded-lg font-semibold text-beamer-body hover:shadow-[0_0_20px_rgba(5,217,232,0.5)] transition-all duration-200"
               >
                 CSV Import
               </button>
@@ -177,7 +172,7 @@ export function App() {
                   // Scroll to form
                   document.getElementById('manual-add-form')?.scrollIntoView({ behavior: 'smooth' })
                 }}
-                className="flex-1 bg-night border border-steel text-steel px-4 py-3 rounded-lg font-semibold hover:border-neon-pink hover:text-neon-pink transition-colors"
+                className="flex-1 bg-night border border-steel text-steel px-4 py-3 min-h-[48px] rounded-lg font-semibold text-beamer-body hover:border-neon-pink hover:text-neon-pink transition-colors"
               >
                 Manuell
               </button>
@@ -200,14 +195,14 @@ export function App() {
             )}
           </div>
 
-          {/* Footer mit Reset-Buttons */}
+          {/* Footer mit Reset-Buttons - Beamer-optimiert (min 48px) */}
           <div className="max-w-md mx-auto mt-8 pt-6 border-t border-steel/20">
             <div className="flex flex-wrap gap-4 justify-center">
               {/* "Alle Piloten löschen" - nur wenn Piloten existieren */}
               {pilots.length > 0 && (
                 <button
                   onClick={() => setShowDeleteAllPilotsDialog(true)}
-                  className="bg-night border-2 border-loser-red text-loser-red px-4 py-2 rounded-lg text-sm hover:bg-loser-red/10 transition-colors"
+                  className="bg-night border-2 border-loser-red text-loser-red px-5 py-3 min-h-[48px] rounded-lg text-beamer-body hover:bg-loser-red/10 transition-colors"
                 >
                   Alle Piloten löschen
                 </button>
@@ -217,7 +212,7 @@ export function App() {
               {tournamentPhase !== 'setup' && (
                 <button
                   onClick={() => setShowResetTournamentDialog(true)}
-                  className="bg-night border-2 border-loser-red text-loser-red px-4 py-2 rounded-lg text-sm hover:bg-loser-red/10 transition-colors"
+                  className="bg-night border-2 border-loser-red text-loser-red px-5 py-3 min-h-[48px] rounded-lg text-beamer-body hover:bg-loser-red/10 transition-colors"
                 >
                   Turnier zurücksetzen
                 </button>
@@ -227,75 +222,33 @@ export function App() {
         </div>
       )}
 
-      {activeTab === 'heats' && (
+      {activeTab === 'turnier' && (
         tournamentPhase === 'heat-assignment' ? (
           <HeatAssignmentView
             heats={heats}
             pilots={pilots}
             onConfirm={() => {
               confirmHeatAssignment()
-              // Stay on heats tab to see the running tournament
+              // Stay on turnier tab to see the running tournament
             }}
             onCancel={() => {
               cancelHeatAssignment()
               setActiveTab('piloten')
             }}
           />
-        ) : tournamentPhase === 'running' ? (
-          // Active Heat View when tournament is running
-          (() => {
-            const activeHeat = getActiveHeat()
-            const nextHeat = getNextHeat()
-            
-            if (activeHeat) {
-              return (
-                <ActiveHeatView
-                  heat={activeHeat}
-                  nextHeat={nextHeat}
-                  pilots={pilots}
-                  onSubmitResults={submitHeatResults}
-                  onHeatComplete={handleHeatComplete}
-                />
-              )
-            }
-            
-            // No active heat - show overview
-            return (
-              <HeatOverview
-                heats={heats}
-                pilots={pilots}
-              />
-            )
-          })()
         ) : (
-          <HeatOverview
-            heats={heats}
-            pilots={pilots}
-          />
+          <div className="max-w-7xl mx-auto p-6">
+            <BracketTree 
+              pilots={pilots}
+              tournamentPhase={tournamentPhase}
+              activeHeat={getActiveHeat()}
+              nextHeat={getNextHeat()}
+              onSubmitResults={submitHeatResults}
+              onHeatComplete={handleHeatComplete}
+              onNewTournament={handleNewTournament}
+            />
+          </div>
         )
-      )}
-
-      {activeTab === 'bracket' && (
-        <div className="max-w-7xl mx-auto p-6">
-          {/* Continue to next heat button - shows after heat completion */}
-          {showContinueToHeats && (
-            <div className="text-center mb-6">
-              <button
-                onClick={() => {
-                  setActiveTab('heats')
-                  setShowContinueToHeats(false)
-                }}
-                className="btn-primary text-xl px-8 py-4 animate-pulse"
-              >
-                → Weiter zum nächsten Heat
-              </button>
-            </div>
-          )}
-          
-          <BracketTree 
-            pilots={pilots}
-          />
-        </div>
       )}
       </main>
 
@@ -319,7 +272,7 @@ export function App() {
             const success = confirmTournamentStart()
             if (success) {
               setShowStartDialog(false)
-              setActiveTab('heats')  // Auto-navigation to heats tab
+              setActiveTab('turnier')  // Auto-navigation to turnier tab
             }
           }}
           onCancel={() => setShowStartDialog(false)}
@@ -360,7 +313,7 @@ export function App() {
           title="Alles löschen?"
           description="Alle Piloten und Turnierdaten werden unwiderruflich gelöscht."
           confirmText="Endgültig löschen"
-          requireTypedConfirmation={true}
+          requireCheckboxConfirmation={true}
           onConfirm={() => {
             resetAll()
             setShowResetAllDialog(false)

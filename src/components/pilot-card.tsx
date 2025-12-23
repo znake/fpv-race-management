@@ -130,7 +130,7 @@ export function PilotCard({
     <div 
       className={`
         pilot-card relative bg-night text-center cursor-pointer
-        border-[3px] rounded-[16px] p-6
+        border-[3px] rounded-[16px] p-6 min-w-[150px]
         transition-all duration-200 ease-out
         hover:-translate-y-1 hover:border-neon-cyan
         ${getRankBorderClass()}
@@ -141,11 +141,11 @@ export function PilotCard({
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
     >
-      {/* Rank Badge - US-2.3: Scale-In Animation */}
+      {/* Rank Badge - Beamer-optimiert (min 32px Zahl) */}
       {rank && !pilot.droppedOut && (
         <div className={`
-          absolute -top-2 -right-2 w-12 h-12 rounded-full
-          flex items-center justify-center font-display text-[28px] text-void
+          absolute -top-2 -right-2 w-14 h-14 rounded-full
+          flex items-center justify-center font-display text-beamer-rank text-void
           rank-badge-animate
           ${rank === 1 ? 'bg-gold shadow-glow-gold' : ''}
           ${rank === 2 ? 'bg-neon-cyan shadow-glow-cyan' : ''}
@@ -162,10 +162,10 @@ export function PilotCard({
         </div>
       )}
 
-      {/* Action Buttons - nur auf Hover sichtbar */}
+      {/* Action Buttons - Beamer-optimiert (min 44x44px Klickfläche) */}
       {!isEditing && (
         <div className={`
-          absolute -top-2 -left-2 flex gap-1 z-10
+          absolute -top-3 -left-3 flex gap-2 z-10
           transition-opacity duration-200
           ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}>
@@ -175,7 +175,7 @@ export function PilotCard({
                 e.stopPropagation()
                 setIsEditing(true)
               }}
-              className="w-8 h-8 bg-neon-cyan text-void rounded-full flex items-center justify-center hover:bg-neon-pink hover:shadow-glow-pink transition-all duration-200"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] bg-neon-cyan text-void rounded-full flex items-center justify-center hover:bg-neon-pink hover:shadow-glow-pink transition-all duration-200 text-lg"
               title="Bearbeiten"
             >
               ✏️
@@ -187,7 +187,7 @@ export function PilotCard({
                 e.stopPropagation()
                 handleDelete()
               }}
-              className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 hover:shadow-glow-red transition-all duration-200"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 hover:shadow-glow-red transition-all duration-200 text-lg"
               title="Löschen"
             >
               🗑️
@@ -199,7 +199,7 @@ export function PilotCard({
                 e.stopPropagation()
                 handleMarkDroppedOut()
               }}
-              className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 hover:shadow-glow-orange transition-all duration-200"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 hover:shadow-glow-orange transition-all duration-200 text-lg"
               title="Als ausgefallen markieren"
             >
               ⚠️
@@ -233,34 +233,34 @@ export function PilotCard({
         </div>
       </div>
 
-      {/* Pilot Name */}
+      {/* Pilot Name - Beamer-optimiert (min 24px) */}
       {isEditing ? (
         <input
           type="text"
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
-          className="font-display text-2xl font-bold text-chrome mb-2 bg-void border border-neon-cyan rounded px-2 py-1 w-full text-center"
+          className="font-display text-beamer-name font-bold text-chrome mb-2 bg-void border border-neon-cyan rounded px-2 py-1 w-full text-center"
           placeholder="Pilotenname"
         />
       ) : (
-        <div className="font-display text-2xl font-bold text-chrome mb-2">
+        <div className="font-display text-beamer-name font-bold text-chrome mb-2">
           {pilot.name}
         </div>
       )}
 
-      {/* Instagram Handle */}
+      {/* Instagram Handle - Beamer-optimiert (min 16px caption) */}
       {isEditing ? (
         <input
           type="text"
           value={editInstagramHandle}
           onChange={(e) => setEditInstagramHandle(e.target.value)}
-          className="font-ui text-sm text-steel mb-2 bg-void border border-neon-cyan rounded px-2 py-1 w-full text-center"
+          className="font-ui text-beamer-caption text-steel mb-2 bg-void border border-neon-cyan rounded px-2 py-1 w-full text-center"
           placeholder="@pilot_fpv"
         />
       ) : (
          /* Instagram Handle - nur anzeigen wenn vorhanden */
          pilot.instagramHandle && (
-           <div className="font-ui text-sm text-steel text-center">
+           <div className="font-ui text-beamer-caption text-steel text-center">
              {pilot.instagramHandle}
            </div>
          )
@@ -275,18 +275,18 @@ export function PilotCard({
         </div>
       )}
 
-      {/* Edit Actions */}
+      {/* Edit Actions - Beamer-optimiert (min 48px Höhe) */}
       {isEditing && (
         <div className="flex gap-2 justify-center mt-4">
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-neon-cyan text-void rounded font-bold hover:bg-neon-pink transition-colors"
+            className="px-6 py-3 min-h-[48px] bg-neon-cyan text-void rounded font-bold hover:bg-neon-pink transition-colors text-beamer-body"
           >
             Speichern
           </button>
           <button
             onClick={handleCancel}
-            className="px-4 py-2 bg-steel text-chrome rounded font-bold hover:border-neon-cyan transition-colors"
+            className="px-6 py-3 min-h-[48px] bg-steel text-chrome rounded font-bold hover:border-neon-cyan transition-colors text-beamer-body"
           >
             Abbrechen
           </button>

@@ -44,7 +44,7 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
     
     return (
       <span className={`
-        ml-2 px-2 py-1 rounded-full text-xs font-bold
+        ml-2 px-2 py-1 rounded-full text-beamer-caption font-bold
         ${ranking.rank === 1 ? 'bg-gold text-void shadow-glow-gold' : ''}
         ${ranking.rank === 2 ? 'bg-neon-cyan text-void shadow-glow-cyan' : ''}
         ${ranking.rank >= 3 ? 'bg-neon-pink text-void shadow-glow-pink' : ''}
@@ -63,15 +63,15 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
   return (
     <div className={`bg-night border-3 rounded-2xl p-6 ${getBorderClass()}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-xl font-bold text-chrome">
+        <h3 className="font-display text-beamer-heat font-bold text-chrome">
           HEAT {heat.heatNumber}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="font-ui text-sm text-steel">
+          <span className="font-ui text-beamer-body text-steel">
             {activePilots.length}/4 Piloten
           </span>
           {hasBye && showByeHandling && (
-            <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full font-bold">
+            <span className="px-2 py-1 bg-orange-500 text-white text-beamer-caption rounded-full font-bold">
               FREILOS
             </span>
           )}
@@ -101,7 +101,7 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
               ${getPilotStyling(pilot)}
             `}
           >
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-steel">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-steel">
               <img
                 src={pilot.imageUrl}
                 alt={pilot.name}
@@ -112,26 +112,26 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
               />
             </div>
             <div className="flex-1">
-              <div className="font-display text-base font-bold text-chrome flex items-center">
+              <div className="font-display text-beamer-body font-bold text-chrome flex items-center">
                 {pilot.name}
                 {getPilotBadge(pilot)}
                 {getRankDisplay(pilot.id)}
               </div>
-              <div className="font-ui text-xs text-steel">
+              <div className="font-ui text-beamer-caption text-steel">
                 Position {index + 1}
               </div>
             </div>
-            <div className="font-ui text-sm text-neon-cyan">
+            <div className="font-ui text-beamer-body text-neon-cyan">
               Aktiv
             </div>
           </div>
         ))}
       </div>
 
-      {/* Withdrawn Pilots */}
+      {/* Withdrawn Pilots - Beamer-optimiert */}
       {withdrawnPilots.length > 0 && (
         <div className="border-t-2 border-steel pt-4">
-          <h4 className="font-display text-sm font-bold text-red-500 mb-3">
+          <h4 className="font-display text-beamer-body font-bold text-red-500 mb-3">
             Ausgefallene Piloten
           </h4>
           <div className="space-y-2">
@@ -143,7 +143,7 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
                   flex items-center gap-3 opacity-60
                 `}
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-500/50">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-red-500/50">
                   <img
                     src={pilot.imageUrl}
                     alt={pilot.name}
@@ -154,15 +154,15 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="font-display text-base font-bold text-chrome flex items-center">
+                  <div className="font-display text-beamer-body font-bold text-chrome flex items-center">
                     {pilot.name}
                     {getPilotBadge(pilot)}
                   </div>
-                  <div className="font-ui text-xs text-red-500">
+                  <div className="font-ui text-beamer-caption text-red-500">
                     Erhält Freilos im nächsten Heat
                   </div>
                 </div>
-                <div className="font-ui text-sm text-red-500">
+                <div className="font-ui text-beamer-body text-red-500">
                     Ausgefallen
                   </div>
               </div>
@@ -171,16 +171,16 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
         </div>
       )}
 
-      {/* Bye System Info */}
+      {/* Bye System Info - Beamer-optimiert */}
       {hasBye && showByeHandling && (
         <div className="mt-4 p-3 bg-orange-500/10 border-2 border-orange-500/30 rounded-xl">
           <div className="flex items-center gap-2">
-            <span className="text-orange-500 text-lg">⚠️</span>
+            <span className="text-orange-500 text-xl">⚠️</span>
             <div>
-              <div className="font-display text-sm font-bold text-orange-500">
+              <div className="font-display text-beamer-body font-bold text-orange-500">
                 Freilos-System aktiv
               </div>
-              <div className="font-ui text-xs text-orange-400">
+              <div className="font-ui text-beamer-caption text-orange-400">
                 {4 - activePilots.length} Pilot(en) erhalten ein Freilos
               </div>
             </div>
@@ -188,10 +188,10 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State - Beamer-optimiert */}
       {heatPilots.length === 0 && (
         <div className="text-center py-8">
-          <div className="font-ui text-steel">
+          <div className="font-ui text-beamer-body text-steel">
             Keine Piloten in diesem Heat
           </div>
         </div>

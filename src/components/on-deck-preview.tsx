@@ -32,9 +32,9 @@ export function OnDeckPreview({ heat, pilots }: OnDeckPreviewProps) {
           <div 
             key={pilot.id} 
             role="listitem"
-            className="flex items-center gap-3 bg-void border border-steel rounded-lg px-4 py-2"
+            className="flex items-center gap-3 bg-void border border-steel rounded-lg px-4 py-3"
           >
-            {/* Small Photo - 48px */}
+            {/* Small Photo - min 48px (AC3) */}
             <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta flex-shrink-0">
               <img
                 src={pilot.imageUrl}
@@ -47,8 +47,8 @@ export function OnDeckPreview({ heat, pilots }: OnDeckPreviewProps) {
               />
             </div>
             
-            {/* Pilot Name */}
-            <div className="font-ui text-base text-chrome font-medium">
+            {/* Pilot Name - Beamer-optimiert (min 18px body) */}
+            <div className="font-ui text-beamer-body text-chrome font-medium">
               {pilot.name}
             </div>
           </div>

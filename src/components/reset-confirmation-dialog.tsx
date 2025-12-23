@@ -6,7 +6,7 @@ interface ResetConfirmationDialogProps {
   confirmText: string
   onConfirm: () => void
   onCancel: () => void
-  requireTypedConfirmation?: boolean  // For "Alles löschen" - requires typing "LÖSCHEN"
+  requireCheckboxConfirmation?: boolean  // For "Alles löschen" - requires checkbox confirmation
 }
 
 export function ResetConfirmationDialog({
@@ -15,12 +15,12 @@ export function ResetConfirmationDialog({
   confirmText,
   onConfirm,
   onCancel,
-  requireTypedConfirmation = false
+  requireCheckboxConfirmation = false
 }: ResetConfirmationDialogProps) {
-  const [typedInput, setTypedInput] = useState('')
+  const [isChecked, setIsChecked] = useState(false)
   
-  const isConfirmEnabled = requireTypedConfirmation 
-    ? typedInput === 'LÖSCHEN' 
+  const isConfirmEnabled = requireCheckboxConfirmation 
+    ? isChecked 
     : true
 
   return (
@@ -47,19 +47,19 @@ export function ResetConfirmationDialog({
           {description}
         </p>
 
-        {requireTypedConfirmation && (
+        {requireCheckboxConfirmation && (
           <div className="mb-6">
-            <label className="block text-sm text-steel mb-2 text-center">
-              Gib <span className="text-loser-red font-bold">LÖSCHEN</span> ein um zu bestätigen:
+            <label className="flex items-center justify-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => setIsChecked(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-steel bg-void text-loser-red focus:ring-loser-red focus:ring-offset-0 cursor-pointer accent-loser-red"
+              />
+              <span className="text-steel group-hover:text-chrome transition-colors select-none">
+                Ja, ich möchte wirklich alles löschen
+              </span>
             </label>
-            <input
-              type="text"
-              value={typedInput}
-              onChange={(e) => setTypedInput(e.target.value)}
-              placeholder="LÖSCHEN"
-              className="w-full px-4 py-3 bg-void border-2 border-steel rounded-lg text-chrome text-center font-mono focus:outline-none focus:border-loser-red transition-colors"
-              autoFocus
-            />
           </div>
         )}
         

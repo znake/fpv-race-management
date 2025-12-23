@@ -177,12 +177,12 @@ export function ActiveHeatView({ heat, nextHeat, pilots, onSubmitResults, onHeat
 
   return (
     <div ref={containerRef} data-testid="heat-container" className={`max-w-6xl mx-auto ${showSuccessPulse ? 'success-pulse' : ''}`}>
-      {/* Heat Header */}
+      {/* Heat Header - Beamer-optimiert */}
       <div className="text-center mb-8">
-        <h1 className="font-display text-6xl md:text-7xl text-chrome tracking-wider mb-2">
+        <h1 className="font-display text-beamer-display md:text-7xl text-chrome tracking-wider mb-2">
           HEAT {heat.heatNumber}
         </h1>
-        <p className="font-ui text-xl text-steel">
+        <p className="font-ui text-beamer-ui text-steel">
           Wähle die Platzierungen durch Klicken
         </p>
       </div>
@@ -215,11 +215,11 @@ export function ActiveHeatView({ heat, nextHeat, pilots, onSubmitResults, onHeat
                 }
               `}
             >
-              {/* Rank Badge */}
+              {/* Rank Badge - Beamer-optimiert (min 32px) */}
               {hasRank && (
                 <div className={`
                   absolute -top-3 -right-3 w-14 h-14 rounded-full
-                  flex items-center justify-center font-display text-[32px] text-void
+                  flex items-center justify-center font-display text-beamer-rank text-void
                   rank-badge-animate
                   ${getRankBadgeClass(rank)}
                 `}>
@@ -242,14 +242,14 @@ export function ActiveHeatView({ heat, nextHeat, pilots, onSubmitResults, onHeat
                 </div>
               </div>
 
-              {/* Pilot Name */}
-              <div className="font-display text-2xl font-bold text-chrome mb-1">
+              {/* Pilot Name - Beamer-optimiert (min 24px) */}
+              <div className="font-display text-beamer-name font-bold text-chrome mb-1">
                 {pilot.name}
               </div>
 
-              {/* Instagram Handle */}
+              {/* Instagram Handle - Beamer-optimiert (min 16px caption) */}
               {pilot.instagramHandle && (
-                <div className="font-ui text-sm text-steel">
+                <div className="font-ui text-beamer-caption text-steel">
                   {pilot.instagramHandle}
                 </div>
               )}
@@ -279,8 +279,8 @@ export function ActiveHeatView({ heat, nextHeat, pilots, onSubmitResults, onHeat
           </button>
         )}
 
-        {/* Status Text */}
-        <p className="font-ui text-sm text-steel">
+        {/* Status Text - Beamer-optimiert (min 16px) */}
+        <p className="font-ui text-beamer-caption text-steel">
           {rankings.size === 0 && 'Klicke auf einen Piloten für Rang 1'}
           {rankings.size === 1 && 'Mindestens 2 Ränge für Fertig'}
           {rankings.size >= 2 && rankings.size < heatPilots.length && `${rankings.size}/${heatPilots.length} Ränge vergeben`}
@@ -293,9 +293,9 @@ export function ActiveHeatView({ heat, nextHeat, pilots, onSubmitResults, onHeat
         <OnDeckPreview heat={nextHeat} pilots={pilots} />
       )}
 
-      {/* Keyboard Shortcuts Help */}
+      {/* Keyboard Shortcuts Help - Beamer-optimiert (min 16px) */}
       <div className="mt-8 text-center">
-        <p className="font-ui text-xs text-steel/60">
+        <p className="font-ui text-beamer-caption text-steel/60">
           Shortcuts: Tab = Navigation | 1-4 = Direkter Rang | Escape = Reset
         </p>
       </div>

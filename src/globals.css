@@ -106,12 +106,13 @@
     background: var(--void);
   }
 
-  /* Tab Button */
+  /* Tab Button - Beamer-optimiert (min 20px, min-height 56px) */
   .tab {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
-    padding: 16px 32px;
+    padding: 18px 36px;
+    min-height: 56px;
     background: var(--night);
     border: 2px solid var(--steel);
     border-radius: 8px;
@@ -132,12 +133,13 @@
     box-shadow: var(--glow-pink);
   }
 
-  /* Primary Button (Fertig) */
+  /* Primary Button (Fertig) - Beamer-optimiert (min-height 48px) */
   .btn-primary {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 20px;
     font-weight: 600;
     padding: 20px 48px;
+    min-height: 48px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
@@ -159,13 +161,20 @@
     opacity: 0.5;
   }
 
-  /* Main Content */
+  /* Main Content - Beamer-optimiert für 1920x1080 */
   .main-content {
     padding: 32px;
-    max-width: 1400px;
+    max-width: 1800px; /* Erhöht für Beamer-Breitbild */
     margin: 0 auto;
     position: relative;
     z-index: 1;
+  }
+
+  /* Beamer-spezifischer Container für Brackets */
+  .bracket-beamer-container {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 20px;
   }
 
   /* On-Deck Preview */
@@ -177,8 +186,9 @@
     border-radius: 12px;
   }
 
+  /* On-Deck Title - Beamer-optimiert (min 16px caption) */
   .on-deck-title {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--steel);
     margin-bottom: 16px;
     text-transform: uppercase;

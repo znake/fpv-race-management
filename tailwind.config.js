@@ -9,6 +9,16 @@ export default {
   ],
   theme: {
     extend: {
+      // Beamer-optimierte Font-Größen (Story 6.2)
+      fontSize: {
+        'beamer-caption': ['16px', { lineHeight: '1.4' }],
+        'beamer-body': ['18px', { lineHeight: '1.5' }],
+        'beamer-ui': ['20px', { lineHeight: '1.4' }],
+        'beamer-name': ['24px', { lineHeight: '1.3' }],
+        'beamer-rank': ['32px', { lineHeight: '1' }],
+        'beamer-heat': ['36px', { lineHeight: '1.2' }],
+        'beamer-display': ['48px', { lineHeight: '1.1' }],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

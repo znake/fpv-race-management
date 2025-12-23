@@ -27,17 +27,17 @@ export function Header({ onResetAll }: HeaderProps) {
 
   return (
     <header className="bg-night border-b-2 border-neon-pink shadow-glow-pink px-8 py-4 flex justify-between items-center">
-      {/* Logo */}
-      <h1 className="font-display text-4xl tracking-widest">
+      {/* Logo - Beamer-optimiert (min 36px) */}
+      <h1 className="font-display text-beamer-heat tracking-widest">
         <span className="bg-gradient-to-r from-neon-pink to-neon-magenta bg-clip-text text-transparent">
           FPV RACING
         </span>{' '}
         <span className="text-neon-cyan">HEATS</span>
       </h1>
       
-      {/* Right side: Club Name + Menu */}
+      {/* Right side: Club Name + Menu - Beamer-optimiert */}
       <div className="flex items-center gap-4">
-        <div className="text-steel text-sm">
+        <div className="text-steel text-beamer-caption">
           FPV Oberösterreich
         </div>
 
@@ -76,7 +76,7 @@ export function Header({ onResetAll }: HeaderProps) {
                     setMenuOpen(false)
                     onResetAll()
                   }}
-                  className="w-full px-4 py-3 text-left text-loser-red hover:bg-loser-red/10 transition-colors text-sm font-medium flex items-center gap-2"
+                  className="w-full px-4 py-3 text-left text-loser-red hover:bg-loser-red/10 transition-colors text-beamer-body font-medium flex items-center gap-2 min-h-[48px]"
                   role="menuitem"
                 >
                   <svg 
