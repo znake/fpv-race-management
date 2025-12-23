@@ -80,6 +80,15 @@ interface TournamentState {
   loserPilots: string[]
   eliminatedPilots: string[]
   
+  // Story 9-1: Loser Pool State
+  // Pool sammelt WB-Verlierer bis genug für LB-Heat vorhanden sind
+  loserPool: string[]
+  
+  // Story 9-1: Loser Pool Actions
+  addToLoserPool: (pilotIds: string[]) => void
+  removeFromLoserPool: (pilotIds: string[]) => void
+  eliminatePilots: (pilotIds: string[]) => void
+  
   // NEW: Full bracket structure with 3 sections (Story 4.3 REDESIGN)
   fullBracketStructure: FullBracketStructure | null
   getFullBracketStructure: () => FullBracketStructure | null
@@ -106,6 +115,7 @@ export const useTournamentStore = create<TournamentState>()(
       winnerPilots: [],
       loserPilots: [],
       eliminatedPilots: [],
+      loserPool: [],
       fullBracketStructure: null,
       
       addPilot: (input) => {
@@ -277,6 +287,7 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: [],
           loserPilots: [],
           eliminatedPilots: [],
+          loserPool: [],
           fullBracketStructure: null
           // pilots bleiben unverändert!
         })
@@ -292,6 +303,7 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: [],
           loserPilots: [],
           eliminatedPilots: [],
+          loserPool: [],
           fullBracketStructure: null
         })
       },
@@ -307,6 +319,7 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: [],
           loserPilots: [],
           eliminatedPilots: [],
+          loserPool: [],
           fullBracketStructure: null
         })
         // localStorage komplett leeren für sauberen Neustart
@@ -413,15 +426,50 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: [],
           loserPilots: [],
           eliminatedPilots: [],
+          loserPool: [],
           fullBracketStructure: null
         })
         return true
       },
 
+      // Story 9-1: Loser Pool Actions
+      addToLoserPool: (pilotIds) => {
+        const { loserPool } = get()
+        const existingIds = new Set(loserPool)
+        const newPilots = pilotIds.filter(id => !existingIds.has(id))
+        if (newPilots.length > 0) {
+          set({ loserPool: [...loserPool, ...newPilots] })
+        }
+      },
+
+      removeFromLoserPool: (pilotIds) => {
+        const { loserPool } = get()
+        const idsToRemove = new Set(pilotIds)
+        set({ loserPool: loserPool.filter(id => !idsToRemove.has(id)) })
+      },
+
+      eliminatePilots: (pilotIds) => {
+        const { loserPool, eliminatedPilots } = get()
+        const existingEliminated = new Set(eliminatedPilots)
+        const idsToEliminate = new Set(pilotIds)
+        
+        // Remove from loserPool
+        const newLoserPool = loserPool.filter(id => !idsToEliminate.has(id))
+        
+        // Add to eliminatedPilots (avoiding duplicates)
+        const newEliminated = pilotIds.filter(id => !existingEliminated.has(id))
+        
+        set({ 
+          loserPool: newLoserPool,
+          eliminatedPilots: [...eliminatedPilots, ...newEliminated]
+        })
+      },
+
       // Story 4.1 + 4.2: Heat result actions with bracket progression
       // Tasks 7-18: Full bracket progression from Quali to Grand Finale
+      // Story 9-1: Loser Pool integration
       submitHeatResults: (heatId, rankings) => {
-        const { heats, winnerPilots, loserPilots, eliminatedPilots, fullBracketStructure } = get()
+        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool, fullBracketStructure } = get()
         
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
@@ -443,6 +491,9 @@ export const useTournamentStore = create<TournamentState>()(
         const newWinnerPilots = new Set(winnerPilots)
         const newLoserPilots = new Set(loserPilots)
         const newEliminatedPilots = new Set(eliminatedPilots)
+        
+        // Story 9-1: Track loserPool for dynamic LB heat generation
+        const newLoserPool = new Set(loserPool)
         
         // First, check if this is a re-submission (edit mode)
         // If so, we need to remove old bracket assignments from this heat
@@ -551,6 +602,8 @@ export const useTournamentStore = create<TournamentState>()(
                   // WB losers drop to LB
                   newWinnerPilots.delete(ranking.pilotId)
                   newLoserPilots.add(ranking.pilotId)
+                  // Story 9-1: Add WB losers to loserPool for dynamic LB heat generation
+                  newLoserPool.add(ranking.pilotId)
                 }
                 // LB losers already handled via eliminatedPilotIds
               }
@@ -642,6 +695,7 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: Array.from(newWinnerPilots),
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
+          loserPool: Array.from(newLoserPool),
           fullBracketStructure: updatedBracketStructure
         })
       },
