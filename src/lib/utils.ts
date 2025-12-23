@@ -234,3 +234,47 @@ export function getRankBorderClasses(rank: number): string {
   if (rank === 3) return 'border-bronze shadow-glow-bronze'
   return 'border-neon-cyan shadow-glow-cyan' // rank 4+
 }
+
+/**
+ * Sortiert Piloten nach Platzierung (Story 4.4 - Task 1)
+ * 
+ * @param pilotIds - Array of pilot IDs to sort
+ * @param results - Heat results with rankings
+ * @returns Sorted pilot IDs (rank 1 first, then 2, 3, 4)
+ */
+export function sortPilotsByRank(
+  pilotIds: string[],
+  results?: { rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] }
+): string[] {
+  if (!results || !results.rankings) {
+    return pilotIds // Ursprüngliche Reihenfolge für pending/active Heats
+  }
+
+  const rankingMap = new Map<string, number>()
+  results.rankings.forEach(r => rankingMap.set(r.pilotId, r.rank))
+
+  // Sortieren: Piloten mit Rang zuerst (1, 2, 3, 4), dann Piloten ohne Rang (rank=99)
+  return [...pilotIds].sort((a, b) => {
+    const rankA = rankingMap.get(a) ?? 99
+    const rankB = rankingMap.get(b) ?? 99
+    return rankA - rankB
+  })
+}
+
+/**
+ * Get pilot rank from heat results (Story 4.4 - Task 1)
+ * 
+ * @param pilotId - Pilot ID to get rank for
+ * @param heat - Heat object with results
+ * @returns Pilot rank (1-4) or undefined if not ranked
+ */
+export function getPilotRank(
+  pilotId: string,
+  heat: { results?: { rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] } }
+): number | undefined {
+  if (!heat.results || !heat.results.rankings) {
+    return undefined
+  }
+  const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
+  return ranking?.rank
+}

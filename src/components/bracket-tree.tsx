@@ -4,8 +4,8 @@ import type { Pilot } from '../lib/schemas'
 import { HeatDetailModal } from './heat-detail-modal'
 import { ActiveHeatView } from './active-heat-view'
 import { VictoryCeremony } from './victory-ceremony'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE } from '../lib/utils'
-import type { 
+import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, sortPilotsByRank } from '../lib/utils'
+import type {
   BracketHeat as FullBracketHeat,
   BracketRound,
   FullBracketStructure,
@@ -76,13 +76,14 @@ function EmptyBracketHeatBox({
 /**
  * Compact Heat Box for bracket visualization
  * Shows pilots with rankings when heat is active/completed
+ * US-4.4: Sorts pilots by rank for completed heats
  */
-function BracketHeatBox({ 
+function BracketHeatBox({
   heat,
-  pilots, 
+  pilots,
   bracketType,
   onClick,
-  onEdit 
+  onEdit
 }: {
   heat: Heat
   pilots: Pilot[]
@@ -90,6 +91,14 @@ function BracketHeatBox({
   onClick?: () => void
   onEdit?: () => void
 }) {
+  // US-4.4 Task 2 & 3: Sort pilots by rank for completed heats
+  const sortedPilotIds = useMemo(() => {
+    if (heat.status !== 'completed' || !heat.results?.rankings) {
+      return heat.pilotIds // Ursprüngliche Reihenfolge für pending/active
+    }
+    return sortPilotsByRank(heat.pilotIds, heat.results)
+  }, [heat.status, heat.results, heat.pilotIds])
+
   const borderClass = {
     pending: 'border-steel border-dashed',
     active: 'border-neon-cyan shadow-glow-cyan',
@@ -130,14 +139,14 @@ function BracketHeatBox({
       
       {/* Pilots - Beamer-optimiert (min 40px Foto) */}
       <div className="space-y-2">
-        {heat.pilotIds.map((pilotId: string) => {
+        {sortedPilotIds.map((pilotId: string) => {
           const pilot = pilots.find(p => p.id === pilotId)
           const ranking = heat.results?.rankings.find((r) => r.pilotId === pilotId)
-          
+
           return (
             <div key={pilotId} className="flex items-center gap-2">
-              <img 
-                src={pilot?.imageUrl} 
+              <img
+                src={pilot?.imageUrl}
                 alt={pilot?.name}
                 className="w-10 h-10 rounded-full object-cover border border-steel"
                 onError={(e) => {
@@ -147,6 +156,7 @@ function BracketHeatBox({
               <span className="font-ui text-beamer-caption text-chrome truncate flex-1">
                 {pilot?.name}
               </span>
+              {/* US-4.4: Show rank badge for completed heats */}
               {ranking && (
                 <span className={`
                   w-6 h-6 rounded-full flex items-center justify-center text-beamer-caption font-bold
@@ -222,20 +232,31 @@ function HeatsSection({
  * Filled Bracket Heat Box - shows pilots with their names/images
  * Used when bracketHeat.pilotIds.length > 0
  * Uses displayHeatNumber (from heats[] array) when provided, otherwise bracketHeat.heatNumber
+ * US-4.4: Sorts pilots by rank for completed heats
  */
 function FilledBracketHeatBox({
   bracketHeat,
   pilots,
   bracketType,
   onClick,
-  displayHeatNumber
+  displayHeatNumber,
+  actualHeat  // US-4.4: Pass actual heat for results
 }: {
   bracketHeat: FullBracketHeat
   pilots: Pilot[]
   bracketType: BracketType
   onClick?: () => void
   displayHeatNumber?: number
+  actualHeat?: Heat  // US-4.4: For accessing results
 }) {
+  // US-4.4 Task 2 & 3: Sort pilots by rank for completed heats
+  const sortedPilotIds = useMemo(() => {
+    if (bracketHeat.status !== 'completed' || !actualHeat?.results?.rankings) {
+      return bracketHeat.pilotIds // Ursprüngliche Reihenfolge für pending/active
+    }
+    return sortPilotsByRank(bracketHeat.pilotIds, actualHeat.results)
+  }, [bracketHeat.status, bracketHeat.pilotIds, actualHeat?.results])
+
   const borderClass = {
     empty: 'border-steel border-dashed',
     pending: 'border-steel',
@@ -272,13 +293,14 @@ function FilledBracketHeatBox({
       
       {/* Pilots - Beamer-optimiert (min 40px Foto) */}
       <div className="space-y-2">
-        {bracketHeat.pilotIds.map((pilotId: string) => {
+        {sortedPilotIds.map((pilotId: string) => {
           const pilot = pilots.find(p => p.id === pilotId)
-          
+          const ranking = actualHeat?.results?.rankings.find((r) => r.pilotId === pilotId)
+
           return (
             <div key={pilotId} className="flex items-center gap-2">
-              <img 
-                src={pilot?.imageUrl} 
+              <img
+                src={pilot?.imageUrl}
                 alt={pilot?.name}
                 className="w-10 h-10 rounded-full object-cover border border-steel"
                 onError={(e) => {
@@ -288,6 +310,15 @@ function FilledBracketHeatBox({
               <span className="font-ui text-beamer-caption text-chrome truncate flex-1">
                 {pilot?.name}
               </span>
+              {/* US-4.4: Show rank badge for completed heats */}
+              {ranking && (
+                <span className={`
+                  w-6 h-6 rounded-full flex items-center justify-center text-beamer-caption font-bold
+                  ${getRankBadgeClasses(ranking.rank)}
+                `}>
+                  {ranking.rank}
+                </span>
+              )}
             </div>
           )
         })}
@@ -325,10 +356,10 @@ function BracketRoundColumn({
         {round.roundName}
       </h3>
       {round.heats.map((bracketHeat) => {
-        // Find the actual heat in heats[] to get correct heatNumber
+        // Find the actual heat in heats[] to get correct heatNumber and results
         const actualHeat = heats.find(h => h.id === bracketHeat.id)
         const displayHeatNumber = actualHeat?.heatNumber ?? bracketHeat.heatNumber
-        
+
         // Show filled box if pilots assigned, otherwise empty placeholder
         return bracketHeat.pilotIds.length > 0 ? (
           <FilledBracketHeatBox
@@ -337,6 +368,7 @@ function BracketRoundColumn({
             pilots={pilots}
             bracketType={bracketType}
             displayHeatNumber={displayHeatNumber}
+            actualHeat={actualHeat}  // US-4.4: Pass for results
           />
         ) : (
           <EmptyBracketHeatBox

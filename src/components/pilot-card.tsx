@@ -6,18 +6,22 @@ type PilotCardProps = {
   pilot: Pilot
   selected?: boolean
   rank?: number
+  showRank?: boolean  // US-4.4: Optional anzeigen
+  size?: 'small' | 'medium' | 'large'  // US-4.4: Für Bracket vs Heat-Übersicht
   onEdit?: (id: string, updates: { name?: string; imageUrl?: string; instagramHandle?: string }) => boolean
   onDelete?: (id: string) => boolean
   onMarkDroppedOut?: (id: string) => boolean
   tournamentStarted?: boolean
 }
 
-export function PilotCard({ 
-  pilot, 
-  selected = false, 
-  rank, 
-  onEdit, 
-  onDelete, 
+export function PilotCard({
+  pilot,
+  selected = false,
+  rank,
+  showRank = true,  // US-4.4: Default true (backward compatible)
+  size = 'medium',  // US-4.4: Default medium
+  onEdit,
+  onDelete,
   onMarkDroppedOut,
   tournamentStarted = false
 }: PilotCardProps) {
@@ -141,12 +145,12 @@ export function PilotCard({
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
     >
-      {/* Rank Badge - Beamer-optimiert (min 32px Zahl) */}
-      {rank && !pilot.droppedOut && (
+      {/* Rank Badge - Beamer-optimiert (min 32px Zahl für Beamer-Lesbarkeit - AC5) */}
+      {showRank && rank && !pilot.droppedOut && (
         <div className={`
-          absolute -top-2 -right-2 w-14 h-14 rounded-full
-          flex items-center justify-center font-display text-beamer-rank text-void
-          rank-badge-animate
+          absolute -top-2 -right-2
+          ${size === 'large' ? 'w-14 h-14' : 'w-12 h-12'}
+          rounded-full flex items-center justify-center font-display text-void rank-badge-animate text-beamer-rank
           ${rank === 1 ? 'bg-gold shadow-glow-gold' : ''}
           ${rank === 2 ? 'bg-neon-cyan shadow-glow-cyan' : ''}
           ${rank === 3 || rank === 4 ? 'bg-neon-pink shadow-glow-pink' : ''}

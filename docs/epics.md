@@ -20,7 +20,7 @@ date: '2025-12-13'
 ## Überblick
 
 - **Epics:** 7 logische Gruppen aus 36 FRs (alle MVP)
-- **Stories:** 16 User Stories (siehe sprint-artifacts)
+- **Stories:** 17 User Stories (siehe sprint-artifacts)
 - **Design First:** Synthwave Visual Design als Epic 2 für frühe visuelle Validierung
 - **Gesamt-MVP:** 100% Coverage Core Journeys
 
@@ -55,10 +55,10 @@ Thomas kann ein Turnier starten mit automatischer Heat-Aufteilung (3er/4er Heats
 
 ### Epic 4: Heat-Durchführung & Bracket
 
-Thomas kann Ergebnisse per Toggle-to-Rank eingeben (2 Klicks + Fertig), Bracket aktualisiert automatisch mit Winner/Loser-Zuordnung und On-Deck Vorschau.
+Thomas kann Ergebnisse per Toggle-to-Rank eingeben (2 Klicks + Fertig), Bracket aktualisiert automatisch mit Winner/Loser-Zuordnung und On-Deck Vorschau. Platzierungen werden in Heat-Übersicht und Brackets angezeigt und sortiert.
 
 **FRs covered:** FR11, FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR19, FR20, FR21  
-**Stories:** US-4.1, US-4.2, US-4.3
+**Stories:** US-4.1, US-4.2, US-4.3, US-4.4
 
 ---
 
@@ -117,7 +117,7 @@ Refactoring des Loser Brackets von vorberechneter Struktur zu dynamischem Pool-S
 | **Epic 1** | Piloten-Verwaltung | FR1-5 | ✅ Must | 3 |
 | **Epic 2** | Synthwave Visual Design | FR36 | ✅ Must | 3 |
 | **Epic 3** | Turnier-Setup & Heat-Aufteilung | FR6-10 | ✅ Must | 3 |
-| **Epic 4** | Heat-Durchführung & Bracket | FR11-21 | ✅ Must | 3 |
+| **Epic 4** | Heat-Durchführung & Bracket | FR11-21 | ✅ Must | 4 |
 | **Epic 5** | Finale & Siegerehrung | FR22-25 | ✅ Must | 1 |
 | **Epic 6** | Navigation & Beamer-Optimierung | FR26-31 | ✅ Must | 2 |
 | **Epic 7** | Offline & Persistenz + Reset | FR32-35 | ✅ Must | 1 |

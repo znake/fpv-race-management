@@ -63,12 +63,13 @@ development_status:
   3-3-heat-aufteilung-bestaetigen: done
   epic-3-retrospective: optional
 
-  # Epic 4 - Heat-Durchführung & Bracket
-  epic-4: done  # Alle Stories abgeschlossen 2025-12-20
-  4-1-heat-ergebnis-eingeben: done
-  4-2-heat-abschliessen: done  # Vollständige Bracket-Progression implementiert, Code Review bestanden
-  4-3-bracket-visualisierung: done  # Kernfunktionalität done, SVG-Linien Post-MVP
-  epic-4-retrospective: optional
+   # Epic 4 - Heat-Durchführung & Bracket
+   epic-4: done  # Alle Stories abgeschlossen 2025-12-23
+   4-1-heat-ergebnis-eingeben: done
+   4-2-heat-abschliessen: done  # Vollständige Bracket-Progression implementiert, Code Review bestanden
+   4-3-bracket-visualisierung: done  # Kernfunktionalität done, SVG-Linien Post-MVP
+   4-4-platzierungsanzeige-sortierung: done  # Platzierungen & Sortierung in allen Heats, Tests bestanden
+   epic-4-retrospective: optional
 
   # Epic 5 - Finale & Siegerehrung
   epic-5: done  # Alle Stories abgeschlossen 2025-12-20

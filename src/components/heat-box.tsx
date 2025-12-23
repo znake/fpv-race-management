@@ -1,6 +1,7 @@
 import type { Pilot } from '../lib/schemas'
 import type { Heat } from '../stores/tournamentStore'
-import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
+import { FALLBACK_PILOT_IMAGE, sortPilotsByRank } from '../lib/utils'
+import { useMemo } from 'react'
 
 type HeatBoxProps = {
   heat: Heat
@@ -10,8 +11,16 @@ type HeatBoxProps = {
 }
 
 export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBoxProps) {
-  // Get pilot objects from pilotIds
-  const heatPilots = heat.pilotIds
+  // US-4.4 Task 1: Sort pilots by rank for completed heats
+  const sortedPilotIds = useMemo(() => {
+    if (heat.status !== 'completed' || !heat.results?.rankings) {
+      return heat.pilotIds // Ursprüngliche Reihenfolge für pending/active
+    }
+    return sortPilotsByRank(heat.pilotIds, heat.results)
+  }, [heat.status, heat.results, heat.pilotIds])
+
+  // Get pilot objects from sorted pilot IDs
+  const heatPilots = sortedPilotIds
     .map((id) => pilots.find((p) => p.id === id))
     .filter(Boolean) as Pilot[]
     
@@ -118,7 +127,11 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
                 {getRankDisplay(pilot.id)}
               </div>
               <div className="font-ui text-beamer-caption text-steel">
-                Position {index + 1}
+                {/* US-4.4: Show rank for completed heats, otherwise position */}
+                {(() => {
+                  const ranking = heat.results?.rankings.find(r => r.pilotId === pilot.id)
+                  return ranking ? `Platz ${ranking.rank}` : `Position ${index + 1}`
+                })()}
               </div>
             </div>
             <div className="font-ui text-beamer-body text-neon-cyan">
