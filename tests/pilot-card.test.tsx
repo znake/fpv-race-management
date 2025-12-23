@@ -77,14 +77,15 @@ describe('PilotCard', () => {
     expect(img.onerror).toBeDefined()
   })
 
-  it('uses correct typography classes', () => {
+  it('uses correct typography classes (Beamer-optimiert)', () => {
     render(<PilotCard pilot={mockPilot} />)
     
+    // Story 6.2: Beamer-optimierte Schriftgrößen (min 24px für Namen, min 16px für Captions)
     const nameElement = screen.getByText('Test Pilot')
-    expect(nameElement).toHaveClass('font-display', 'text-2xl')
+    expect(nameElement).toHaveClass('font-display', 'text-beamer-name')
     
     const detailElement = screen.getByText('@test_pilot')
-    expect(detailElement).toHaveClass('font-ui', 'text-sm')
+    expect(detailElement).toHaveClass('font-ui', 'text-beamer-caption')
   })
 
   // Visual Validation: Component entspricht exakt ux-design-directions.html

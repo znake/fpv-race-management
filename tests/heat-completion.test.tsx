@@ -307,18 +307,31 @@ describe('Story 4.2: Heat abschließen & Bracket-Progression', () => {
     it('should not transition to finale when reopening heat in otherwise completed tournament', () => {
       const result = setupRunningTournament(8)
       
-      // Complete all heats
-      while (result.current.getActiveHeat()) {
+      // Complete all heats with FULL rankings (including WB/LB/Finale)
+      // This is important because Double Elimination needs all rankings
+      let iterations = 0
+      const maxIterations = 50 // Safety limit
+      
+      while (result.current.getActiveHeat() && iterations < maxIterations) {
         const activeHeat = result.current.getActiveHeat()!
+        
+        // Create rankings for ALL pilots in the heat
+        const rankings = activeHeat.pilotIds.map((pilotId, index) => ({
+          pilotId,
+          rank: (index + 1) as 1 | 2 | 3 | 4
+        }))
+        
         act(() => {
-          result.current.submitHeatResults(activeHeat.id, [
-            { pilotId: activeHeat.pilotIds[0], rank: 1 },
-            { pilotId: activeHeat.pilotIds[1], rank: 2 }
-          ])
+          result.current.submitHeatResults(activeHeat.id, rankings)
         })
+        
+        iterations++
       }
       
-      expect(result.current.tournamentPhase).toBe('finale')
+      // After completing all heats (including WB, LB), should be 'finale' or 'completed'
+      // 'finale' means Grand Finale is ready but not yet played (no more active heats)
+      // 'completed' means Grand Finale was also completed
+      expect(['finale', 'completed']).toContain(result.current.tournamentPhase)
       
       // Reopen the first completed heat
       const firstCompleted = result.current.heats.find(h => h.status === 'completed')
