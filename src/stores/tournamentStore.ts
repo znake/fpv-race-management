@@ -779,6 +779,7 @@ export const useTournamentStore = create<TournamentState>()(
             heatNumber: updatedHeats.length + 1,
             pilotIds: pilotsForNewLBHeat,
             status: 'pending',
+            bracketType: 'loser',
           }
           
           updatedHeats = [...updatedHeats, newLBHeat]
@@ -1211,6 +1212,7 @@ export const useTournamentStore = create<TournamentState>()(
           heatNumber: heats.length + 1,
           pilotIds: pilotsForHeat,
           status: 'pending',
+          bracketType: 'loser',
         }
         
         // Add to heats array
