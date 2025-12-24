@@ -1,10 +1,25 @@
 # Change Proposal: Loser Bracket Pooling
 
-**Datum:** 2025-12-23  
-**Autor:** Jakob (Product Owner)  
-**Status:** Proposed  
-**Severity:** Critical - Blocking Tournament Functionality  
+**Datum:** 2025-12-23
+**Autor:** Jakob (Product Owner)
+**Status:** Superseded
+**Superseded by:** [Course Correction: Dynamic Brackets 2025-12-23](./course-correction-dynamic-brackets-2025-12-23.md)
+**Severity:** Critical - Blocking Tournament Functionality
 **Betrifft:** Loser Bracket Logik
+
+---
+
+> **🔄 SUPERSEDED BY COURSE CORRECTION 2025-12-23**
+>
+> Dieses Change Proposal wurde durch die Course Correction "Dynamic Brackets 2025-12-23" überschrieben.
+>
+> **Änderungen durch Course Correction:**
+> - **FIFO statt Random:** Piloten werden in der Reihenfolge des Verlierens wieder eingesetzt (keine zufällige Auswahl)
+> - **Warten auf Verlierer wenn noch WB aktiv:** Pool wird erst geleert wenn noch WB-Heats laufen
+> - **4er Grand Finale statt 2er:** WB Finale (2) + LB Finale (2) = Grand Finale (4)
+> - **LB reduziert nur bis 2 Piloten:** Nicht bis 1 Pilot, sondern bis 2 Piloten für das Grand Finale
+>
+> **Bitte:** Implementierung basierend auf der Course Correction "Dynamic Brackets 2025-12-23" durchführen.
 
 ---
 
