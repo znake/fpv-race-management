@@ -106,6 +106,9 @@ interface TournamentState {
   // Story 4-2: Winner Pool Actions
   addToWinnerPool: (pilotIds: string[]) => void
   removeFromWinnerPool: (count: number) => void
+  generateWBHeatFromPool: () => Heat | null
+  canGenerateWBFinale: () => boolean
+  generateWBFinale: () => Heat | null
 
   // NEW: Full bracket structure with 3 sections (Story 4.3 REDESIGN)
   fullBracketStructure: FullBracketStructure | null
@@ -599,8 +602,17 @@ export const useTournamentStore = create<TournamentState>()(
           ? findBracketHeatWithLocation(fullBracketStructure, heatId)
           : undefined
         
-        const bracketType = heatLocation?.bracketType || 'qualification'
+        // Determine bracket type: prefer heatLocation, fallback to heat's own bracketType
+        const heatOwnBracketType = updatedHeats[heatIndex]?.bracketType
+        const bracketType = heatLocation?.bracketType || heatOwnBracketType || 'qualification'
         const completedRoundNumber = heatLocation?.heat.roundNumber || 1
+        
+        // Story 4-2: Track winnerPool for dynamic WB heat generation
+        const { winnerPool } = get()
+        const newWinnerPool = new Set(winnerPool)
+        
+        // Track isQualificationComplete flag
+        let newIsQualificationComplete = get().isQualificationComplete
         
         // Handle based on bracket type
         if (bracketType === 'qualification') {
@@ -632,8 +644,25 @@ export const useTournamentStore = create<TournamentState>()(
             )
           }
           
-          // TASK 11: Check if all quali heats are completed → generate WB/LB round 1
+          // TASK 7: Check if all quali heats are completed
+          // → Set isQualificationComplete flag
+          // → Collect all winners (rank 1+2) in winnerPool for dynamic WB heat generation
           if (updatedBracketStructure && areAllQualiHeatsCompleted(updatedBracketStructure)) {
+            newIsQualificationComplete = true
+            
+            // Collect ALL winners from ALL completed quali heats into winnerPool
+            for (const qualiHeat of updatedBracketStructure.qualification.heats) {
+              const actualHeat = updatedHeats.find(h => h.id === qualiHeat.id)
+              if (actualHeat?.results) {
+                for (const ranking of actualHeat.results.rankings) {
+                  if (ranking.rank === 1 || ranking.rank === 2) {
+                    newWinnerPool.add(ranking.pilotId)
+                  }
+                }
+              }
+            }
+            
+            // Generate WB/LB round 1 heats (legacy structure-based approach)
             const existingNonQualiHeats = updatedHeats.filter(h => 
               !updatedBracketStructure!.qualification.heats.some(qh => qh.id === h.id)
             )
@@ -654,8 +683,39 @@ export const useTournamentStore = create<TournamentState>()(
             }
           }
         } else if (bracketType === 'winner' || bracketType === 'loser') {
-          // WB/LB HEAT COMPLETED (Tasks 13-16)
+          // WB/LB HEAT COMPLETED (Tasks 8, 13-16)
           
+          // Task 8: Update winner/loser pool tracking for WB/LB heats
+          // This MUST happen even without fullBracketStructure (dynamic pool system)
+          for (const ranking of rankings) {
+            if (ranking.rank === 1 || ranking.rank === 2) {
+              // Winners stay in their current bracket (or advance to finale)
+              if (bracketType === 'winner') {
+                newWinnerPilots.add(ranking.pilotId)
+                // Task 8: WB winners go to winnerPool for next WB heat
+                newWinnerPool.add(ranking.pilotId)
+              } else {
+                // LB winners continue in LB pool
+                newLoserPilots.add(ranking.pilotId)
+                newLoserPool.add(ranking.pilotId)
+              }
+            } else if (ranking.rank === 3 || ranking.rank === 4) {
+              if (bracketType === 'winner') {
+                // Task 8: WB losers drop to LB pool
+                newWinnerPilots.delete(ranking.pilotId)
+                newLoserPilots.add(ranking.pilotId)
+                // Story 9-1: Add WB losers to loserPool for dynamic LB heat generation
+                newLoserPool.add(ranking.pilotId)
+              } else {
+                // LB losers are eliminated
+                newLoserPilots.delete(ranking.pilotId)
+                newLoserPool.delete(ranking.pilotId)
+                newEliminatedPilots.add(ranking.pilotId)
+              }
+            }
+          }
+          
+          // Update bracket structure if it exists (legacy structure-based approach)
           if (fullBracketStructure) {
             const result = updateBracketAfterWBLBHeatCompletion(
               heatId,
@@ -665,32 +725,10 @@ export const useTournamentStore = create<TournamentState>()(
             )
             updatedBracketStructure = result.structure
             
-            // Add eliminated pilots from LB
+            // Add eliminated pilots from LB (already handled above, but sync for structure)
             for (const eliminatedId of result.eliminatedPilotIds) {
               newLoserPilots.delete(eliminatedId)
               newEliminatedPilots.add(eliminatedId)
-            }
-            
-            // Update winner/loser tracking for WB/LB heats
-            for (const ranking of rankings) {
-              if (ranking.rank === 1 || ranking.rank === 2) {
-                // Winners stay in their current bracket (or advance to finale)
-                if (bracketType === 'winner') {
-                  newWinnerPilots.add(ranking.pilotId)
-                } else {
-                  // LB winners continue in LB
-                  newLoserPilots.add(ranking.pilotId)
-                }
-              } else if (ranking.rank === 3 || ranking.rank === 4) {
-                if (bracketType === 'winner') {
-                  // WB losers drop to LB
-                  newWinnerPilots.delete(ranking.pilotId)
-                  newLoserPilots.add(ranking.pilotId)
-                  // Story 9-1: Add WB losers to loserPool for dynamic LB heat generation
-                  newLoserPool.add(ranking.pilotId)
-                }
-                // LB losers already handled via eliminatedPilotIds
-              }
             }
             
             // Task 14: Check if round is complete → generate next round heats
@@ -854,6 +892,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
           loserPool: Array.from(newLoserPool),
+          winnerPool: Array.from(newWinnerPool),
+          isQualificationComplete: newIsQualificationComplete,
           fullBracketStructure: updatedBracketStructure,
           lastCompletedBracketType: completedBracketType
         })
@@ -871,8 +911,9 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Story 4.2: Reopen completed heat for editing
+      // Task 17-18: Edit-Mode with Pool Rollback
       reopenHeat: (heatId) => {
-        const { heats, fullBracketStructure, winnerPilots, loserPilots, eliminatedPilots } = get()
+        const { heats, fullBracketStructure, winnerPilots, loserPilots, eliminatedPilots, winnerPool, loserPool } = get()
         
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
@@ -903,12 +944,21 @@ export const useTournamentStore = create<TournamentState>()(
         const newLoserPilots = new Set(loserPilots)
         const newEliminatedPilots = new Set(eliminatedPilots)
         
-        // Remove all pilots from this heat from bracket tracking
+        // Task 18: ROLLBACK Pools - Remove pilots from pools that came from this heat
+        const newWinnerPool = new Set(winnerPool)
+        const newLoserPool = new Set(loserPool)
+        
+        // Remove all pilots from this heat from bracket tracking AND pools
         if (heat.results) {
           for (const ranking of heat.results.rankings) {
+            // Remove from bracket tracking
             newWinnerPilots.delete(ranking.pilotId)
             newLoserPilots.delete(ranking.pilotId)
             newEliminatedPilots.delete(ranking.pilotId)
+            
+            // Remove from pools
+            newWinnerPool.delete(ranking.pilotId)
+            newLoserPool.delete(ranking.pilotId)
           }
         }
         
@@ -925,6 +975,8 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: Array.from(newWinnerPilots),
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
+          winnerPool: Array.from(newWinnerPool),
+          loserPool: Array.from(newLoserPool),
           fullBracketStructure: updatedBracketStructure
         })
       },
@@ -1327,6 +1379,81 @@ export const useTournamentStore = create<TournamentState>()(
         } else {
           return pendingWB[0] // WB is next
         }
+      },
+
+      // Story 4-2 Task 9: Generate WB heat from winner pool (FIFO)
+      // Takes the first 4 pilots from winnerPool and creates a new WB heat
+      generateWBHeatFromPool: () => {
+        const { heats, winnerPool } = get()
+
+        // Check if pool has >= 4 pilots (minimum for a heat)
+        if (winnerPool.length >= 4) {
+          // FIFO: Take first 4 pilots from pool
+          const pilotsForWBHeat = winnerPool.slice(0, 4)
+          
+          // Create new WB heat
+          const wbHeat: Heat = {
+            id: `wb-heat-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+            heatNumber: heats.length + 1,
+            pilotIds: pilotsForWBHeat,
+            status: 'pending',
+            bracketType: 'winner'
+          }
+          
+          // Remove pilots from pool (FIFO: remove first 4)
+          const remainingPool = winnerPool.slice(4)
+          
+          // Update state
+          set({ 
+            heats: [...heats, wbHeat],
+            winnerPool: remainingPool
+          })
+          
+          return wbHeat
+        }
+        return null
+      },
+
+      // Story 4-2 Task 10: Check if WB Finale can be generated
+      // WB Finale when pool has exactly 2-3 pilots (not enough for regular 4er heat)
+      canGenerateWBFinale: () => {
+        const { winnerPool, isQualificationComplete } = get()
+        // WB Finale only after qualification is complete
+        // And when we have 2-3 pilots (not enough for regular heat, but enough for finale)
+        return isQualificationComplete && 
+               winnerPool.length >= 2 && 
+               winnerPool.length < 4
+      },
+
+      // Story 4-2 Task 10: Generate WB Finale heat
+      generateWBFinale: () => {
+        const { heats, winnerPool, canGenerateWBFinale } = get()
+
+        if (!canGenerateWBFinale()) {
+          return null
+        }
+
+        // Take all remaining pilots from pool (2-3 pilots)
+        const pilotsForFinale = [...winnerPool]
+        
+        // Create WB Finale heat
+        const wbFinale: Heat = {
+          id: `wb-finale-${Date.now()}`,
+          heatNumber: heats.length + 1,
+          pilotIds: pilotsForFinale,
+          status: 'pending',
+          bracketType: 'winner',
+          isFinale: true,
+          roundName: 'WB Finale'
+        }
+        
+        // Clear the winner pool
+        set({ 
+          heats: [...heats, wbFinale],
+          winnerPool: []
+        })
+        
+        return wbFinale
       },
     }),
     {

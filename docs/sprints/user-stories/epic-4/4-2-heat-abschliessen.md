@@ -1,7 +1,7 @@
 # Story 4.2: Heat abschliessen & Dynamische Bracket-Progression
 
-**Status:** in-progress
-**Updated:** 2025-12-23
+**Status:** review
+**Updated:** 2025-12-24
 **Source:** [Course Correction Dynamic Brackets 2025-12-23](../change-proposals/course-correction-dynamic-brackets-2025-12-23.md)
 
 > **🔄 COURSE CORRECTION 2025-12-23**
@@ -127,93 +127,93 @@
 
 ### Phase 2: Dynamische WB-Heat Generierung
 
-- [ ] Task 7: Nach Quali-Abschluss WB-Heats erstellen (AC: 2)
-  - [ ] Prüfen ob alle Quali-Heats completed sind
-  - [ ] Sammle alle Gewinner (Platz 1+2) in WB Pool
-  - [ ] Wenn WB Pool >= 4 → `generateWBHeat()` aufrufen
+- [x] Task 7: Nach Quali-Abschluss WB-Heats erstellen (AC: 2)
+  - [x] Prüfen ob alle Quali-Heats completed sind
+  - [x] Sammle alle Gewinner (Platz 1+2) in WB Pool
+  - [x] Wenn WB Pool >= 4 → `generateWBHeat()` aufrufen
 
-- [ ] Task 8: Nach WB-Heat Abschluss Pool füllen (AC: 3)
-  - [ ] Gewinner (Platz 1+2) → WB Pool (am Ende anfügen)
-  - [ ] Verlierer (Platz 3+4) → Loser Pool (am Ende anfügen)
+- [x] Task 8: Nach WB-Heat Abschluss Pool füllen (AC: 3)
+  - [x] Gewinner (Platz 1+2) → WB Pool (am Ende anfügen)
+  - [x] Verlierer (Platz 3+4) → Loser Pool (am Ende anfügen)
 
-- [ ] Task 9: `generateWBHeat()` implementieren (AC: 2, 3)
-  - [ ] Nimm die ersten 4 Piloten aus dem WB Pool
-  - [ ] Erstelle neuen Heat mit `bracketType: 'winner'`
-  - [ ] Heat zu `heats` Array hinzufügen
+- [x] Task 9: `generateWBHeat()` implementieren (AC: 2, 3)
+  - [x] Nimm die ersten 4 Piloten aus dem WB Pool
+  - [x] Erstelle neuen Heat mit `bracketType: 'winner'`
+  - [x] Heat zu `heats` Array hinzufügen
 
-- [ ] Task 10: WB Finale Erkennung & Generierung (AC: 3)
-  - [ ] Prüfen ob WB Pool + Gewinner <= 2 Piloten
-  - [ ] Wenn ja → `generateWBFinale()` aufrufen
-  - [ ] WB-Finale hat 2 Piloten
+- [x] Task 10: WB Finale Erkennung & Generierung (AC: 3)
+  - [x] Prüfen ob WB Pool + Gewinner <= 2 Piloten
+  - [x] Wenn ja → `generateWBFinale()` aufrufen
+  - [x] WB-Finale hat 2 Piloten
 
 ### Phase 3: Dynamische LB-Heat Generierung
 
-- [ ] Task 11: `checkForMoreWBHeats()` implementieren (AC: 4, 5)
-  - [ ] Prüft ob noch WB-Heats mit Status 'pending' existieren
-  - [ ] Rückgabewert: boolean
+- [x] Task 11: `checkForMoreWBHeats()` implementieren (AC: 4, 5)
+  - [x] Prüft ob noch WB-Heats mit Status 'pending' existieren
+  - [x] Rückgabewert: boolean → `hasActiveWBHeats()`
 
-- [ ] Task 12: `generateLBHeat()` implementieren (AC: 4)
-  - [ ] Nimm die ersten 4 Piloten aus dem Loser Pool (FIFO)
-  - [ ] Erstelle neuen Heat mit `bracketType: 'loser'`
-  - [ ] Heat zu `heats` Array hinzufügen
+- [x] Task 12: `generateLBHeat()` implementieren (AC: 4)
+  - [x] Nimm die ersten 4 Piloten aus dem Loser Pool (FIFO)
+  - [x] Erstelle neuen Heat mit `bracketType: 'loser'`
+  - [x] Heat zu `heats` Array hinzufügen
 
-- [ ] Task 13: Warten-Logik implementieren (AC: 5)
-  - [ ] Wenn Pool < 4 UND noch WB-Heats aktiv → Nichts tun
-  - [ ] Wenn Pool >= 4 → `generateLBHeat()` aufrufen
+- [x] Task 13: Warten-Logik implementieren (AC: 5)
+  - [x] Wenn Pool < 4 UND noch WB-Heats aktiv → Nichts tun
+  - [x] Wenn Pool >= 4 → `generateLBHeat()` aufrufen → `canGenerateLBHeat()`
 
-- [ ] Task 14: Nach LB-Heat Abschluss Pool füllen (AC: 6)
-  - [ ] Gewinner (Platz 1+2) → Loser Pool (am Ende anfügen)
-  - [ ] Verlierer (Platz 3+4) → Eliminiert
+- [x] Task 14: Nach LB-Heat Abschluss Pool füllen (AC: 6)
+  - [x] Gewinner (Platz 1+2) → Loser Pool (am Ende anfügen)
+  - [x] Verlierer (Platz 3+4) → Eliminiert
 
 ### Phase 4: Fertig-Button Integration
 
-- [ ] Task 15: Fertig-Button in ActiveHeatView einbinden (AC: 1, 9)
-  - [ ] onClick ruft `submitHeatResults` auf
-  - [ ] Success-Pulse Animation (300ms)
-  - [ ] Transition zur nächsten Heat-Ansicht
+- [x] Task 15: Fertig-Button in ActiveHeatView einbinden (AC: 1, 9)
+  - [x] onClick ruft `submitHeatResults` auf
+  - [x] Success-Pulse Animation (300ms)
+  - [x] Transition zur nächsten Heat-Ansicht
 
-- [ ] Task 16: `submitHeatResults()` überarbeiten (AC: 1-9)
-  - [ ] Heat auf 'completed' setzen
-  - [ ] Rankings speichern
-  - [ ] Je nach BracketType die richtige Progression aufrufen:
-    - [ ] `onQualiHeatComplete()` (AC: 2)
-    - [ ] `onWBHeatComplete()` (AC: 3)
-    - [ ] `onLBHeatComplete()` (AC: 6)
-    - [ ] `onWBFinaleComplete()` (Grand Finale Pool)
-    - [ ] `onLBFinaleComplete()` (Grand Finale Pool)
-  - [ ] Nächsten Heat aktivieren (AC: 7)
+- [x] Task 16: `submitHeatResults()` überarbeiten (AC: 1-9)
+  - [x] Heat auf 'completed' setzen
+  - [x] Rankings speichern
+  - [x] Je nach BracketType die richtige Progression aufrufen:
+    - [x] `onQualiHeatComplete()` (AC: 2)
+    - [x] `onWBHeatComplete()` (AC: 3)
+    - [x] `onLBHeatComplete()` (AC: 6)
+    - [x] `onWBFinaleComplete()` (Grand Finale Pool)
+    - [x] `onLBFinaleComplete()` (Grand Finale Pool)
+  - [x] Nächsten Heat aktivieren (AC: 7)
 
 ### Phase 5: Edit-Mode
 
-- [ ] Task 17: Edit-Mode für abgeschlossene Heats (AC: 8)
-  - [ ] Edit-Button auf HeatBox (nur bei status='completed')
-  - [ ] `reopenHeat` Store-Action
-  - [ ] Rankings neu vergeben
-  - [ ] Pools und Bracket rückwirkend neu berechnen
+- [x] Task 17: Edit-Mode für abgeschlossene Heats (AC: 8)
+  - [x] Edit-Button auf HeatBox (nur bei status='completed')
+  - [x] `reopenHeat` Store-Action
+  - [x] Rankings neu vergeben
+  - [x] Pools und Bracket rückwirkend neu berechnen
 
-- [ ] Task 18: Pool-Rollback bei Re-Open (AC: 8)
-  - [ ] Piloten aus Pools entfernen, die aus diesem Heat kamen
-  - [ ] Piloten zurück in Pools einfügen, die zu diesem Heat gehört haben
-  - [ ] Bei Quali-Heat: Alle Piloten zurück in Quali-Heat (nicht in Pools)
+- [x] Task 18: Pool-Rollback bei Re-Open (AC: 8)
+  - [x] Piloten aus Pools entfernen, die aus diesem Heat kamen
+  - [x] Piloten zurück in Pools einfügen, die zu diesem Heat gehört haben
+  - [x] Bei Quali-Heat: Alle Piloten zurück in Quali-Heat (nicht in Pools)
 
 ### Phase 6: Tests
 
-- [ ] Task 19: Unit-Tests für WB-Progression
-  - [ ] Test: Quali-Heat Abschluss → WB Pool gefüllt
-  - [ ] Test: WB Pool >= 4 → WB Heat erstellt
-  - [ ] Test: WB Heat Abschluss → Gewinner in Pool, Verlierer in LB Pool
-  - [ ] Test: WB Finale wird korrekt erkannt und erstellt
+- [x] Task 19: Unit-Tests für WB-Progression
+  - [x] Test: Quali-Heat Abschluss → WB Pool gefüllt
+  - [x] Test: WB Pool >= 4 → WB Heat erstellt
+  - [x] Test: WB Heat Abschluss → Gewinner in Pool, Verlierer in LB Pool
+  - [x] Test: WB Finale wird korrekt erkannt und erstellt
 
-- [ ] Task 20: Unit-Tests für LB-Progression
-  - [ ] Test: WB-Heat Verlierer → LB Pool (FIFO)
-  - [ ] Test: LB Pool >= 4 → LB Heat erstellt (FIFO)
-  - [ ] Test: LB Heat Abschluss → Gewinner in Pool, Verlierer eliminiert
-  - [ ] Test: Warten auf Verlierer wenn noch WB aktiv
+- [x] Task 20: Unit-Tests für LB-Progression
+  - [x] Test: WB-Heat Verlierer → LB Pool (FIFO) → `loser-pool.test.ts`
+  - [x] Test: LB Pool >= 4 → LB Heat erstellt (FIFO) → `lb-heat-generation.test.ts`
+  - [x] Test: LB Heat Abschluss → Gewinner in Pool, Verlierer eliminiert → `lb-finale.test.ts`
+  - [x] Test: Warten auf Verlierer wenn noch WB aktiv → `lb-heat-generation.test.ts`
 
-- [ ] Task 21: Integration-Tests
-  - [ ] Test: Volles 8-Piloten-Turnier durchspielen
-  - [ ] Test: Volles 16-Piloten-Turnier durchspielen
-  - [ ] Test: Edit-Mode mit Pool-Rollback
+- [x] Task 21: Integration-Tests
+  - [x] Test: Volles 8-Piloten-Turnier durchspielen → `bracket-progression.test.ts`
+  - [x] Test: Volles 16-Piloten-Turnier durchspielen → `full-bracket-structure.test.ts`
+  - [x] Test: Edit-Mode mit Pool-Rollback → `bracket-progression.test.ts`
 
 ## Dev Notes
 
@@ -319,34 +319,34 @@ function checkForLBHeatGeneration() {
 ## Definition of Done
 
 ### Funktional
-- [ ] Dynamisches WB-System: Heats werden on-the-fly erstellt basierend auf WB Pool
-- [ ] Dynamisches LB-System: Heats werden on-the-fly erstellt basierend auf LB Pool (FIFO)
-- [ ] FIFO in beiden Brackets: Wer zuerst verliert, fliegt zuerst wieder
-- [ ] Warten auf Verlierer wenn noch WB aktiv: Pool wird erst geleert wenn 4 Piloten da sind
-- [ ] WB Finale: Wird korrekt erkannt wenn <= 2 Piloten übrig
-- [ ] LB Finale: Wird erstellt nach WB-Finale mit allen verbleibenden Pool-Piloten
-- [ ] Edit-Mode: Pools werden rückwirkend korrekt aktualisiert
+- [x] Dynamisches WB-System: Heats werden on-the-fly erstellt basierend auf WB Pool
+- [x] Dynamisches LB-System: Heats werden on-the-fly erstellt basierend auf LB Pool (FIFO)
+- [x] FIFO in beiden Brackets: Wer zuerst verliert, fliegt zuerst wieder
+- [x] Warten auf Verlierer wenn noch WB aktiv: Pool wird erst geleert wenn 4 Piloten da sind
+- [x] WB Finale: Wird korrekt erkannt wenn <= 2 Piloten übrig
+- [x] LB Finale: Wird erstellt nach WB-Finale mit allen verbleibenden Pool-Piloten
+- [x] Edit-Mode: Pools werden rückwirkend korrekt aktualisiert
 
 ### UI/Design
-- [ ] Fertig-Button ruft submitHeatResults auf
-- [ ] Success-Pulse Animation bei Abschluss (300ms)
-- [ ] HeatBox zeigt Ränge neben Piloten-Namen
-- [ ] Completed HeatBox hat Winner-Green Border + Glow
-- [ ] Edit-Button (Stift) auf completed HeatBoxen
+- [x] Fertig-Button ruft submitHeatResults auf
+- [x] Success-Pulse Animation bei Abschluss (300ms)
+- [x] HeatBox zeigt Ränge neben Piloten-Namen
+- [x] Completed HeatBox hat Winner-Green Border + Glow
+- [x] Edit-Button (Stift) auf completed HeatBoxen
 
 ### Tests
-- [ ] Unit-Test: WB-Progression (Pool → Heat → Pool)
-- [ ] Unit-Test: LB-Progression (FIFO, Warten auf Verlierer)
-- [ ] Unit-Test: WB Finale Erkennung
-- [ ] Unit-Test: LB Finale Erkennung
-- [ ] Integration-Test: Volles Turnier durchspielen (8 Piloten)
-- [ ] Integration-Test: Edit-Mode mit Pool-Rollback
+- [x] Unit-Test: WB-Progression (Pool → Heat → Pool) → `dynamic-brackets-phase2.test.ts`
+- [x] Unit-Test: LB-Progression (FIFO, Warten auf Verlierer) → `lb-heat-generation.test.ts`
+- [x] Unit-Test: WB Finale Erkennung → `dynamic-brackets-phase2.test.ts`
+- [x] Unit-Test: LB Finale Erkennung → `lb-finale.test.ts`
+- [x] Integration-Test: Volles Turnier durchspielen (8 Piloten) → `bracket-progression.test.ts`
+- [x] Integration-Test: Edit-Mode mit Pool-Rollback → `bracket-progression.test.ts`
 
 ### Qualität
-- [ ] Keine TypeScript-Fehler
-- [ ] Keine Console-Errors
-- [ ] NFR4 erfüllt (< 200ms Bracket-Update)
-- [ ] Alle Tests grün
+- [x] Keine TypeScript-Fehler
+- [x] Keine Console-Errors
+- [x] NFR4 erfüllt (< 200ms Bracket-Update)
+- [x] Alle Tests grün (363 Tests)
 
 ## References
 
