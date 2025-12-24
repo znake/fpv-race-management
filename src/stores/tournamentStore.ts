@@ -11,9 +11,6 @@ import {
   syncQualiHeatsToStructure,
   updateBracketAfterHeatCompletion,
   areAllQualiHeatsCompleted,
-  areAllHeatsInRoundCompleted,
-  generateNextRoundHeats,
-  generateHeatsForNextRound,
   rollbackBracketForHeat,
   updateBracketAfterWBLBHeatCompletion,
   findBracketHeatWithLocation,
@@ -605,7 +602,6 @@ export const useTournamentStore = create<TournamentState>()(
         // Determine bracket type: prefer heatLocation, fallback to heat's own bracketType
         const heatOwnBracketType = updatedHeats[heatIndex]?.bracketType
         const bracketType = heatLocation?.bracketType || heatOwnBracketType || 'qualification'
-        const completedRoundNumber = heatLocation?.heat.roundNumber || 1
         
         // Story 4-2: Track winnerPool for dynamic WB heat generation
         const { winnerPool } = get()
@@ -662,25 +658,30 @@ export const useTournamentStore = create<TournamentState>()(
               }
             }
             
-            // Generate WB/LB round 1 heats (legacy structure-based approach)
-            const existingNonQualiHeats = updatedHeats.filter(h => 
-              !updatedBracketStructure!.qualification.heats.some(qh => qh.id === h.id)
-            )
-            
-            if (existingNonQualiHeats.length === 0) {
-              const newRoundHeats = generateNextRoundHeats(updatedBracketStructure, updatedHeats)
+            // AC 2, AC 3: Dynamische WB-Heat-Generierung aus winnerPool (FIFO)
+            // Generiere WB-Heats solange Pool >= 4 Piloten hat
+            const winnerPoolArray = Array.from(newWinnerPool)
+            while (winnerPoolArray.length >= 4) {
+              const pilotsForWBHeat = winnerPoolArray.splice(0, 4) // FIFO: erste 4 entfernen
               
-              if (newRoundHeats.length > 0) {
-                updatedHeats = updatedHeats.map(h => ({
-                  ...h,
-                  status: h.status === 'active' 
-                    ? (h.results ? 'completed' : 'pending') 
-                    : h.status
-                } as Heat))
-                
-                updatedHeats = [...updatedHeats, ...newRoundHeats]
+              const wbHeat: Heat = {
+                id: `wb-heat-${crypto.randomUUID()}`,
+                heatNumber: updatedHeats.length + 1,
+                pilotIds: pilotsForWBHeat,
+                status: 'pending',
+                bracketType: 'winner'
+              }
+              
+              updatedHeats = [...updatedHeats, wbHeat]
+              
+              // Entferne Piloten aus Pool-Set
+              for (const pilotId of pilotsForWBHeat) {
+                newWinnerPool.delete(pilotId)
               }
             }
+            
+            // Generiere auch LB-Heats aus loserPool (falls vorhanden)
+            // Losers aus Quali sind bereits in loserPool via vorherige Logik
           }
         } else if (bracketType === 'winner' || bracketType === 'loser') {
           // WB/LB HEAT COMPLETED (Tasks 8, 13-16)
@@ -715,6 +716,28 @@ export const useTournamentStore = create<TournamentState>()(
             }
           }
           
+          // AC 2, AC 3: Dynamische WB-Heat-Generierung nach WB-Heat-Abschluss
+          if (bracketType === 'winner') {
+            const winnerPoolArray = Array.from(newWinnerPool)
+            while (winnerPoolArray.length >= 4) {
+              const pilotsForWBHeat = winnerPoolArray.splice(0, 4) // FIFO
+              
+              const wbHeat: Heat = {
+                id: `wb-heat-${crypto.randomUUID()}`,
+                heatNumber: updatedHeats.length + 1,
+                pilotIds: pilotsForWBHeat,
+                status: 'pending',
+                bracketType: 'winner'
+              }
+              
+              updatedHeats = [...updatedHeats, wbHeat]
+              
+              for (const pilotId of pilotsForWBHeat) {
+                newWinnerPool.delete(pilotId)
+              }
+            }
+          }
+          
           // Update bracket structure if it exists (legacy structure-based approach)
           if (fullBracketStructure) {
             const result = updateBracketAfterWBLBHeatCompletion(
@@ -729,20 +752,6 @@ export const useTournamentStore = create<TournamentState>()(
             for (const eliminatedId of result.eliminatedPilotIds) {
               newLoserPilots.delete(eliminatedId)
               newEliminatedPilots.add(eliminatedId)
-            }
-            
-            // Task 14: Check if round is complete → generate next round heats
-            if (areAllHeatsInRoundCompleted(updatedBracketStructure, completedRoundNumber, bracketType)) {
-              const newRoundHeats = generateHeatsForNextRound(
-                updatedBracketStructure,
-                completedRoundNumber,
-                bracketType,
-                updatedHeats
-              )
-              
-              if (newRoundHeats.length > 0) {
-                updatedHeats = [...updatedHeats, ...newRoundHeats]
-              }
             }
             
             // Task 17: Check if Grand Finale is ready
@@ -864,8 +873,8 @@ export const useTournamentStore = create<TournamentState>()(
                                    (newPhase !== 'finale' || hasActiveWB)
         if (shouldAutoGenerate) {
           const heatSize = hasActiveWB ? 4 : Math.min(4, loserPoolArray.length)
-          const shuffledPool = shuffleArray([...loserPoolArray])
-          const pilotsForNewLBHeat = shuffledPool.slice(0, heatSize)
+          // AC 4: FIFO - erste 4 Piloten aus Pool nehmen (keine Zufallsauswahl)
+          const pilotsForNewLBHeat = loserPoolArray.slice(0, heatSize)
           
           // Remove selected pilots from pool
           for (const pilotId of pilotsForNewLBHeat) {
@@ -1302,6 +1311,7 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Story 9-2: Generate LB heat from pool (AC1, AC2)
+      // AC 4: FIFO - erste 4 Piloten aus Pool nehmen (keine Zufallsauswahl)
       generateLBHeat: () => {
         const { loserPool, heats, canGenerateLBHeat, hasActiveWBHeats, removeFromLoserPool } = get()
         
@@ -1312,9 +1322,8 @@ export const useTournamentStore = create<TournamentState>()(
         const isWBActive = hasActiveWBHeats()
         const heatSize = isWBActive ? 4 : Math.min(4, loserPool.length)
         
-        // Shuffle pool and take pilots for heat
-        const shuffledPool = shuffleArray([...loserPool])
-        const pilotsForHeat = shuffledPool.slice(0, heatSize)
+        // AC 4: FIFO - erste N Piloten aus Pool nehmen (keine Zufallsauswahl)
+        const pilotsForHeat = loserPool.slice(0, heatSize)
         
         // Remove from pool
         removeFromLoserPool(pilotsForHeat)

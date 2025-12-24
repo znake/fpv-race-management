@@ -213,21 +213,18 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       expect(result).toBeNull()
     })
 
-    it('should use random selection (shuffle) - different order possible', () => {
+    it('should use FIFO selection - first 4 pilots from pool', () => {
       const { generateLBHeat } = useTournamentStore.getState()
       
-      // Generate multiple heats and check they use different pilots
-      const heat1 = generateLBHeat()
+      // Generate LB heat - should use FIFO (first 4 pilots)
+      const heat = generateLBHeat()
       
-      // Refill pool
-      useTournamentStore.setState({ loserPool: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'] })
+      // AC 4: FIFO - erste 4 Piloten aus Pool nehmen
+      expect(heat?.pilotIds).toEqual(['p1', 'p2', 'p3', 'p4'])
       
-      const heat2 = generateLBHeat()
-      
-      // At least one of the heats should have pilots in different order
-      // (statistically very unlikely to be same order twice)
-      expect(heat1?.pilotIds).toBeDefined()
-      expect(heat2?.pilotIds).toBeDefined()
+      // Remaining pilots should be p5, p6
+      const state = useTournamentStore.getState()
+      expect(state.loserPool).toEqual(['p5', 'p6'])
     })
   })
 

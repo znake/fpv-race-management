@@ -49,7 +49,7 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
       expect(result.current.isQualificationComplete).toBe(true)
     })
 
-    it('sollte alle Gewinner (Platz 1+2) in WB Pool sammeln', () => {
+    it('sollte alle Gewinner (Platz 1+2) in WB Pool sammeln und WB-Heats generieren', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       act(() => {
@@ -71,8 +71,15 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         })
       })
 
-      // Should have 4 winners (1st+2nd from 2 quali heats)
-      expect(result.current.winnerPool.length).toBe(4)
+      // AC 2, AC 3: Gewinner werden zu WB Pool gesammelt und sofort zu WB-Heats verarbeitet
+      // Pool sollte 0 sein wenn genau 4 Gewinner vorhanden waren (= 1 WB Heat generiert)
+      // Mit 8 Piloten: 2 Quali-Heats × 2 Gewinner = 4 Gewinner → 1 WB Heat → Pool leer
+      expect(result.current.winnerPool.length).toBe(0)
+      
+      // Es sollte mind. 1 WB-Heat generiert worden sein
+      const { heats: updatedHeats } = useTournamentStore.getState()
+      const wbHeats = updatedHeats.filter(h => h.bracketType === 'winner')
+      expect(wbHeats.length).toBeGreaterThan(0)
     })
 
     it('sollte WB Heat erstellen wenn Pool >= 4 Piloten hat', () => {
@@ -97,19 +104,15 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         })
       })
 
-      // After completing quali heats, WB/LB heats should be generated (from bracket structure)
-      // The fullBracketStructure.winnerBracket.rounds should have pending heats
-      const { fullBracketStructure: updatedBracket, heats: updatedHeats } = useTournamentStore.getState()
+      // AC 2, AC 3: Nach Quali-Abschluss werden WB-Heats dynamisch aus Pool generiert
+      const { heats: updatedHeats } = useTournamentStore.getState()
       
-      // Check that WB heats exist in the heats array (generated from bracket structure)
-      const wbHeatIds = new Set(
-        updatedBracket?.winnerBracket.rounds.flatMap(r => r.heats.map(h => h.id)) || []
-      )
-      const wbHeats = updatedHeats.filter(h => wbHeatIds.has(h.id))
+      // WB-Heats sollten jetzt im heats-Array sein (dynamisch generiert)
+      const wbHeats = updatedHeats.filter(h => h.bracketType === 'winner')
       
       expect(wbHeats.length).toBeGreaterThan(0)
-      // winnerPool should have collected winners before they were used
-      // Note: In the current implementation, bracket structure-based WB heats are separate from pool-based
+      // winnerPool sollte leer sein (alle Gewinner wurden zu WB-Heats verarbeitet)
+      expect(result.current.winnerPool.length).toBe(0)
     })
   })
 
@@ -263,15 +266,11 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
   })
 
   describe('Task 8: Nach WB-Heat Abschluss Pool füllen', () => {
-    it('sollte Gewinner (Platz 1+2) zu WB Pool hinzufügen', () => {
+    it('sollte Gewinner (Platz 1+2) zu WB Pool hinzufügen oder zu neuem WB-Heat verarbeiten', () => {
       const { result } = renderHook(() => useTournamentStore())
 
-      // Setup: Add 4 pilots to winner pool
-      act(() => {
-        result.current.addToWinnerPool(['p1', 'p2', 'p3', 'p4'])
-      })
-
-      // Create WB heat with these pilots
+      // Setup: Pool ist leer, nur 1 WB-Heat
+      // Create WB heat with 4 pilots
       act(() => {
         const { heats } = useTournamentStore.getState()
         const newHeat: Heat = {
@@ -295,9 +294,11 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         result.current.submitHeatResults('wb-heat-1', rankings)
       })
 
-      // Winners (1st+2nd) should be added to pool
+      // AC 2, AC 3: Gewinner werden zu Pool hinzugefügt
+      // Da nur 2 Gewinner (< 4), sollten sie im Pool bleiben (kein neuer WB-Heat generiert)
       expect(result.current.winnerPool).toContain('p1')
       expect(result.current.winnerPool).toContain('p2')
+      expect(result.current.winnerPool.length).toBe(2)
     })
 
     it('sollte Verlierer (Platz 3+4) zu Loser Pool hinzufügen', () => {
