@@ -69,7 +69,7 @@ development_status:
   epic-4: in-progress  # Wird überarbeitet für vollständige Dynamik
   4-1-heat-ergebnis-eingeben: done  # Bleibt gleich
   4-2-heat-abschliessen: review  # 2025-12-24: Dynamische WB/LB Heat Generierung, FIFO Progression, Pool System
-  4-3-bracket-visualisierung: in-progress  # NEU: Dynamische Bracket-Visualisierung mit Pools
+  4-3-bracket-visualisierung: review  # 2025-12-25: Dynamische Bracket-Visualisierung mit Pools implementiert
   4-4-platzierungsanzeige-sortierung: done  # Bleibt gleich
   epic-4-retrospective: optional
 

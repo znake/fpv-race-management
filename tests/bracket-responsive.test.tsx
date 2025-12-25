@@ -105,12 +105,14 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
       }
     }
     
-    // Mock with all required values for Story 9-2
+    // Mock with all required values for Story 9-2 + Story 4.3
     ;(useTournamentStore as any).mockImplementation((selector: any) => {
       const state = {
         heats: mockHeats,
         fullBracketStructure: mockFullBracketStructure,
         loserPool: [], // Story 9-2: Add loserPool to mock
+        winnerPool: [], // Story 4.3: Add winnerPool to mock
+        grandFinalePool: [], // Story 4.3: Add grandFinalePool to mock
         getTop4Pilots: () => null
       }
       return selector(state)
@@ -161,6 +163,8 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
         heats: [],
         fullBracketStructure: null,
         loserPool: [],
+        winnerPool: [], // Story 4.3: Add winnerPool to mock
+        grandFinalePool: [], // Story 4.3: Add grandFinalePool to mock
         getTop4Pilots: () => null
       }
       return selector(state)

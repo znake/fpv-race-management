@@ -77,19 +77,22 @@ function EmptyBracketHeatBox({
  * Compact Heat Box for bracket visualization
  * Shows pilots with rankings when heat is active/completed
  * US-4.4: Sorts pilots by rank for completed heats
+ * Story 4.3 Task 6: Animation beim Erstellen (AC: 4)
  */
 function BracketHeatBox({
   heat,
   pilots,
   bracketType,
   onClick,
-  onEdit
+  onEdit,
+  isNew = false
 }: {
   heat: Heat
   pilots: Pilot[]
   bracketType: BracketType
   onClick?: () => void
   onEdit?: () => void
+  isNew?: boolean
 }) {
   // US-4.4 Task 2 & 3: Sort pilots by rank for completed heats
   const sortedPilotIds = useMemo(() => {
@@ -112,12 +115,16 @@ function BracketHeatBox({
     : bracketType === 'loser'
     ? 'bg-night'
     : 'bg-night' // qualification
+
+  // Story 4.3 Task 6: Animation class für neue Heats (AC: 4)
+  const animationClass = isNew ? 'heat-appear' : ''
     
   return (
     <div 
       className={`
         ${bgClass} border-2 ${borderClass} rounded-xl p-3 
         min-w-[180px] cursor-pointer hover:scale-105 transition-transform
+        ${animationClass}
       `}
       onClick={onClick}
       data-testid={`bracket-heat-${heat.heatNumber}`}
@@ -336,7 +343,8 @@ function FilledBracketHeatBox({
 
 /**
  * Bracket Round Column for Winner/Loser Bracket
- * Shows FilledBracketHeatBox when pilots are assigned, otherwise EmptyBracketHeatBox
+ * Story 4.3 Task 7: KEINE vorberechneten Platzhalter mehr (AC 5)
+ * Zeigt NUR Heats mit tatsächlichen Piloten (dynamisches Bracket)
  * Uses heat numbers from heats[] array when available for correct display
  */
 function BracketRoundColumn({
@@ -350,18 +358,24 @@ function BracketRoundColumn({
   pilots: Pilot[]
   heats: Heat[]
 }) {
+  // AC 5: Filter nur Heats MIT Piloten (keine leeren Platzhalter)
+  const heatsWithPilots = round.heats.filter(bh => bh.pilotIds.length > 0)
+  
+  // Wenn keine Heats mit Piloten, zeige nichts für diese Runde
+  if (heatsWithPilots.length === 0) return null
+  
   return (
     <div className="flex flex-col gap-4">
       <h3 className="font-display text-beamer-body text-steel text-center mb-2">
         {round.roundName}
       </h3>
-      {round.heats.map((bracketHeat) => {
+      {heatsWithPilots.map((bracketHeat) => {
         // Find the actual heat in heats[] to get correct heatNumber and results
         const actualHeat = heats.find(h => h.id === bracketHeat.id)
         const displayHeatNumber = actualHeat?.heatNumber ?? bracketHeat.heatNumber
 
-        // Show filled box if pilots assigned, otherwise empty placeholder
-        return bracketHeat.pilotIds.length > 0 ? (
+        // AC 5: Nur gefüllte Heats werden angezeigt (keine leeren Platzhalter mehr)
+        return (
           <FilledBracketHeatBox
             key={bracketHeat.id}
             bracketHeat={bracketHeat}
@@ -369,13 +383,6 @@ function BracketRoundColumn({
             bracketType={bracketType}
             displayHeatNumber={displayHeatNumber}
             actualHeat={actualHeat}  // US-4.4: Pass for results
-          />
-        ) : (
-          <EmptyBracketHeatBox
-            key={bracketHeat.id}
-            bracketHeat={bracketHeat}
-            bracketType={bracketType}
-            displayHeatNumber={displayHeatNumber}
           />
         )
       })}
@@ -385,17 +392,33 @@ function BracketRoundColumn({
 
 /**
  * Winner Bracket Section - tree structure from left to right
+ * Task 4: Includes WB Pool Visualization (AC 2)
  */
 function WinnerBracketSection({
   fullBracket,
   pilots,
-  heats
+  heats,
+  winnerPool,
+  onHeatClick
 }: {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
+  winnerPool: string[]
+  onHeatClick: (heatId: string) => void
 }) {
-  if (!fullBracket.winnerBracket.rounds.length) return null
+  // Show section if there are WB rounds OR if there are pilots in the pool
+  const hasWBRounds = fullBracket.winnerBracket.rounds.length > 0
+  const hasWBPool = winnerPool.length > 0
+  
+  // Also check for dynamically generated WB heats
+  const dynamicWBHeats = heats.filter(h => 
+    h.bracketType === 'winner' && 
+    !fullBracket.winnerBracket.rounds.some(r => r.heats.some(bh => bh.id === h.id))
+  )
+  const hasDynamicWBHeats = dynamicWBHeats.length > 0
+  
+  if (!hasWBRounds && !hasWBPool && !hasDynamicWBHeats) return null
   
   return (
     <section className="winner-bracket-section bg-void/50 border-2 border-winner-green/30 rounded-2xl p-6 mb-6">
@@ -403,6 +426,40 @@ function WinnerBracketSection({
         WINNER BRACKET
       </h2>
       <div className="flex gap-8 overflow-x-auto pb-4 min-w-fit">
+        {/* WB Pool Visualization (Task 4, AC 2) */}
+        {hasWBPool && (
+          <div className="flex flex-col gap-4">
+            <h3 className="font-display text-beamer-body text-steel text-center mb-2">
+              WB Pool
+            </h3>
+            <WinnerPoolVisualization
+              winnerPool={winnerPool}
+              pilots={pilots}
+            />
+          </div>
+        )}
+        
+        {/* Dynamic WB Heats */}
+        {hasDynamicWBHeats && (
+          <div className="flex flex-col gap-4">
+            <h3 className="font-display text-beamer-body text-steel text-center mb-2">
+              WB Heats
+            </h3>
+            <div className="space-y-3">
+              {dynamicWBHeats.map((heat) => (
+                <BracketHeatBox
+                  key={heat.id}
+                  heat={heat}
+                  pilots={pilots}
+                  bracketType="winner"
+                  onClick={() => onHeatClick(heat.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* WB Rounds from bracket structure */}
         {fullBracket.winnerBracket.rounds.map((round) => (
           <BracketRoundColumn
             key={round.id}
@@ -418,27 +475,104 @@ function WinnerBracketSection({
 }
 
 /**
+ * Grand Finale Pool Visualization (Story 4.3 Task 9)
+ * Shows pilots waiting in the Grand Finale pool
+ */
+function GrandFinalePoolVisualization({
+  grandFinalePool,
+  pilots
+}: {
+  grandFinalePool: string[]
+  pilots: Pilot[]
+}) {
+  const poolSize = grandFinalePool.length
+  const isReady = poolSize >= 2 // GF braucht mindestens 2 Piloten
+
+  if (poolSize === 0) return null
+
+  return (
+    <div
+      className={`
+        bg-night border-2 rounded-xl p-4 min-w-[200px] max-w-[280px]
+        ${isReady ? 'border-gold shadow-glow-gold' : 'border-steel border-dashed'}
+      `}
+      data-testid="grand-finale-pool"
+    >
+      <h3 className="font-display text-beamer-caption text-gold mb-2 text-center">
+        GF POOL
+      </h3>
+
+      {/* Pool Pilots */}
+      <div className="space-y-2 mb-3">
+        {grandFinalePool.map((pilotId, index) => {
+          const pilot = pilots.find(p => p.id === pilotId)
+          const championLabel = index === 0 ? 'WB Champion' : 'LB Champion'
+          return (
+            <div key={pilotId} className="flex items-center gap-2">
+              <img
+                src={pilot?.imageUrl || FALLBACK_PILOT_IMAGE}
+                alt={pilot?.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-gold"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                }}
+              />
+              <div className="flex flex-col">
+                <span className="font-ui text-xs text-chrome truncate">
+                  {pilot?.name}
+                </span>
+                <span className="font-ui text-xs text-gold/70">
+                  {championLabel}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Status */}
+      <div className={`
+        text-center py-1 px-2 rounded text-xs font-ui
+        ${isReady
+          ? 'bg-gold/20 text-gold'
+          : 'bg-steel/20 text-steel'}
+      `}>
+        {poolSize}/2+ Piloten
+        {isReady ? ' → Grand Finale bereit!' : ' → Warte...'}
+      </div>
+    </div>
+  )
+}
+
+/**
  * Grand Finale Section - centered between Winner and Loser
- * Shows either the Grand Finale heat (with pilots) or empty placeholder
+ * Story 4.3 Task 9 & 10: Shows Grand Finale Pool and Heat
  */
 function GrandFinaleSection({
   fullBracket,
   pilots,
-  heats
+  heats,
+  grandFinalePool
 }: {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
+  grandFinalePool: string[]
 }) {
-  if (!fullBracket.grandFinale) return null
+  // Find actual Grand Finale heat from heats array (dynamically created)
+  const grandFinaleHeat = heats.find(h => 
+    h.bracketType === 'grand_finale' || 
+    h.bracketType === 'finale' ||
+    h.isFinale === true
+  )
   
-  const bracketHeat = fullBracket.grandFinale
+  // Show section if there's a GF heat OR pilots in GF pool OR bracket structure has GF
+  const hasGFContent = grandFinaleHeat || grandFinalePool.length > 0 || fullBracket.grandFinale
   
-  // Find the actual heat in heats[] to get current status and results
-  const actualHeat = heats.find(h => h.id === bracketHeat.id)
+  if (!hasGFContent) return null
   
-  // Show filled heat box if we have pilots assigned
-  const hasPilots = bracketHeat.pilotIds.length > 0 || actualHeat?.pilotIds?.length
+  // Show filled heat box if we have a Grand Finale heat with pilots
+  const hasPilots = grandFinaleHeat && grandFinaleHeat.pilotIds.length > 0
   
   return (
     <section 
@@ -449,21 +583,28 @@ function GrandFinaleSection({
         GRAND FINALE
       </h2>
       
-      {hasPilots && actualHeat ? (
-        <div className="flex justify-center overflow-x-auto">
-          <GrandFinaleHeatBox
-            heat={actualHeat}
+      <div className="flex justify-center items-start gap-8 overflow-x-auto">
+        {/* GF Pool Visualization (Task 9) */}
+        {grandFinalePool.length > 0 && !hasPilots && (
+          <GrandFinalePoolVisualization
+            grandFinalePool={grandFinalePool}
             pilots={pilots}
           />
-        </div>
-      ) : (
-        <div className="flex justify-center">
+        )}
+        
+        {/* Grand Finale Heat (Task 10) */}
+        {hasPilots && grandFinaleHeat ? (
+          <GrandFinaleHeatBox
+            heat={grandFinaleHeat}
+            pilots={pilots}
+          />
+        ) : !grandFinalePool.length && fullBracket.grandFinale ? (
           <EmptyBracketHeatBox
-            bracketHeat={bracketHeat}
+            bracketHeat={fullBracket.grandFinale}
             bracketType="finale"
           />
-        </div>
-      )}
+        ) : null}
+      </div>
     </section>
   )
 }
@@ -682,6 +823,77 @@ function LoserPoolVisualization({
 }
 
 /**
+ * Winner Pool Visualization Component (Story 4.3 AC2)
+ * Shows pilots waiting in the pool for the next WB heat
+ * Task 4: Pool-Visualisierung in WB integrieren
+ */
+function WinnerPoolVisualization({
+  winnerPool,
+  pilots
+}: {
+  winnerPool: string[]
+  pilots: Pilot[]
+}) {
+  const minPilotsNeeded = 4
+  const poolSize = winnerPool.length
+  const isReady = poolSize >= minPilotsNeeded
+
+  if (poolSize === 0) return null
+
+  return (
+    <div
+      className={`
+        bg-night border-2 rounded-xl p-4 min-w-[180px] max-w-[220px]
+        ${isReady ? 'border-winner-green shadow-glow-green' : 'border-steel border-dashed'}
+      `}
+      data-testid="winner-pool-visualization"
+    >
+      <h3 className="font-display text-beamer-caption text-winner-green mb-2 text-center">
+        WINNER POOL
+      </h3>
+
+      {/* Pool Pilots (FIFO: erste zuerst) */}
+      <div className="space-y-2 mb-3">
+        {winnerPool.slice(0, 6).map((pilotId) => {
+          const pilot = pilots.find(p => p.id === pilotId)
+          return (
+            <div key={pilotId} className="flex items-center gap-2">
+              <img
+                src={pilot?.imageUrl || FALLBACK_PILOT_IMAGE}
+                alt={pilot?.name}
+                className="w-8 h-8 rounded-full object-cover border border-steel"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                }}
+              />
+              <span className="font-ui text-xs text-chrome truncate">
+                {pilot?.name}
+              </span>
+            </div>
+          )
+        })}
+        {winnerPool.length > 6 && (
+          <div className="text-center text-steel text-xs">
+            +{winnerPool.length - 6} weitere
+          </div>
+        )}
+      </div>
+
+      {/* Status */}
+      <div className={`
+        text-center py-1 px-2 rounded text-xs font-ui
+        ${isReady
+          ? 'bg-winner-green/20 text-winner-green'
+          : 'bg-steel/20 text-steel'}
+      `}>
+        {poolSize}/{minPilotsNeeded} Piloten
+        {isReady ? ' → WB Heat bereit!' : ' → Warte...'}
+      </div>
+    </div>
+  )
+}
+
+/**
  * Loser Bracket Section - tree structure from left to right
  * Includes Pool Visualization and Dynamic LB Heats (Story 9-2)
  */
@@ -773,6 +985,8 @@ export function BracketTree({
   const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const loserPool = useTournamentStore(state => state.loserPool)
+  const winnerPool = useTournamentStore(state => state.winnerPool)
+  const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
   
   // Check if WB has pending/active heats locally (for pool visualization)
   const hasActiveWBHeats = useMemo(() => {
@@ -899,6 +1113,8 @@ export function BracketTree({
             fullBracket={fullBracketStructure}
             pilots={pilots}
             heats={heats}
+            winnerPool={winnerPool}
+            onHeatClick={handleHeatClick}
           />
           
           {/* 4. LOSER BRACKET Section */}
@@ -916,6 +1132,7 @@ export function BracketTree({
             fullBracket={fullBracketStructure}
             pilots={pilots}
             heats={heats}
+            grandFinalePool={grandFinalePool}
           />
         </div>
         
@@ -963,6 +1180,8 @@ export function BracketTree({
         fullBracket={fullBracketStructure}
         pilots={pilots}
         heats={heats}
+        winnerPool={winnerPool}
+        onHeatClick={handleHeatClick}
       />
       
       {/* 4. LOSER BRACKET Section */}
@@ -980,6 +1199,7 @@ export function BracketTree({
         fullBracket={fullBracketStructure}
         pilots={pilots}
         heats={heats}
+        grandFinalePool={grandFinalePool}
       />
       
       {/* Heat Detail Modal */}

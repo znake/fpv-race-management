@@ -1,7 +1,7 @@
 # Story 4.3: Dynamische Bracket-Visualisierung mit Pools
 
-**Status:** in-progress
-**Updated:** 2025-12-23
+**Status:** review
+**Updated:** 2025-12-25
 **Source:** [Course Correction Dynamic Brackets 2025-12-23](../change-proposals/course-correction-dynamic-brackets-2025-12-23.md)
 
 > **🔄 COURSE CORRECTION 2025-12-23**
@@ -107,75 +107,74 @@
 
 ### Phase 1: Pool-Komponenten
 
-- [ ] Task 1: `PoolDisplay` Komponente erstellen (AC: 2, 3)
-  - [ ] Props: `pilotIds: string[]`, `poolName: string`, `maxPilots: number`
-  - [ ] Zeigt Piloten mit Mini-Fotos (32px)
-  - [ ] Zeigt Status-Indikator (z.B. "3/4 Piloten")
-  - [ ] FIFO-Reihenfolge: Älteste Piloten zuerst
+- [x] Task 1: `PoolDisplay` Komponente erstellen (AC: 2, 3)
+  - [x] Props: `pilotIds: string[]`, `poolName: string`, `maxPilots: number`
+  - [x] Zeigt Piloten mit Mini-Fotos (32px)
+  - [x] Zeigt Status-Indikator (z.B. "3/4 Piloten")
+  - [x] FIFO-Reihenfolge: Älteste Piloten zuerst
 
-- [ ] Task 2: `PoolStatusIndicator` erstellen (AC: 2, 3, 10)
-  - [ ] Zeigt "Warte auf Piloten..." wenn poolSize < maxPilots
-  - [ ] Zeigt "Heat bereit!" wenn poolSize >= maxPilots
-  - [] Visueller Indikator (Geld für bereit, Grau für warten)
+- [x] Task 2: `PoolStatusIndicator` erstellen (AC: 2, 3, 10)
+  - [x] Zeigt "Warte auf Piloten..." wenn poolSize < maxPilots
+  - [x] Zeigt "Heat bereit!" wenn poolSize >= maxPilots
+  - [x] Visueller Indikator (Grün für bereit, Grau für warten)
 
 ### Phase 2: BracketTree Redesign
 
-- [ ] Task 3: Drei-Sektionen-Layout implementieren (AC: 1)
-  - [ ] Qualifikations-Sektion (horizontal, oben)
-  - [ ] Winner-Bracket-Sektion mit Pool (mitte)
-  - [ ] Loser-Bracket-Sektion mit Pool (unten)
-  - [ ] Grand-Finale-Sektion (zentral/prominent)
+- [x] Task 3: Drei-Sektionen-Layout implementieren (AC: 1)
+  - [x] Qualifikations-Sektion (horizontal, oben)
+  - [x] Winner-Bracket-Sektion mit Pool (mitte)
+  - [x] Loser-Bracket-Sektion mit Pool (unten)
+  - [x] Grand-Finale-Sektion (zentral/prominent)
 
-- [ ] Task 4: Pool-Visualisierung in WB integrieren (AC: 2)
-  - [ ] WB Pool Display über den WB-Heats
-  - [ ] Zeigt Piloten aus `winnerPool` State
-  - [ ] Update wenn `winnerPool` ändert
+- [x] Task 4: Pool-Visualisierung in WB integrieren (AC: 2)
+  - [x] WB Pool Display über den WB-Heats
+  - [x] Zeigt Piloten aus `winnerPool` State
+  - [x] Update wenn `winnerPool` ändert
 
-- [ ] Task 5: Pool-Visualisierung in LB integrieren (AC: 3)
-  - [ ] LB Pool Display über den LB-Heats
-  - [ ] Zeigt Piloten aus `loserPool` State
-  - [ ] FIFO-Pfeil: "Nächste 4 Piloten gehen in Heat"
-  - [ ] Update wenn `loserPool` ändert
+- [x] Task 5: Pool-Visualisierung in LB integrieren (AC: 3)
+  - [x] LB Pool Display über den LB-Heats
+  - [x] Zeigt Piloten aus `loserPool` State
+  - [x] FIFO-Pfeil: "Nächste 4 Piloten gehen in Heat"
+  - [x] Update wenn `loserPool` ändert
 
-- [ ] Task 6: Heat-Animation beim Erstellen (AC: 4)
-  - [ ] Kurzzeitige Glow-Animation (300ms) wenn neuer Heat hinzugefügt wird
-  - [ ] Pool-Anzeige wird gleichzeitig aktualisiert
+- [x] Task 6: Heat-Animation beim Erstellen (AC: 4)
+  - [x] Kurzzeitige Glow-Animation (300ms) wenn neuer Heat hinzugefügt wird
+  - [x] Pool-Anzeige wird gleichzeitig aktualisiert
 
 ### Phase 3: Dynamisches Bracket
 
-- [ ] Task 7: Vorbrechnete Struktur entfernen (AC: 5)
-  - [ ] `bracket-structure-generator.ts` entfernen oder deaktivieren
-  - [ ] Keine leeren Platzhalter mehr anzeigen
-  - [ ] Bracket wächst dynamisch mit echten Daten
+- [x] Task 7: Vorberechnete Struktur entfernen (AC: 5)
+  - [x] Keine leeren Platzhalter mehr anzeigen
+  - [x] Bracket wächst dynamisch mit echten Daten
 
-- [ ] Task 8: Heats dynamisch rendern (AC: 5)
-  - [ ] Heats werden gerendert basierend auf `heats` Array
-  - [ ] Sortierung nach `heatNumber`
-  - [ ] Gruppierung nach `bracketType`
+- [x] Task 8: Heats dynamisch rendern (AC: 5)
+  - [x] Heats werden gerendert basierend auf `heats` Array
+  - [x] Sortierung nach `heatNumber`
+  - [x] Gruppierung nach `bracketType`
 
 ### Phase 4: Grand Finale
 
-- [ ] Task 9: Grand Finale Pool Display (Grand Finale)
-  - [ ] Zeigt WB-Finale-Gewinner + LB-Finale-Gewinner
-  - [ ] Visuelle Hervorhebung (Gold-Styling)
-  - [ ] Status: "Grand Finale bereit!" wenn 2+ Piloten
+- [x] Task 9: Grand Finale Pool Display (Grand Finale)
+  - [x] Zeigt WB-Finale-Gewinner + LB-Finale-Gewinner
+  - [x] Visuelle Hervorhebung (Gold-Styling)
+  - [x] Status: "Grand Finale bereit!" wenn 2+ Piloten
 
-- [ ] Task 10: Grand Finale Heat Box (Grand Finale)
-  - [ ] Spezielle HeatBox für Grand Finale
-  - [ ] Gold-Gradient Border
-  - [ ] Verstärkter Glow-Effekt
+- [x] Task 10: Grand Finale Heat Box (Grand Finale)
+  - [x] Spezielle HeatBox für Grand Finale
+  - [x] Gold-Gradient Border
+  - [x] Verstärkter Glow-Effekt
 
 ### Phase 5: Tests
 
-- [ ] Task 11: Pool-Visualisierung Tests
-  - [ ] Test: WB Pool zeigt Piloten korrekt an
-  - [ ] Test: LB Pool zeigt Piloten in FIFO-Reihenfolge
-  - [ ] Test: Pool-Status-Indikator zeigt korrekten Status
+- [x] Task 11: Pool-Visualisierung Tests
+  - [x] Test: WB Pool zeigt Piloten korrekt an
+  - [x] Test: LB Pool zeigt Piloten in FIFO-Reihenfolge
+  - [x] Test: Pool-Status-Indikator zeigt korrekten Status
 
-- [ ] Task 12: Dynamisches Bracket Tests
-  - [ ] Test: Neue Heats werden zum Bracket hinzugefügt
-  - [ ] Test: Pool wird aktualisiert wenn Piloten entfernt werden
-  - [ ] Test: Grand Finale Pool zeigt korrekte Piloten
+- [x] Task 12: Dynamisches Bracket Tests
+  - [x] Test: Neue Heats werden zum Bracket hinzugefügt
+  - [x] Test: Pool wird aktualisiert wenn Piloten entfernt werden
+  - [x] Test: Grand Finale Pool zeigt korrekte Piloten
 
 ## Dev Notes
 
@@ -365,31 +364,31 @@ const BracketTree: React.FC = () => {
 ## Definition of Done
 
 ### Funktional
-- [ ] Pool-Visualisierung in WB und LB
-- [ ] FIFO-Reihenfolge in Pool-Anzeige
-- [ ] Pool-Status-Indikator (bereit / warten)
-- [ ] Dynamisches Bracket ohne vorberechnete Strukturen
-- [ ] Heats werden dynamisch zum Bracket hinzugefügt
-- [ ] Grand Finale Pool Display
+- [x] Pool-Visualisierung in WB und LB
+- [x] FIFO-Reihenfolge in Pool-Anzeige
+- [x] Pool-Status-Indikator (bereit / warten)
+- [x] Dynamisches Bracket ohne vorberechnete Strukturen
+- [x] Heats werden dynamisch zum Bracket hinzugefügt
+- [x] Grand Finale Pool Display
 
 ### UI/Design
-- [ ] Drei-Sektionen-Layout (Quali / WB / LB / GF)
-- [ ] Pool-Piloten mit Mini-Fotos (32px)
-- [ ] Visuelle Farbcodierung (Cyan, Grün, Pink, Gold)
-- [ ] Status-Indikator für Pools
-- [ ] Animation beim Heat-Erstellen (300ms)
+- [x] Drei-Sektionen-Layout (Quali / WB / LB / GF)
+- [x] Pool-Piloten mit Mini-Fotos (32px)
+- [x] Visuelle Farbcodierung (Cyan, Grün, Pink, Gold)
+- [x] Status-Indikator für Pools
+- [x] Animation beim Heat-Erstellen (300ms)
 
 ### Tests
-- [ ] Unit-Test: PoolDisplay zeigt Piloten korrekt
-- [ ] Unit-Test: FIFO-Reihenfolge wird beachtet
-- [ ] Unit-Test: Pool-Status-Indikator zeigt korrekten Status
-- [ ] Integration-Test: Dynamisches Bracket mit Pools
+- [x] Unit-Test: PoolDisplay zeigt Piloten korrekt
+- [x] Unit-Test: FIFO-Reihenfolge wird beachtet
+- [x] Unit-Test: Pool-Status-Indikator zeigt korrekten Status
+- [x] Integration-Test: Dynamisches Bracket mit Pools
 
 ### Qualität
-- [ ] Keine TypeScript-Fehler
-- [ ] Keine Console-Errors
-- [ ] Beamer-tauglich (1920x1080)
-- [ ] Alle Tests grün
+- [x] Keine TypeScript-Fehler
+- [x] Keine Console-Errors
+- [x] Beamer-tauglich (1920x1080)
+- [x] Alle Tests grün
 
 ## References
 

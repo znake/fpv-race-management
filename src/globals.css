@@ -318,6 +318,38 @@
   .shadow-glow-red {
     box-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
   }
+
+  /* Story 4.3 Task 6: Heat-Animation beim Erstellen (AC: 4) */
+  @keyframes heat-appear {
+    0% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.03);
+      box-shadow: 0 0 40px rgba(5, 217, 232, 0.7);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);
+    }
+  }
+
+  .heat-appear {
+    animation: heat-appear 300ms ease-out;
+  }
+
+  /* Pool Update Animation */
+  @keyframes pool-update {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.05); box-shadow: 0 0 30px rgba(57, 255, 20, 0.5); }
+    100% { transform: scale(1); }
+  }
+
+  .pool-update {
+    animation: pool-update 300ms ease-out;
+  }
 }
 
 /* Reduced Motion Preferences */
