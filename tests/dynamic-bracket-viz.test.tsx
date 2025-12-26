@@ -247,14 +247,14 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
       })
 
       render(
-        <BracketTree 
-          pilots={mockPilots} 
-          tournamentPhase="running" 
-          onSubmitResults={() => {}} 
+        <BracketTree
+          pilots={mockPilots}
+          tournamentPhase="running"
+          onSubmitResults={() => {}}
         />
       )
 
-      expect(screen.getByTestId('winner-pool-visualization')).toBeInTheDocument()
+      expect(screen.getByTestId('pool-display-standard')).toBeInTheDocument()
       expect(screen.getByText('WINNER POOL')).toBeInTheDocument()
     })
 
@@ -273,14 +273,15 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
       })
 
       render(
-        <BracketTree 
-          pilots={mockPilots} 
-          tournamentPhase="running" 
-          onSubmitResults={() => {}} 
+        <BracketTree
+          pilots={mockPilots}
+          tournamentPhase="running"
+          onSubmitResults={() => {}}
         />
       )
 
-      expect(screen.getByTestId('loser-pool-visualization')).toBeInTheDocument()
+      expect(screen.getByTestId('pool-display-standard')).toBeInTheDocument()
+      expect(screen.getByText('LOSER POOL')).toBeInTheDocument()
     })
   })
 
@@ -417,14 +418,14 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
       })
 
       render(
-        <BracketTree 
-          pilots={mockPilots} 
-          tournamentPhase="running" 
-          onSubmitResults={() => {}} 
+        <BracketTree
+          pilots={mockPilots}
+          tournamentPhase="running"
+          onSubmitResults={() => {}}
         />
       )
 
-      expect(screen.getByTestId('grand-finale-pool')).toBeInTheDocument()
+      expect(screen.getByTestId('pool-display-grandFinale')).toBeInTheDocument()
     })
   })
 })

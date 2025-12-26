@@ -1,5 +1,5 @@
 import { BracketRoundColumn } from '../layout/BracketRoundColumn'
-import { PoolVisualization } from '../pools/PoolVisualization'
+import { PoolDisplay } from '../PoolDisplay'
 import { DynamicLBHeatsSection } from './DynamicLBHeatsSection'
 import type { LoserBracketSectionProps } from '../types'
 
@@ -12,7 +12,7 @@ export function LoserBracketSection({
   pilots,
   heats,
   loserPool,
-  hasActiveWBHeats,
+  hasActiveWBHeats: _hasActiveWBHeats,
   onHeatClick
 }: LoserBracketSectionProps) {
   // Show section if there are LB rounds OR if there are pilots in the pool OR dynamic LB heats exist
@@ -34,12 +34,12 @@ export function LoserBracketSection({
           <h3 className="font-display text-beamer-body text-steel text-center mb-2">
             Pool
           </h3>
-          <PoolVisualization
-            type="loser"
+          <PoolDisplay
+            title="LOSER POOL"
             pilotIds={loserPool}
             pilots={pilots}
-            threshold={hasActiveWBHeats ? 4 : 3}
-            title="LOSER POOL"
+            variant="standard"
+            maxDisplay={6}
           />
         </div>
 

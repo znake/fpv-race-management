@@ -1,6 +1,6 @@
 import { EmptyBracketHeatBox } from '../heat-boxes/EmptyBracketHeatBox'
 import { GrandFinaleHeatBox } from './GrandFinaleHeatBox'
-import { GrandFinalePoolVisualization } from '../pools/GrandFinalePoolVisualization'
+import { PoolDisplay } from '../PoolDisplay'
 import type { GrandFinaleSectionProps } from '../types'
 
 /**
@@ -40,9 +40,11 @@ export function GrandFinaleSection({
       <div className="flex justify-center items-start gap-8 overflow-x-auto">
         {/* GF Pool Visualization (Task 9) */}
         {grandFinalePool.length > 0 && !hasPilots && (
-          <GrandFinalePoolVisualization
-            grandFinalePool={grandFinalePool}
+          <PoolDisplay
+            title="GF POOL"
+            pilotIds={grandFinalePool}
             pilots={pilots}
+            variant="grandFinale"
           />
         )}
 

@@ -21,5 +21,4 @@ export { DynamicLBHeatsSection } from './sections/DynamicLBHeatsSection'
 export { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 
 // Pools
-export { PoolVisualization } from './pools/PoolVisualization'
-export { GrandFinalePoolVisualization } from './pools/GrandFinalePoolVisualization'
+export { PoolDisplay } from './PoolDisplay'

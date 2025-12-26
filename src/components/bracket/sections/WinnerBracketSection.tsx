@@ -1,6 +1,6 @@
 import { BracketHeatBox } from '../heat-boxes/BracketHeatBox'
 import { BracketRoundColumn } from '../layout/BracketRoundColumn'
-import { PoolVisualization } from '../pools/PoolVisualization'
+import { PoolDisplay } from '../PoolDisplay'
 import type { WinnerBracketSectionProps } from '../types'
 
 /**
@@ -39,12 +39,12 @@ export function WinnerBracketSection({
             <h3 className="font-display text-beamer-body text-steel text-center mb-2">
               WB Pool
             </h3>
-            <PoolVisualization
-              type="winner"
+            <PoolDisplay
+              title="WINNER POOL"
               pilotIds={winnerPool}
               pilots={pilots}
-              threshold={4}
-              title="WINNER POOL"
+              variant="standard"
+              maxDisplay={6}
             />
           </div>
         )}

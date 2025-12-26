@@ -77,20 +77,6 @@ export interface DynamicLBHeatsSectionProps {
   onHeatClick: (heatId: string) => void
 }
 
-// Pool Props
-export interface PoolVisualizationProps {
-  type: 'winner' | 'loser'
-  pilotIds: string[]
-  pilots: Pilot[]
-  threshold?: number
-  title: string
-}
-
-export interface GrandFinalePoolVisualizationProps {
-  grandFinalePool: string[]
-  pilots: Pilot[]
-}
-
 // Grand Finale Heat Box
 export interface GrandFinaleHeatBoxProps {
   heat: Heat
