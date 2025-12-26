@@ -1,19 +1,21 @@
 /**
  * Bracket Structure Generator
- * 
- * Generates the complete bracket structure for a Double Elimination tournament
+ *
+ * Generates complete bracket structure for a Double Elimination tournament
  * with three sections: Qualification, Winner Bracket, Loser Bracket, and Grand Finale.
- * 
+ *
  * Structure is generated BEFORE any heats are played, showing empty placeholders.
- * 
+ *
  * CRITICAL CONSTRAINT: No heat can have more than 4 pilots.
- * 
+ *
  * Double Elimination with 4-pilot heats requires careful LB structure:
  * - Minor Rounds: Receive WB losers + LB winners (must be split into enough heats)
  * - Major Rounds: Only LB winners (no WB input)
- * 
+ *
  * This ensures no LB heat receives more than 4 pilots from all sources combined.
  */
+
+import { generateId } from './utils'
 
 // Heat status in bracket
 export type BracketHeatStatus = 'empty' | 'pending' | 'active' | 'completed'
@@ -362,13 +364,15 @@ export function calculateBracketSize(pilotCount: number): BracketSize {
  * 
  * Uses the new calculateLBRoundStructure() to ensure no LB heat gets > 4 pilots.
  */
-export function generateFullBracketStructure(pilotCount: number): FullBracketStructure {
-  const size = calculateBracketSize(pilotCount)
-  
-  let heatCounter = 1
-  const generateHeatId = () => `bracket-heat-${heatCounter++}`
-  
-  // Layout constants
+ export function generateFullBracketStructure(pilotCount: number): FullBracketStructure {
+   const size = calculateBracketSize(pilotCount)
+
+   const generateHeatId = () => generateId('bracket')
+
+   // Counter for heat numbers (not IDs)
+   let heatCounter = 1
+
+   // Layout constants
   const HEAT_WIDTH = 200
   const HEAT_HEIGHT = 140
   const HORIZONTAL_GAP = 80

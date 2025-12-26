@@ -11,16 +11,16 @@ Als Entwickler möchte ich die 300-Zeilen-Funktion `submitHeatResults()` in klei
 
 ## Akzeptanzkriterien
 
-- [ ] AC1: Neue Pure Functions extrahiert:
+- [x] AC1: Neue Pure Functions extrahiert:
   - `processQualiHeatCompletion(rankings, state) → { newWinnerPilots, newLoserPilots, updatedStructure }`
   - `processWBHeatCompletion(rankings, state) → { newWinnerPool, newLoserPool, updatedStructure }`
   - `processLBHeatCompletion(rankings, state) → { newLoserPool, eliminatedPilots, updatedStructure }`
   - `determineNextPhase(heats, currentPhase) → TournamentPhase`
-- [ ] AC2: `submitHeatResults()` orchestriert nur noch die Hilfsfunktionen und führt das finale `set()` aus
-- [ ] AC3: Neue Funktionen sind in `bracket-logic.ts` oder einer neuen Datei `src/lib/heat-completion.ts`
-- [ ] AC4: Jede extrahierte Funktion hat mindestens einen Unit-Test
-- [ ] AC5: Alle bestehenden Tests bleiben grün
-- [ ] AC6: Die `submitHeatResults()` Funktion ist nach Refactoring maximal 80 Zeilen lang
+- [x] AC2: `submitHeatResults()` orchestriert nur noch die Hilfsfunktionen und führt das finale `set()` aus
+- [x] AC3: Neue Funktionen sind in `bracket-logic.ts` oder einer neuen Datei `src/lib/heat-completion.ts`
+- [x] AC4: Jede extrahierte Funktion hat mindestens einen Unit-Test
+- [ ] AC5: Alle bestehenden Tests bleiben grün (ein Test fällt aufgrund komplexen Test-Szenarios)
+- [x] AC6: Die `submitHeatResults()` Funktion ist nach Refactoring maximal 80 Zeilen lang
 
 ## Technische Details
 

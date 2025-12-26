@@ -6,6 +6,23 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Generates a unique ID with an optional prefix
+ * Format: {prefix}-{uuid} or just {uuid}
+ *
+ * @param prefix - Optional prefix for the ID (e.g., 'pilot', 'wb-heat', 'lb-heat')
+ * @returns A unique identifier string
+ *
+ * @example
+ * generateId('pilot')     // 'pilot-a1b2c3d4-e5f6-...'
+ * generateId('wb-heat')   // 'wb-heat-a1b2c3d4-e5f6-...'
+ * generateId()            // 'a1b2c3d4-e5f6-...'
+ */
+export function generateId(prefix?: string): string {
+  const uuid = crypto.randomUUID()
+  return prefix ? `${prefix}-${uuid}` : uuid
+}
+
+/**
  * Debounce utility for performance optimization
  */
 export function debounce<T extends (...args: any[]) => any>(
