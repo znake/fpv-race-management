@@ -1,22 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-
-const resetStore = () => {
-  useTournamentStore.setState({
-    pilots: [],
-    tournamentStarted: false,
-    tournamentPhase: 'setup',
-    heats: [],
-    currentHeatIndex: 0,
-  })
-}
+import { resetTournamentStore } from './helpers'
 
 describe('generateHeats()', () => {
-  beforeEach(() => resetStore())
+  beforeEach(() => resetTournamentStore())
   afterEach(() => {
     cleanup()
-    resetStore()
+    resetTournamentStore()
   })
 
   it('creates an optimal 10-pilot distribution (1×4, 2×3) and assigns everyone exactly once', () => {

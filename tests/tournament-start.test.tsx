@@ -1,27 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-
-// Helper to reset the Zustand store to initial state
-const resetStore = () => {
-  useTournamentStore.setState({
-    pilots: [],
-    tournamentStarted: false,
-    tournamentPhase: 'setup',
-    heats: [],
-    currentHeatIndex: 0
-  })
-}
+import { resetTournamentStore } from './helpers'
 
 describe('Tournament Start - confirmTournamentStart()', () => {
   // Clean up and reset store before each test to ensure isolation
   beforeEach(() => {
-    resetStore()
+    resetTournamentStore()
   })
 
   afterEach(() => {
     cleanup()
-    resetStore()
+    resetTournamentStore()
   })
 
   describe('Core Validation Logic', () => {
@@ -261,12 +251,12 @@ describe('Tournament Start - confirmTournamentStart()', () => {
 
 describe('TournamentStartDialog Integration', () => {
   beforeEach(() => {
-    resetStore()
+    resetTournamentStore()
   })
 
   afterEach(() => {
     cleanup()
-    resetStore()
+    resetTournamentStore()
   })
 
   it('should not show start button with less than 7 pilots', () => {

@@ -7,22 +7,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useTournamentStore } from '../src/stores/tournamentStore'
+import { resetTournamentStore } from './helpers'
 
 describe('Loser Pool State & Actions', () => {
   beforeEach(() => {
-    // Reset store to initial state
-    useTournamentStore.setState({
-      pilots: [],
-      tournamentStarted: false,
-      tournamentPhase: 'setup',
-      heats: [],
-      currentHeatIndex: 0,
-      winnerPilots: [],
-      loserPilots: [],
-      eliminatedPilots: [],
-      loserPool: [],
-      fullBracketStructure: null,
-    })
+    resetTournamentStore()
   })
 
   describe('loserPool State', () => {
@@ -201,6 +190,8 @@ describe('Loser Pool State & Actions', () => {
 
 describe('WB Heat Completion adds losers to pool (AC1)', () => {
   beforeEach(() => {
+    resetTournamentStore()
+    // Add test pilots
     useTournamentStore.setState({
       pilots: [
         { id: 'p1', name: 'Pilot 1', imageUrl: '' },
@@ -210,13 +201,6 @@ describe('WB Heat Completion adds losers to pool (AC1)', () => {
       ],
       tournamentStarted: true,
       tournamentPhase: 'running',
-      heats: [],
-      currentHeatIndex: 0,
-      winnerPilots: [],
-      loserPilots: [],
-      eliminatedPilots: [],
-      loserPool: [],
-      fullBracketStructure: null,
     })
   })
 

@@ -1,16 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-
-const resetStore = () => {
-  useTournamentStore.setState({
-    pilots: [],
-    tournamentStarted: false,
-    tournamentPhase: 'setup',
-    heats: [],
-    currentHeatIndex: 0,
-  })
-}
+import { resetTournamentStore } from './helpers'
 
 // Helper to create test pilots
 const createTestPilots = (count: number) => {
@@ -25,10 +16,10 @@ const createTestPilots = (count: number) => {
 }
 
 describe('Heat Assignment Actions (Story 3.3)', () => {
-  beforeEach(() => resetStore())
+  beforeEach(() => resetTournamentStore())
   afterEach(() => {
     cleanup()
-    resetStore()
+    resetTournamentStore()
   })
 
   describe('shuffleHeats()', () => {

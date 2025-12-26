@@ -1,56 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-
-// Helper to reset the Zustand store to initial state
-const resetStore = () => {
-  useTournamentStore.setState({
-    pilots: [],
-    tournamentStarted: false,
-    tournamentPhase: 'setup',
-    heats: [],
-    currentHeatIndex: 0,
-    winnerPilots: [],
-    loserPilots: [],
-    eliminatedPilots: []
-  })
-}
-
-// Helper to setup tournament with heats in running phase
-const setupRunningTournament = (pilotCount = 12) => {
-  const { result } = renderHook(() => useTournamentStore())
-  
-  // Add pilots
-  for (let i = 0; i < pilotCount; i++) {
-    act(() => {
-      result.current.addPilot({
-        name: `Pilot ${i + 1}`,
-        imageUrl: `https://example.com/pilot${i + 1}.jpg`
-      })
-    })
-  }
-  
-  // Start tournament (generates heats, goes to heat-assignment)
-  act(() => {
-    result.current.confirmTournamentStart()
-  })
-  
-  // Confirm heat assignment (goes to running, activates first heat)
-  act(() => {
-    result.current.confirmHeatAssignment()
-  })
-  
-  return result
-}
+import { resetTournamentStore, setupRunningTournament } from './helpers'
 
 describe('Story 4.2: Heat abschließen & Bracket-Progression', () => {
   beforeEach(() => {
-    resetStore()
+    resetTournamentStore()
   })
 
   afterEach(() => {
     cleanup()
-    resetStore()
+    resetTournamentStore()
   })
 
   describe('Bracket Progression Logic', () => {

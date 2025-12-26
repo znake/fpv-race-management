@@ -1,59 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-
-// Helper to reset the Zustand store to initial state
-const resetStore = () => {
-  useTournamentStore.setState({
-    pilots: [],
-    tournamentStarted: false,
-    tournamentPhase: 'setup',
-    heats: [],
-    currentHeatIndex: 0,
-    winnerPilots: [],
-    loserPilots: [],
-    eliminatedPilots: [],
-     fullBracketStructure: null
-   })
- }
-
-// Helper to setup tournament with pilots and heats
-const setupTournamentWithPilots = (pilotCount = 12) => {
-  const { result } = renderHook(() => useTournamentStore())
-  
-  // Add pilots
-  for (let i = 0; i < pilotCount; i++) {
-    act(() => {
-      result.current.addPilot({
-        name: `Pilot ${i + 1}`,
-        imageUrl: `https://example.com/pilot${i + 1}.jpg`
-      })
-    })
-  }
-  
-  return result
-}
-
-// Helper to setup running tournament
-const setupRunningTournament = (pilotCount = 12) => {
-  const result = setupTournamentWithPilots(pilotCount)
-  
-  // Start tournament (generates heats, goes to heat-assignment)
-  act(() => {
-    result.current.confirmTournamentStart()
-  })
-  
-  // Confirm heat assignment (goes to running, activates first heat)
-  act(() => {
-    result.current.confirmHeatAssignment()
-  })
-  
-  return result
-}
+import { resetTournamentStore, setupTournamentWithPilots, setupRunningTournament } from './helpers'
 
 describe('Story 7.1: Reset-Funktionen', () => {
   beforeEach(() => {
-    resetStore()
+    resetTournamentStore()
     // Clear localStorage before each test
     localStorage.removeItem('tournament-storage')
   })
