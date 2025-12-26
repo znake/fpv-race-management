@@ -105,7 +105,7 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
       }
     }
     
-    // Mock with all required values for Story 9-2 + Story 4.3
+    // Mock with all required values for Story 9-2 + Story 4.3 + Story 10-2
     ;(useTournamentStore as any).mockImplementation((selector: any) => {
       const state = {
         heats: mockHeats,
@@ -113,7 +113,8 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
         loserPool: [], // Story 9-2: Add loserPool to mock
         winnerPool: [], // Story 4.3: Add winnerPool to mock
         grandFinalePool: [], // Story 4.3: Add grandFinalePool to mock
-        getTop4Pilots: () => null
+        getTop4Pilots: () => null,
+        hasActiveWBHeats: () => true // Story 10-2: Add hasActiveWBHeats to mock
       }
       return selector(state)
     })
@@ -165,7 +166,8 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
         loserPool: [],
         winnerPool: [], // Story 4.3: Add winnerPool to mock
         grandFinalePool: [], // Story 4.3: Add grandFinalePool to mock
-        getTop4Pilots: () => null
+        getTop4Pilots: () => null,
+        hasActiveWBHeats: () => false // Story 10-2: Add hasActiveWBHeats to mock
       }
       return selector(state)
     })

@@ -612,6 +612,45 @@ export function updateBracketAfterWBLBHeatCompletion(
 }
 
 /**
+ * Story 10-2: Check if there are pending/active WB heats
+ * 
+ * Pure function that checks if Winner Bracket has any heats that are not completed.
+ * Used for:
+ * - Determining loserPool threshold (4 vs 3 pilots)
+ * - Pool visualization in bracket-tree.tsx
+ * - Auto-generation of LB heats in submitHeatResults
+ * 
+ * @param bracketStructure - The full bracket structure (can be null)
+ * @param heats - Array of actual heats from the store
+ * @returns true if there are pending/active WB heats
+ */
+export function checkHasActiveWBHeats(
+  bracketStructure: FullBracketStructure | null,
+  heats: Heat[]
+): boolean {
+  if (!bracketStructure) return false
+  
+  for (const round of bracketStructure.winnerBracket.rounds) {
+    for (const bracketHeat of round.heats) {
+      // Find actual heat in heats[]
+      const actualHeat = heats.find(h => h.id === bracketHeat.id)
+      if (actualHeat) {
+        if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
+          return true
+        }
+      } else {
+        // Heat not in heats[] yet but has pilots → considered pending
+        if (bracketHeat.pilotIds.length > 0 && bracketHeat.status !== 'completed') {
+          return true
+        }
+      }
+    }
+  }
+  
+  return false
+}
+
+/**
  * Rollback WB/LB heat assignments when reopening for edit
  */
 function rollbackWBLBHeatAssignments(

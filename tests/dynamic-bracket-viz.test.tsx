@@ -111,7 +111,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -162,7 +163,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => true
         }
         return selector(state)
       })
@@ -186,7 +188,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: ['p3', 'p4'], // 2 Piloten im LB Pool
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -210,7 +213,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -236,7 +240,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: ['p1', 'p2', 'p3'], // 3 Piloten im WB Pool
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -261,7 +266,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: ['p3', 'p4'], // 2 Piloten im LB Pool
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -308,7 +314,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })
@@ -373,7 +380,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => true
         }
         return selector(state)
       })
@@ -402,7 +410,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           loserPool: [],
           winnerPool: [],
           grandFinalePool: ['p1', 'p2'], // WB + LB Champion
-          getTop4Pilots: () => null
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
         }
         return selector(state)
       })

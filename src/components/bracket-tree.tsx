@@ -947,23 +947,9 @@ export function BracketTree({
   const winnerPool = useTournamentStore(state => state.winnerPool)
   const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
   
-  // Check if WB has pending/active heats locally (for pool visualization)
-  const hasActiveWBHeats = useMemo(() => {
-    if (!fullBracketStructure) return false
-    for (const round of fullBracketStructure.winnerBracket.rounds) {
-      for (const bracketHeat of round.heats) {
-        const actualHeat = heats.find(h => h.id === bracketHeat.id)
-        if (actualHeat) {
-          if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
-            return true
-          }
-        } else if (bracketHeat.pilotIds.length > 0 && bracketHeat.status !== 'completed') {
-          return true
-        }
-      }
-    }
-    return false
-  }, [fullBracketStructure, heats])
+  // Story 10-2: Check if WB has pending/active heats using Store method
+  // This replaces the local useMemo with a call to the unified Store method
+  const hasActiveWBHeats = useTournamentStore(state => state.hasActiveWBHeats())
   
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)

@@ -15,7 +15,8 @@ import {
   updateBracketAfterWBLBHeatCompletion,
   findBracketHeatWithLocation,
   isGrandFinaleReady,
-  generateGrandFinaleHeat
+  generateGrandFinaleHeat,
+  checkHasActiveWBHeats
 } from '../lib/bracket-logic'
 
 // Tournament phase types for granular control
@@ -844,25 +845,8 @@ export const useTournamentStore = create<TournamentState>()(
         // This must happen AFTER updating newLoserPool but BEFORE set()
         const loserPoolArray = Array.from(newLoserPool)
         
-        // Check if WB still has pending/active heats
-        let hasActiveWB = false
-        if (updatedBracketStructure) {
-          for (const round of updatedBracketStructure.winnerBracket.rounds) {
-            for (const wbHeat of round.heats) {
-              const actualHeat = updatedHeats.find(h => h.id === wbHeat.id)
-              if (actualHeat) {
-                if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
-                  hasActiveWB = true
-                  break
-                }
-              } else if (wbHeat.pilotIds.length > 0 && wbHeat.status !== 'completed') {
-                hasActiveWB = true
-                break
-              }
-            }
-            if (hasActiveWB) break
-          }
-        }
+        // Story 10-2: Check if WB still has pending/active heats using pure function
+        const hasActiveWB = checkHasActiveWBHeats(updatedBracketStructure, updatedHeats)
         
         // Determine if we should auto-generate LB heat
         // Note: We allow generation during 'finale' phase if WB is still active
@@ -1141,29 +1125,10 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Story 9-2: Check if there are pending/active WB heats
+      // Story 10-2: Refactored to use pure function checkHasActiveWBHeats
       hasActiveWBHeats: () => {
         const { fullBracketStructure, heats } = get()
-        if (!fullBracketStructure) return false
-
-        // Check all WB rounds for pending/active heats
-        for (const round of fullBracketStructure.winnerBracket.rounds) {
-          for (const bracketHeat of round.heats) {
-            // Find actual heat in heats[]
-            const actualHeat = heats.find(h => h.id === bracketHeat.id)
-            if (actualHeat) {
-              if (actualHeat.status === 'pending' || actualHeat.status === 'active') {
-                return true
-              }
-            } else {
-              // Heat not in heats[] yet but has pilots → considered pending
-              if (bracketHeat.pilotIds.length > 0 && bracketHeat.status !== 'completed') {
-                return true
-              }
-            }
-          }
-        }
-
-        return false
+        return checkHasActiveWBHeats(fullBracketStructure, heats)
       },
 
       // Story 9-3: LB Finale & Grand Finale
