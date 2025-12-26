@@ -118,6 +118,28 @@ function createLBHeatFromPool(
 // Tournament phase types for granular control
 export type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
 
+// Story 1.1: Initial State als wiederverwendbare Konstante
+// Ermöglicht DRY Reset-Funktionen (Story 1.2)
+export const INITIAL_TOURNAMENT_STATE = {
+  pilots: [] as Pilot[],
+  tournamentStarted: false,
+  tournamentPhase: 'setup' as TournamentPhase,
+  heats: [] as Heat[],
+  currentHeatIndex: 0,
+  winnerPilots: [] as string[],
+  loserPilots: [] as string[],
+  eliminatedPilots: [] as string[],
+  loserPool: [] as string[],
+  winnerPool: [] as string[],
+  grandFinalePool: [] as string[],
+  isQualificationComplete: false,
+  isWBFinaleComplete: false,
+  isLBFinaleComplete: false,
+  isGrandFinaleComplete: false,
+  fullBracketStructure: null as FullBracketStructure | null,
+  lastCompletedBracketType: null as 'winner' | 'loser' | 'qualifier' | null,
+}
+
 // Pilot interface export
 export type { Pilot } from '../lib/schemas'
 
@@ -236,24 +258,8 @@ interface TournamentState {
 export const useTournamentStore = create<TournamentState>()(
   persist(
     (set, get) => ({
-      pilots: [],
-      tournamentStarted: false,
-      tournamentPhase: 'setup' as TournamentPhase,
-      heats: [],
-      currentHeatIndex: 0,
-      winnerPilots: [],
-      loserPilots: [],
-      eliminatedPilots: [],
-      loserPool: [],
-      // Story 4-2: NEU für Dynamisches Bracket
-      winnerPool: [],
-      grandFinalePool: [],
-      isQualificationComplete: false,
-      isWBFinaleComplete: false,
-      isLBFinaleComplete: false,
-      isGrandFinaleComplete: false,
-      fullBracketStructure: null,
-      lastCompletedBracketType: null as 'winner' | 'loser' | 'qualifier' | null,
+      // Story 1.1: Spread der Initial-State-Konstante für DRY Code
+      ...INITIAL_TOURNAMENT_STATE,
 
       addPilot: (input) => {
         const { pilots } = get()
