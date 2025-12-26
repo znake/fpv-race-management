@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Heat } from '../stores/tournamentStore'
+import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { useTournamentStore } from '../stores/tournamentStore'
 import { cn } from '../lib/utils'

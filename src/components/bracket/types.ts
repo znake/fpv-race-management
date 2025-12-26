@@ -1,4 +1,4 @@
-import type { Heat, Pilot } from '../../stores/tournamentStore'
+import type { Heat, Pilot } from '../../types'
 import type { FullBracketStructure, BracketHeat, BracketType } from '../../lib/bracket-structure-generator'
 
 // Heat Box Props

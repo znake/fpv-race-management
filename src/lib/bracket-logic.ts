@@ -14,7 +14,7 @@
  * Story 4-2 Tasks 7-18 (Course Corrections 2025-12-17, 2025-12-19)
  */
 
-import type { Heat } from '../stores/tournamentStore'
+import type { Heat } from '../types'
 import type { Ranking } from './schemas'
 import type {
   FullBracketStructure,
@@ -765,7 +765,7 @@ function rollbackWBLBHeatAssignments(
 export function createWBHeatFromPool(
   winnerPool: Set<string>,
   currentHeats: Pick<Heat, 'heatNumber'>[]
-): { heat: Omit<Heat, 'results'> | null; updatedPool: Set<string> } {
+): { heat: Heat | null; updatedPool: Set<string> } {
   if (winnerPool.size < 4) {
     return { heat: null, updatedPool: winnerPool }
   }
@@ -781,7 +781,7 @@ export function createWBHeatFromPool(
   }
 
   // Create WB heat
-  const wbHeat: Omit<Heat, 'results'> = {
+  const wbHeat: Heat = {
     id: `wb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
     pilotIds: pilotsForHeat,
@@ -805,7 +805,7 @@ export function createLBHeatFromPool(
   loserPool: Set<string>,
   currentHeats: Pick<Heat, 'heatNumber'>[],
   minPilots: number = 4
-): { heat: Omit<Heat, 'results'> | null; updatedPool: Set<string> } {
+): { heat: Heat | null; updatedPool: Set<string> } {
   if (loserPool.size < minPilots) {
     return { heat: null, updatedPool: loserPool }
   }
@@ -822,7 +822,7 @@ export function createLBHeatFromPool(
   }
 
   // Create LB heat
-  const lbHeat: Omit<Heat, 'results'> = {
+  const lbHeat: Heat = {
     id: `lb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
     pilotIds: pilotsForHeat,

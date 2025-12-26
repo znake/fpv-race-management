@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Heat } from '../stores/tournamentStore'
+import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { OnDeckPreview } from './on-deck-preview'
 import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'

@@ -11,15 +11,8 @@
  * Story 5-1: Finale & Siegerehrung
  */
 
-import type { Pilot } from '../lib/schemas'
+import type { Pilot, Top4Pilots } from '../types'
 import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
-
-interface Top4Pilots {
-  place1: Pilot | undefined
-  place2: Pilot | undefined
-  place3: Pilot | undefined
-  place4: Pilot | undefined
-}
 
 interface VictoryCeremonyProps {
   top4: Top4Pilots

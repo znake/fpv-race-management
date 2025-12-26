@@ -1,7 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Pilot, HeatResults, Ranking } from '../lib/schemas'
+import type { Pilot, Ranking } from '../lib/schemas'
+import type { Heat, TournamentPhase } from '../types'
 import { calculateHeatDistribution } from '../lib/heat-distribution'
+
+// Re-export types for backward compatibility
+export type { Heat, TournamentPhase }
 import { shuffleArray } from '../lib/utils'
 import {
   generateFullBracketStructure,
@@ -19,26 +23,6 @@ import {
   createWBHeatFromPool,
   createLBHeatFromPool
 } from '../lib/bracket-logic'
-
-// Heat interface for tournament structure (Story 3.2)
-// Moved before helper functions to allow usage in type definitions
-export interface Heat {
-  id: string
-  heatNumber: number
-  pilotIds: string[]
-  status: 'pending' | 'active' | 'completed'
-  results?: HeatResults
-  // Story 9-3: LB Finale & Grand Finale
-  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
-  isFinale?: boolean
-  roundName?: string
-}
-
-// Story 10-1: Helper functions imported from bracket-logic.ts (moved in Story 1.4)
-// Story 1.3: Using Heat type directly (removed duplicate HeatForHelper interface)
-
-// Tournament phase types for granular control
-export type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
 
 // Story 1.1: Initial State als wiederverwendbare Konstante
 // Ermöglicht DRY Reset-Funktionen (Story 1.2)

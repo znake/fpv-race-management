@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useTournamentStore, type TournamentPhase } from '../../stores/tournamentStore'
-import type { Pilot } from '../../lib/schemas'
+import { useTournamentStore } from '../../stores/tournamentStore'
+import type { Pilot, Heat, TournamentPhase } from '../../types'
 import { HeatDetailModal } from '../heat-detail-modal'
 import { ActiveHeatView } from '../active-heat-view'
 import { VictoryCeremony } from '../victory-ceremony'
@@ -14,8 +14,8 @@ import { GrandFinaleSection } from './sections/GrandFinaleSection'
 interface BracketTreeProps {
   pilots: Pilot[]
   tournamentPhase: TournamentPhase
-  activeHeat?: import('../../stores/tournamentStore').Heat
-  nextHeat?: import('../../stores/tournamentStore').Heat
+  activeHeat?: Heat
+  nextHeat?: Heat
   onSubmitResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
   onHeatComplete?: () => void
   onNewTournament?: () => void

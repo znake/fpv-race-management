@@ -1,4 +1,4 @@
-import type { Heat } from '../stores/tournamentStore'
+import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 
