@@ -52,6 +52,26 @@ export type { Pilot } from '../lib/schemas'
 // Note: Heat interface is defined at the top of this file (before helper functions)
 // to allow usage in createWBHeatFromPool and createLBHeatFromPool
 
+// Story 1.5: Generische Pool Helper-Funktionen
+// Eliminieren Code-Duplikation zwischen addToLoserPool/addToWinnerPool und removeFromLoserPool
+// removeFromWinnerPool bleibt separat (nutzt count statt pilotIds)
+const addToPool = (
+  currentPool: string[],
+  pilotIds: string[]
+): string[] => {
+  const existingIds = new Set(currentPool)
+  const newPilots = pilotIds.filter(id => !existingIds.has(id))
+  return newPilots.length > 0 ? [...currentPool, ...newPilots] : currentPool
+}
+
+const removeFromPoolByIds = (
+  currentPool: string[],
+  pilotIds: string[]
+): string[] => {
+  const idsToRemove = new Set(pilotIds)
+  return currentPool.filter(id => !idsToRemove.has(id))
+}
+
 interface TournamentState {
   pilots: Pilot[]
   tournamentStarted: boolean
@@ -451,26 +471,22 @@ export const useTournamentStore = create<TournamentState>()(
       // Story 9-1: Loser Pool Actions
       addToLoserPool: (pilotIds) => {
         const { loserPool } = get()
-        const existingIds = new Set(loserPool)
-        const newPilots = pilotIds.filter(id => !existingIds.has(id))
-        if (newPilots.length > 0) {
-          set({ loserPool: [...loserPool, ...newPilots] })
+        const newPool = addToPool(loserPool, pilotIds)
+        if (newPool !== loserPool) {
+          set({ loserPool: newPool })
         }
       },
 
       removeFromLoserPool: (pilotIds) => {
-        const { loserPool } = get()
-        const idsToRemove = new Set(pilotIds)
-        set({ loserPool: loserPool.filter(id => !idsToRemove.has(id)) })
+        set({ loserPool: removeFromPoolByIds(get().loserPool, pilotIds) })
       },
 
       eliminatePilots: (pilotIds) => {
         const { loserPool, eliminatedPilots } = get()
         const existingEliminated = new Set(eliminatedPilots)
-        const idsToEliminate = new Set(pilotIds)
 
-        // Remove from loserPool
-        const newLoserPool = loserPool.filter(id => !idsToEliminate.has(id))
+        // Remove from loserPool using generic helper
+        const newLoserPool = removeFromPoolByIds(loserPool, pilotIds)
 
         // Add to eliminatedPilots (avoiding duplicates)
         const newEliminated = pilotIds.filter(id => !existingEliminated.has(id))
@@ -484,10 +500,9 @@ export const useTournamentStore = create<TournamentState>()(
       // Story 4-2: Winner Pool Actions
       addToWinnerPool: (pilotIds) => {
         const { winnerPool } = get()
-        const existingIds = new Set(winnerPool)
-        const newPilots = pilotIds.filter(id => !existingIds.has(id))
-        if (newPilots.length > 0) {
-          set({ winnerPool: [...winnerPool, ...newPilots] })
+        const newPool = addToPool(winnerPool, pilotIds)
+        if (newPool !== winnerPool) {
+          set({ winnerPool: newPool })
         }
       },
 
