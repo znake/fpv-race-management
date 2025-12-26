@@ -15,7 +15,9 @@ import {
   updateBracketAfterWBLBHeatCompletion,
   findBracketHeatWithLocation,
   generateGrandFinaleHeat,
-  checkHasActiveWBHeats
+  checkHasActiveWBHeats,
+  createWBHeatFromPool,
+  createLBHeatFromPool
 } from '../lib/bracket-logic'
 
 // Heat interface for tournament structure (Story 3.2)
@@ -35,87 +37,8 @@ export interface Heat {
   roundName?: string
 }
 
-// Story 10-1: Helper functions for heat generation from pools
+// Story 10-1: Helper functions imported from bracket-logic.ts (moved in Story 1.4)
 // Story 1.3: Using Heat type directly (removed duplicate HeatForHelper interface)
-
-/**
- * Creates a WB heat from winner pool using FIFO principle.
- * Returns the new heat and updated pool, or null if not enough pilots.
- * 
- * @param winnerPool - Set of pilot IDs waiting in winner pool
- * @param currentHeats - Current heats array (for heatNumber calculation)
- * @returns Object with heat (or null) and updated pool Set
- */
-function createWBHeatFromPool(
-  winnerPool: Set<string>,
-  currentHeats: Heat[]
-): { heat: Heat | null; updatedPool: Set<string> } {
-  if (winnerPool.size < 4) {
-    return { heat: null, updatedPool: winnerPool }
-  }
-
-  // FIFO: Take first 4 pilots from pool
-  const poolArray = Array.from(winnerPool)
-  const pilotsForHeat = poolArray.slice(0, 4)
-
-  // Create new pool without selected pilots
-  const updatedPool = new Set(winnerPool)
-  for (const pilotId of pilotsForHeat) {
-    updatedPool.delete(pilotId)
-  }
-
-  // Create WB heat
-  const wbHeat: Heat = {
-    id: `wb-heat-${crypto.randomUUID()}`,
-    heatNumber: currentHeats.length + 1,
-    pilotIds: pilotsForHeat,
-    status: 'pending',
-    bracketType: 'winner'
-  }
-
-  return { heat: wbHeat, updatedPool }
-}
-
-/**
- * Creates a LB heat from loser pool using FIFO principle.
- * Returns the new heat and updated pool, or null if not enough pilots.
- * 
- * @param loserPool - Set of pilot IDs waiting in loser pool
- * @param currentHeats - Current heats array (for heatNumber calculation)
- * @param minPilots - Minimum pilots required (4 if WB active, 3 otherwise)
- * @returns Object with heat (or null) and updated pool Set
- */
-function createLBHeatFromPool(
-  loserPool: Set<string>,
-  currentHeats: Heat[],
-  minPilots: number = 4
-): { heat: Heat | null; updatedPool: Set<string> } {
-  if (loserPool.size < minPilots) {
-    return { heat: null, updatedPool: loserPool }
-  }
-
-  // FIFO: Take first N pilots from pool (up to 4)
-  const poolArray = Array.from(loserPool)
-  const heatSize = Math.min(4, poolArray.length)
-  const pilotsForHeat = poolArray.slice(0, heatSize)
-
-  // Create new pool without selected pilots
-  const updatedPool = new Set(loserPool)
-  for (const pilotId of pilotsForHeat) {
-    updatedPool.delete(pilotId)
-  }
-
-  // Create LB heat
-  const lbHeat: Heat = {
-    id: `lb-heat-${crypto.randomUUID()}`,
-    heatNumber: currentHeats.length + 1,
-    pilotIds: pilotsForHeat,
-    status: 'pending',
-    bracketType: 'loser'
-  }
-
-  return { heat: lbHeat, updatedPool }
-}
 
 // Tournament phase types for granular control
 export type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'

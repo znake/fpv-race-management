@@ -745,6 +745,89 @@ function rollbackWBLBHeatAssignments(
   
   // Reset heat status to active
   heat.status = 'active'
-  
+
   return updated
+}
+
+// ============================================================================
+// Story 10-1: Pool Helper Functions
+// ============================================================================
+
+/**
+ * Creates a new Winner Bracket heat from the winner pool
+ * Uses FIFO principle: takes first 4 pilots from pool
+ *
+ * @param winnerPool - Set of pilot IDs waiting in winner pool
+ * @param currentHeats - Current heats to determine next heat number
+ * @returns New heat and updated pool, or null if not enough pilots
+ */
+export function createWBHeatFromPool(
+  winnerPool: Set<string>,
+  currentHeats: Pick<Heat, 'heatNumber'>[]
+): { heat: Omit<Heat, 'results'> | null; updatedPool: Set<string> } {
+  if (winnerPool.size < 4) {
+    return { heat: null, updatedPool: winnerPool }
+  }
+
+  // FIFO: Take first 4 pilots from pool
+  const poolArray = Array.from(winnerPool)
+  const pilotsForHeat = poolArray.slice(0, 4)
+
+  // Create new pool without selected pilots
+  const updatedPool = new Set(winnerPool)
+  for (const pilotId of pilotsForHeat) {
+    updatedPool.delete(pilotId)
+  }
+
+  // Create WB heat
+  const wbHeat: Omit<Heat, 'results'> = {
+    id: `wb-heat-${crypto.randomUUID()}`,
+    heatNumber: currentHeats.length + 1,
+    pilotIds: pilotsForHeat,
+    status: 'pending',
+    bracketType: 'winner'
+  }
+
+  return { heat: wbHeat, updatedPool }
+}
+
+/**
+ * Creates a new Loser Bracket heat from the loser pool
+ * Uses FIFO principle: takes first N pilots from pool (up to 4)
+ *
+ * @param loserPool - Set of pilot IDs waiting in loser pool
+ * @param currentHeats - Current heats to determine next heat number
+ * @param minPilots - Minimum pilots required (default: 4)
+ * @returns New heat and updated pool, or null if not enough pilots
+ */
+export function createLBHeatFromPool(
+  loserPool: Set<string>,
+  currentHeats: Pick<Heat, 'heatNumber'>[],
+  minPilots: number = 4
+): { heat: Omit<Heat, 'results'> | null; updatedPool: Set<string> } {
+  if (loserPool.size < minPilots) {
+    return { heat: null, updatedPool: loserPool }
+  }
+
+  // FIFO: Take first N pilots from pool (up to 4)
+  const poolArray = Array.from(loserPool)
+  const heatSize = Math.min(4, poolArray.length)
+  const pilotsForHeat = poolArray.slice(0, heatSize)
+
+  // Create new pool without selected pilots
+  const updatedPool = new Set(loserPool)
+  for (const pilotId of pilotsForHeat) {
+    updatedPool.delete(pilotId)
+  }
+
+  // Create LB heat
+  const lbHeat: Omit<Heat, 'results'> = {
+    id: `lb-heat-${crypto.randomUUID()}`,
+    heatNumber: currentHeats.length + 1,
+    pilotIds: pilotsForHeat,
+    status: 'pending',
+    bracketType: 'loser'
+  }
+
+  return { heat: lbHeat, updatedPool }
 }
