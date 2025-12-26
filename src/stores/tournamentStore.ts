@@ -18,23 +18,25 @@ import {
   checkHasActiveWBHeats
 } from '../lib/bracket-logic'
 
-// Forward declaration of Heat type for helper functions
-interface HeatForHelper {
+// Heat interface for tournament structure (Story 3.2)
+// Moved before helper functions to allow usage in type definitions
+export interface Heat {
   id: string
   heatNumber: number
   pilotIds: string[]
   status: 'pending' | 'active' | 'completed'
-  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
-  isFinale?: boolean
-  roundName?: string
   results?: {
     rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
     completedAt?: string
   }
+  // Story 9-3: LB Finale & Grand Finale
+  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
+  isFinale?: boolean
+  roundName?: string
 }
 
 // Story 10-1: Helper functions for heat generation from pools
-// These work with local state (Sets) instead of mutating the store directly
+// Story 1.3: Using Heat type directly (removed duplicate HeatForHelper interface)
 
 /**
  * Creates a WB heat from winner pool using FIFO principle.
@@ -46,8 +48,8 @@ interface HeatForHelper {
  */
 function createWBHeatFromPool(
   winnerPool: Set<string>,
-  currentHeats: HeatForHelper[]
-): { heat: HeatForHelper | null; updatedPool: Set<string> } {
+  currentHeats: Heat[]
+): { heat: Heat | null; updatedPool: Set<string> } {
   if (winnerPool.size < 4) {
     return { heat: null, updatedPool: winnerPool }
   }
@@ -63,7 +65,7 @@ function createWBHeatFromPool(
   }
 
   // Create WB heat
-  const wbHeat: HeatForHelper = {
+  const wbHeat: Heat = {
     id: `wb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
     pilotIds: pilotsForHeat,
@@ -85,9 +87,9 @@ function createWBHeatFromPool(
  */
 function createLBHeatFromPool(
   loserPool: Set<string>,
-  currentHeats: HeatForHelper[],
+  currentHeats: Heat[],
   minPilots: number = 4
-): { heat: HeatForHelper | null; updatedPool: Set<string> } {
+): { heat: Heat | null; updatedPool: Set<string> } {
   if (loserPool.size < minPilots) {
     return { heat: null, updatedPool: loserPool }
   }
@@ -104,7 +106,7 @@ function createLBHeatFromPool(
   }
 
   // Create LB heat
-  const lbHeat: HeatForHelper = {
+  const lbHeat: Heat = {
     id: `lb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
     pilotIds: pilotsForHeat,
@@ -143,21 +145,8 @@ export const INITIAL_TOURNAMENT_STATE = {
 // Pilot interface export
 export type { Pilot } from '../lib/schemas'
 
-// Heat interface for tournament structure (Story 3.2)
-export interface Heat {
-  id: string
-  heatNumber: number
-  pilotIds: string[]
-  status: 'pending' | 'active' | 'completed'
-  results?: {
-    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
-    completedAt?: string
-  }
-  // Story 9-3: LB Finale & Grand Finale
-  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
-  isFinale?: boolean
-  roundName?: string
-}
+// Note: Heat interface is defined at the top of this file (before helper functions)
+// to allow usage in createWBHeatFromPool and createLBHeatFromPool
 
 interface TournamentState {
   pilots: Pilot[]
