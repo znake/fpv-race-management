@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
 import { OnDeckPreview } from './on-deck-preview'
-import { getRankBadgeClasses, getRankBorderClasses } from '../lib/utils'
+import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/utils'
 
 // Constants
 const SUBMIT_ANIMATION_DELAY = 300 // ms - Zeit für Success-Pulse Animation
-const FALLBACK_PILOT_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"%3E%3Crect fill="%23ff2a6d" width="150" height="150"/%3E%3Ctext x="75" y="85" text-anchor="middle" fill="%230d0221" font-size="48" font-family="sans-serif"%3EP%3C/text%3E%3C/svg%3E'
 
 type ActiveHeatViewProps = {
   heat: Heat

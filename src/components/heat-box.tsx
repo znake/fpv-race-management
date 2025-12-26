@@ -1,6 +1,6 @@
 import type { Pilot } from '../lib/schemas'
 import type { Heat } from '../stores/tournamentStore'
-import { FALLBACK_PILOT_IMAGE, sortPilotsByRank } from '../lib/utils'
+import { FALLBACK_PILOT_IMAGE, sortPilotsByRank, getRankBadgeClasses, getHeatBorderClasses } from '../lib/utils'
 import { useMemo } from 'react'
 
 type HeatBoxProps = {
@@ -54,23 +54,15 @@ export function HeatBox({ heat, pilots, onEdit, showByeHandling = true }: HeatBo
     return (
       <span className={`
         ml-2 px-2 py-1 rounded-full text-beamer-caption font-bold
-        ${ranking.rank === 1 ? 'bg-gold text-void shadow-glow-gold' : ''}
-        ${ranking.rank === 2 ? 'bg-neon-cyan text-void shadow-glow-cyan' : ''}
-        ${ranking.rank >= 3 ? 'bg-neon-pink text-void shadow-glow-pink' : ''}
+        ${getRankBadgeClasses(ranking.rank)}
       `}>
         {ranking.rank}
       </span>
     )
   }
 
-  const getBorderClass = () => {
-    if (heat.status === 'completed') return 'border-winner-green shadow-glow-green'
-    if (heat.status === 'active') return 'border-neon-cyan shadow-glow-cyan'
-    return 'border-steel'
-  }
-
   return (
-    <div className={`bg-night border-3 rounded-2xl p-6 ${getBorderClass()}`}>
+    <div className={`bg-night border-3 rounded-2xl p-6 ${getHeatBorderClasses(heat.status)}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-beamer-heat font-bold text-chrome">
           HEAT {heat.heatNumber}

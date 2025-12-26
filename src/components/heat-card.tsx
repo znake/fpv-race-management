@@ -1,20 +1,33 @@
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
-import { getRankBadgeClasses } from '../lib/utils'
+import { getRankBadgeClasses, getHeatBorderClasses, cn } from '../lib/utils'
 
 type HeatCardProps = {
   heat: Heat
   pilotsById: Map<string, Pilot>
   onEdit?: (heatId: string) => void
   isRecommended?: boolean  // Story 9-2 AC7: Highlight recommended heat
+  // Swap mode props for heat-assignment-view
+  swapMode?: boolean
+  selectedPilotId?: string | null
+  onPilotClick?: (pilotId: string, heatId: string) => void
 }
 
-export function HeatCard({ heat, pilotsById, onEdit, isRecommended }: HeatCardProps) {
+export function HeatCard({ 
+  heat, 
+  pilotsById, 
+  onEdit, 
+  isRecommended,
+  swapMode = false,
+  selectedPilotId = null,
+  onPilotClick
+}: HeatCardProps) {
   const pilots = heat.pilotIds
     .map((id) => pilotsById.get(id))
     .filter(Boolean) as Pilot[]
   
   const count = pilots.length
+  const isSelectedHeat = selectedPilotId && heat.pilotIds.includes(selectedPilotId)
   
   const getRankDisplay = (pilotId: string) => {
     if (!heat.results) return null
@@ -31,19 +44,10 @@ export function HeatCard({ heat, pilotsById, onEdit, isRecommended }: HeatCardPr
     )
   }
   
-  // Story 9-2 AC7: Enhanced border for recommended heat
-  const getBorderClass = () => {
-    if (isRecommended && heat.status === 'pending') {
-      return 'border-neon-cyan shadow-glow-cyan animate-pulse'
-    }
-    return heat.status === 'active'
-      ? 'border-neon-cyan shadow-glow-cyan'
-      : heat.status === 'completed'
-      ? 'border-winner-green shadow-glow-green'
-      : 'border-steel'
-  }
-  
-  const borderClass = getBorderClass()
+  // Use centralized border styling, with special handling for selected heat in swap mode
+  const borderClass = isSelectedHeat 
+    ? 'border-neon-cyan shadow-glow-cyan' 
+    : getHeatBorderClasses(heat.status, isRecommended)
   
   return (
     <div className={`bg-night border-2 ${borderClass} rounded-2xl p-5 relative`}>
@@ -73,21 +77,46 @@ export function HeatCard({ heat, pilotsById, onEdit, isRecommended }: HeatCardPr
       </div>
       
       <div className="space-y-3">
-        {pilots.map((pilot) => (
-          <div key={pilot.id} className="flex items-center gap-3 bg-void border-2 border-steel rounded-xl p-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-steel">
-              <img
-                src={pilot.imageUrl}
-                alt={pilot.name}
-                className="w-full h-full object-cover"
-              />
+        {pilots.map((pilot) => {
+          const isSelected = selectedPilotId === pilot.id
+          const isClickable = swapMode
+          const canSwapWith = swapMode && selectedPilotId && selectedPilotId !== pilot.id && !isSelectedHeat
+          
+          return (
+            <div
+              key={pilot.id}
+              onClick={() => isClickable && onPilotClick?.(pilot.id, heat.id)}
+              className={cn(
+                "flex items-center gap-3 rounded-xl p-3 transition-all",
+                isClickable && "cursor-pointer",
+                isSelected 
+                  ? "bg-neon-cyan/20 border-2 border-neon-cyan shadow-glow-cyan"
+                  : canSwapWith
+                    ? "bg-void border-2 border-neon-pink hover:bg-neon-pink/10"
+                    : "bg-void border-2 border-steel",
+                isClickable && !isSelected && !canSwapWith && "hover:border-neon-cyan/50"
+              )}
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-full overflow-hidden border-2",
+                isSelected ? "border-neon-cyan" : "border-steel"
+              )}>
+                <img
+                  src={pilot.imageUrl}
+                  alt={pilot.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex items-center">
+                <div className="font-ui text-base text-chrome font-semibold">{pilot.name}</div>
+                {getRankDisplay(pilot.id)}
+              </div>
+              {isSelected && (
+                <span className="ml-auto text-neon-cyan text-sm font-semibold">AUSGEWÄHLT</span>
+              )}
             </div>
-            <div className="flex items-center">
-              <div className="font-ui text-base text-chrome font-semibold">{pilot.name}</div>
-              {getRankDisplay(pilot.id)}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

@@ -1,8 +1,6 @@
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
-
-// Fallback image as inline SVG data URL (no external dependency)
-const FALLBACK_PILOT_IMAGE_SMALL = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"%3E%3Crect fill="%23ff2a6d" width="48" height="48"/%3E%3Ctext x="24" y="30" text-anchor="middle" fill="%230d0221" font-size="20" font-family="sans-serif"%3EP%3C/text%3E%3C/svg%3E'
+import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
 
 type OnDeckPreviewProps = {
   heat: Heat
@@ -42,7 +40,7 @@ export function OnDeckPreview({ heat, pilots }: OnDeckPreviewProps) {
                 className="w-full h-full object-cover"
                 loading="lazy"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE_SMALL
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                 }}
               />
             </div>

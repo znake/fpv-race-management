@@ -3,6 +3,7 @@ import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
 import { useTournamentStore } from '../stores/tournamentStore'
 import { cn } from '../lib/utils'
+import { HeatCard } from './heat-card'
 
 type HeatAssignmentViewProps = {
   heats: Heat[]
@@ -190,78 +191,6 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-// Internal HeatCard component for assignment view
-type HeatCardProps = {
-  heat: Heat
-  pilotsById: Map<string, Pilot>
-  swapMode: boolean
-  selectedPilotId: string | null
-  onPilotClick: (pilotId: string, heatId: string) => void
-}
-
-function HeatCard({ heat, pilotsById, swapMode, selectedPilotId, onPilotClick }: HeatCardProps) {
-  const pilots = heat.pilotIds
-    .map((id) => pilotsById.get(id))
-    .filter(Boolean) as Pilot[]
-
-  const count = pilots.length
-  const isSelectedHeat = selectedPilotId && heat.pilotIds.includes(selectedPilotId)
-
-  return (
-    <div className={cn(
-      "bg-night border-2 rounded-2xl p-5 transition-all",
-      isSelectedHeat 
-        ? "border-neon-cyan shadow-glow-cyan"
-        : "border-steel"
-    )}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-2xl font-bold text-chrome">HEAT {heat.heatNumber}</h3>
-        <span className="font-ui text-sm text-steel">{count} Pilot{count === 1 ? '' : 'en'}</span>
-      </div>
-
-      <div className="space-y-3">
-        {pilots.map((pilot) => {
-          const isSelected = selectedPilotId === pilot.id
-          const isClickable = swapMode
-          const canSwapWith = swapMode && selectedPilotId && selectedPilotId !== pilot.id && !isSelectedHeat
-          
-          return (
-            <div
-              key={pilot.id}
-              onClick={() => isClickable && onPilotClick(pilot.id, heat.id)}
-              className={cn(
-                "flex items-center gap-3 rounded-xl p-3 transition-all",
-                isClickable && "cursor-pointer",
-                isSelected 
-                  ? "bg-neon-cyan/20 border-2 border-neon-cyan shadow-glow-cyan"
-                  : canSwapWith
-                    ? "bg-void border-2 border-neon-pink hover:bg-neon-pink/10"
-                    : "bg-void border-2 border-steel",
-                isClickable && !isSelected && !canSwapWith && "hover:border-neon-cyan/50"
-              )}
-            >
-              <div className={cn(
-                "w-12 h-12 rounded-full overflow-hidden border-2",
-                isSelected ? "border-neon-cyan" : "border-steel"
-              )}>
-                <img
-                  src={pilot.imageUrl}
-                  alt={pilot.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="font-ui text-base text-chrome font-semibold">{pilot.name}</div>
-              {isSelected && (
-                <span className="ml-auto text-neon-cyan text-sm font-semibold">AUSGEWÄHLT</span>
-              )}
-            </div>
-          )
-        })}
-      </div>
     </div>
   )
 }

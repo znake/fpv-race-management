@@ -278,3 +278,23 @@ export function getPilotRank(
   const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
   return ranking?.rank
 }
+
+/**
+ * Get consistent border styling for heat cards based on status
+ * 
+ * @param status - Heat status ('pending' | 'active' | 'completed')
+ * @param isRecommended - Optional flag for recommended heat highlight (Story 9-2)
+ * @returns Tailwind classes for border and shadow
+ */
+export function getHeatBorderClasses(status: string, isRecommended?: boolean): string {
+  if (isRecommended && status === 'pending') {
+    return 'border-neon-cyan shadow-glow-cyan animate-pulse'
+  }
+  if (status === 'active') {
+    return 'border-neon-cyan shadow-glow-cyan'
+  }
+  if (status === 'completed') {
+    return 'border-winner-green shadow-glow-green'
+  }
+  return 'border-steel'
+}
