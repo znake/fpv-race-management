@@ -14,7 +14,6 @@ import {
   rollbackBracketForHeat,
   updateBracketAfterWBLBHeatCompletion,
   findBracketHeatWithLocation,
-  isGrandFinaleReady,
   generateGrandFinaleHeat,
   checkHasActiveWBHeats
 } from '../lib/bracket-logic'
@@ -829,20 +828,19 @@ export const useTournamentStore = create<TournamentState>()(
             }
             
             // Task 17: Check if Grand Finale is ready
-            if (isGrandFinaleReady(updatedBracketStructure)) {
-              const finaleHeat = generateGrandFinaleHeat(updatedBracketStructure, updatedHeats)
-              if (finaleHeat) {
-                // Deactivate any active heat first
-                updatedHeats = updatedHeats.map(h => ({
-                  ...h,
-                  status: h.status === 'active' && h.results 
-                    ? 'completed' 
-                    : h.status
-                } as Heat))
-                
-                updatedHeats = [...updatedHeats, finaleHeat]
-                newPhase = 'finale'
-              }
+            // Story 10-3: Use consolidated function with ready check
+            const finaleHeat = generateGrandFinaleHeat(updatedBracketStructure, updatedHeats, true)
+            if (finaleHeat) {
+              // Deactivate any active heat first
+              updatedHeats = updatedHeats.map(h => ({
+                ...h,
+                status: h.status === 'active' && h.results 
+                  ? 'completed' 
+                  : h.status
+              } as Heat))
+              
+              updatedHeats = [...updatedHeats, finaleHeat]
+              newPhase = 'finale'
             }
           }
         } else if (bracketType === 'finale' || bracketType === 'grand_finale' || updatedHeats[heatIndex]?.isFinale === true) {
@@ -1276,45 +1274,22 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Generate Grand Finale (2 pilots: WB Winner + LB Winner)
+      // Story 10-3: Delegiert an die kanonische pure function in bracket-logic.ts
       generateGrandFinale: () => {
         const { heats, fullBracketStructure } = get()
 
-        if (!fullBracketStructure?.grandFinale) {
-          return null
-        }
-
-        // Check if Grand Finale is already generated
-        const alreadyExists = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
-        if (alreadyExists) {
-          return null
-        }
-
-        // WB Winner is in grandFinale.pilotIds (from bracket structure)
-        const wbWinnerId = fullBracketStructure.grandFinale.pilotIds[0]
-        const lbWinnerId = fullBracketStructure.grandFinale.pilotIds[1]
-
-        if (!wbWinnerId || !lbWinnerId) {
-          return null
-        }
-
-        // Create Grand Finale heat
-        const grandFinale: Heat = {
-          id: crypto.randomUUID(),
-          heatNumber: heats.length + 1,
-          pilotIds: [wbWinnerId, lbWinnerId],
-          status: 'active',
-          bracketType: 'grand_finale',
-          isFinale: true,
-          roundName: 'Grand Finale'
-        }
-
-        // Add to heats array and set phase to finale
+        // Delegate to pure function
+        const finaleHeat = generateGrandFinaleHeat(fullBracketStructure, heats)
+        
+        if (!finaleHeat) return null
+        
+        // Only state mutation remains here
         set({
-          heats: [...heats, grandFinale],
+          heats: [...heats, finaleHeat],
           tournamentPhase: 'finale'
         })
 
-        return grandFinale
+        return finaleHeat
       },
 
       // Story 9-2: Check if LB heat can be generated (AC1, AC5)

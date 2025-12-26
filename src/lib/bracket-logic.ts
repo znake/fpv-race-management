@@ -400,24 +400,46 @@ export function isGrandFinaleReady(bracketStructure: FullBracketStructure): bool
 /**
  * Generate Grand Finale heat for the playable heats array
  * 
- * @returns The Grand Finale Heat or null if not ready
+ * Story 10-3: Konsolidierte Grand-Finale-Generierung
+ * Diese Funktion ist die kanonische Implementierung für Grand-Finale-Generierung.
+ * Sie wird sowohl von submitHeatResults() als auch von generateGrandFinale() im Store verwendet.
+ * 
+ * @param bracketStructure - The full bracket structure (can be null)
+ * @param existingHeats - Current heats array
+ * @param requireReadyCheck - If true, requires isGrandFinaleReady() check (default: false for backward compatibility)
+ * @returns The Grand Finale Heat or null if not ready/already exists
  */
 export function generateGrandFinaleHeat(
-  bracketStructure: FullBracketStructure,
-  existingHeats: Heat[]
+  bracketStructure: FullBracketStructure | null,
+  existingHeats: Heat[],
+  requireReadyCheck: boolean = false
 ): Heat | null {
-  if (!bracketStructure.grandFinale) return null
-  if (!isGrandFinaleReady(bracketStructure)) return null
+  if (!bracketStructure?.grandFinale) return null
   
-  // Check if already generated
-  const alreadyExists = existingHeats.some(h => h.id === bracketStructure.grandFinale!.id)
+  // If requireReadyCheck is true (called from submitHeatResults), verify WB/LB finale are complete
+  if (requireReadyCheck && !isGrandFinaleReady(bracketStructure)) return null
+  
+  // Check if already generated (both ID-based and bracketType-based for compatibility)
+  const alreadyExists = existingHeats.some(h => 
+    h.id === bracketStructure.grandFinale!.id ||
+    h.bracketType === 'grand_finale' ||
+    h.bracketType === 'finale'
+  )
   if (alreadyExists) return null
+  
+  // Verify we have both pilots
+  const wbWinnerId = bracketStructure.grandFinale.pilotIds[0]
+  const lbWinnerId = bracketStructure.grandFinale.pilotIds[1]
+  if (!wbWinnerId || !lbWinnerId) return null
   
   return {
     id: bracketStructure.grandFinale.id,
     heatNumber: existingHeats.length + 1,
     pilotIds: [...bracketStructure.grandFinale.pilotIds],
     status: 'active',
+    bracketType: 'grand_finale',
+    isFinale: true,
+    roundName: 'Grand Finale'
   }
 }
 
