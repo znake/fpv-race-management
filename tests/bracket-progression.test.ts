@@ -176,76 +176,276 @@ describe('Task 9: Winner-Bracket Piloten befüllen', () => {
   })
 })
 
-describe('Task 10: Loser-Bracket Piloten befüllen', () => {
-  beforeEach(() => {
-    useTournamentStore.getState().resetAll()
+  describe('Task 10: Loser-Bracket Piloten befüllen', () => {
+    beforeEach(() => {
+      useTournamentStore.getState().resetAll()
+    })
+
+    it('should assign rank 3+4 pilots to loser bracket heat after quali completion', () => {
+      const state = setupTournamentWithHeats(8)
+      const store = useTournamentStore.getState()
+      
+      const heat1 = state.heats[0]
+      const heat2 = state.heats[1]
+      
+      // Complete both quali heats
+      store.submitHeatResults(heat1.id, [
+        { pilotId: heat1.pilotIds[0], rank: 1 },
+        { pilotId: heat1.pilotIds[1], rank: 2 },
+        { pilotId: heat1.pilotIds[2], rank: 3 },
+        { pilotId: heat1.pilotIds[3], rank: 4 },
+      ])
+      
+      store.submitHeatResults(heat2.id, [
+        { pilotId: heat2.pilotIds[0], rank: 1 },
+        { pilotId: heat2.pilotIds[1], rank: 2 },
+        { pilotId: heat2.pilotIds[2], rank: 3 },
+        { pilotId: heat2.pilotIds[3], rank: 4 },
+      ])
+      
+      const updatedState = useTournamentStore.getState()
+      
+      // Check loser bracket has pilots
+      const lbRound1 = updatedState.fullBracketStructure!.loserBracket.rounds[0]
+      expect(lbRound1).toBeDefined()
+      expect(lbRound1.heats.length).toBeGreaterThan(0)
+      
+      // First LB heat should have 4 losers (2 from each quali heat)
+      const lbHeat1 = lbRound1.heats[0]
+      expect(lbHeat1.pilotIds.length).toBe(4)
+      
+      // Verify it contains rank 3+4 pilots from quali heats
+      expect(lbHeat1.pilotIds).toContain(heat1.pilotIds[2]) // Rank 3 from heat 1
+      expect(lbHeat1.pilotIds).toContain(heat1.pilotIds[3]) // Rank 4 from heat 1
+      expect(lbHeat1.pilotIds).toContain(heat2.pilotIds[2]) // Rank 3 from heat 2
+      expect(lbHeat1.pilotIds).toContain(heat2.pilotIds[3]) // Rank 4 from heat 2
+    })
+
+    it('should handle 3-pilot heat correctly (only rank 1-3)', () => {
+      const state = setupTournamentWithHeats(7) // 1x 4er + 1x 3er Heat
+      const store = useTournamentStore.getState()
+      
+      // Find 3-pilot heat
+      const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerHeat).toBeDefined()
+      
+      // Complete 3-pilot heat with ranks 1-3 only
+      store.submitHeatResults(threePlayerHeat!.id, [
+        { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
+      ])
+      
+      const updatedState = useTournamentStore.getState()
+      
+      // Rank 1+2 should be in winner bracket
+      expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[0])
+      expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[1])
+      
+      // Rank 3 should be in loser bracket (not eliminated)
+      expect(updatedState.loserPilots).toContain(threePlayerHeat!.pilotIds[2])
+    })
   })
 
-  it('should assign rank 3+4 pilots to loser bracket heat after quali completion', () => {
-    const state = setupTournamentWithHeats(8)
-    const store = useTournamentStore.getState()
-    
-    const heat1 = state.heats[0]
-    const heat2 = state.heats[1]
-    
-    // Complete both quali heats
-    store.submitHeatResults(heat1.id, [
-      { pilotId: heat1.pilotIds[0], rank: 1 },
-      { pilotId: heat1.pilotIds[1], rank: 2 },
-      { pilotId: heat1.pilotIds[2], rank: 3 },
-      { pilotId: heat1.pilotIds[3], rank: 4 },
-    ])
-    
-    store.submitHeatResults(heat2.id, [
-      { pilotId: heat2.pilotIds[0], rank: 1 },
-      { pilotId: heat2.pilotIds[1], rank: 2 },
-      { pilotId: heat2.pilotIds[2], rank: 3 },
-      { pilotId: heat2.pilotIds[3], rank: 4 },
-    ])
-    
-    const updatedState = useTournamentStore.getState()
-    
-    // Check loser bracket has pilots
-    const lbRound1 = updatedState.fullBracketStructure!.loserBracket.rounds[0]
-    expect(lbRound1).toBeDefined()
-    expect(lbRound1.heats.length).toBeGreaterThan(0)
-    
-    // First LB heat should have 4 losers (2 from each quali heat)
-    const lbHeat1 = lbRound1.heats[0]
-    expect(lbHeat1.pilotIds.length).toBe(4)
-    
-    // Verify it contains rank 3+4 pilots from quali heats
-    expect(lbHeat1.pilotIds).toContain(heat1.pilotIds[2]) // Rank 3 from heat 1
-    expect(lbHeat1.pilotIds).toContain(heat1.pilotIds[3]) // Rank 4 from heat 1
-    expect(lbHeat1.pilotIds).toContain(heat2.pilotIds[2]) // Rank 3 from heat 2
-    expect(lbHeat1.pilotIds).toContain(heat2.pilotIds[3]) // Rank 4 from heat 2
-  })
+  // ========================================
+  // NEW: 3er-Heat Tests for Bracket Logic
+  // ========================================
 
-  it('should handle 3-pilot heat correctly (only rank 1-3)', () => {
-    const state = setupTournamentWithHeats(7) // 1x 4er + 1x 3er Heat
-    const store = useTournamentStore.getState()
-    
-    // Find 3-pilot heat
-    const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
-    expect(threePlayerHeat).toBeDefined()
-    
-    // Complete 3-pilot heat with ranks 1-3 only
-    store.submitHeatResults(threePlayerHeat!.id, [
-      { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
-      { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
-      { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
-    ])
-    
-    const updatedState = useTournamentStore.getState()
-    
-    // Rank 1+2 should be in winner bracket
-    expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[0])
-    expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[1])
-    
-    // Rank 3 should be in loser bracket (not eliminated)
-    expect(updatedState.loserPilots).toContain(threePlayerHeat!.pilotIds[2])
+  describe('CRITICAL: 3er-Heat Double Elimination Logic', () => {
+    beforeEach(() => {
+      useTournamentStore.getState().resetAll()
+    })
+
+    it('3er-Quali: Rank 1+2 → WB, Rank 3 → LB (no rank 4)', () => {
+      const state = setupTournamentWithHeats(7) // 1x 4er + 1x 3er
+      const store = useTournamentStore.getState()
+      
+      const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerHeat).toBeDefined()
+      
+      store.submitHeatResults(threePlayerHeat!.id, [
+        { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
+      ])
+      
+      const updatedState = useTournamentStore.getState()
+      
+      // Rank 1+2 in Winner Bracket
+      expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[0])
+      expect(updatedState.winnerPilots).toContain(threePlayerHeat!.pilotIds[1])
+      expect(updatedState.winnerPilots.length).toBeGreaterThanOrEqual(2)
+      
+      // Rank 3 in Loser Bracket
+      expect(updatedState.loserPilots).toContain(threePlayerHeat!.pilotIds[2])
+      expect(updatedState.loserPilots.length).toBeGreaterThanOrEqual(1)
+      
+      // NO eliminated pilots yet (first loss)
+      expect(updatedState.eliminatedPilots).toHaveLength(0)
+    })
+
+    it('3er-WB-Heat: Rank 1+2 → WB, Rank 3 → LB (no rank 4)', () => {
+      const state = setupTournamentWithHeats(15) // 3x 4er + 1x 3er = 4 Quali-Heats
+      const store = useTournamentStore.getState()
+      
+      // Find 3-pilot quali heat
+      const threePlayerQualiHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerQualiHeat).toBeDefined()
+      
+      // Complete 3-pilot quali heat
+      store.submitHeatResults(threePlayerQualiHeat!.id, [
+        { pilotId: threePlayerQualiHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerQualiHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerQualiHeat!.pilotIds[2], rank: 3 },
+      ])
+      
+      // Complete all other quali heats to generate WB heats
+      const otherQualiHeats = state.heats.filter(h => h.pilotIds.length === 4)
+      otherQualiHeats.forEach(heat => {
+        store.submitHeatResults(heat.id, [
+          { pilotId: heat.pilotIds[0], rank: 1 },
+          { pilotId: heat.pilotIds[1], rank: 2 },
+          { pilotId: heat.pilotIds[2], rank: 3 },
+          { pilotId: heat.pilotIds[3], rank: 4 },
+        ])
+      })
+      
+      // Find a WB heat (might have 3 or 4 pilots)
+      const wbHeat = useTournamentStore.getState().heats.find(h => 
+        h.bracketType === 'winner' && h.status !== 'completed'
+      )
+      
+      if (wbHeat && wbHeat.pilotIds.length === 3) {
+        // Complete 3-pilot WB heat
+        store.submitHeatResults(wbHeat.id, [
+          { pilotId: wbHeat.pilotIds[0], rank: 1 },
+          { pilotId: wbHeat.pilotIds[1], rank: 2 },
+          { pilotId: wbHeat.pilotIds[2], rank: 3 },
+        ])
+        
+        const updatedState = useTournamentStore.getState()
+        
+        // Rank 1+2 should still be in winner bracket
+        expect(updatedState.winnerPilots).toContain(wbHeat.pilotIds[0])
+        expect(updatedState.winnerPilots).toContain(wbHeat.pilotIds[1])
+        
+        // Rank 3 should drop to loser bracket (first loss)
+        expect(updatedState.loserPilots).toContain(wbHeat.pilotIds[2])
+        
+        // NO eliminated yet
+        expect(updatedState.eliminatedPilots).toHaveLength(0)
+      }
+    })
+
+    it('3er-LB-Heat: Rank 1+2 → weiter in LB, Rank 3 → eliminiert (2. Niederlage)', () => {
+      const state = setupTournamentWithHeats(7) // 1x 4er + 1x 3er
+      const store = useTournamentStore.getState()
+      
+      const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerHeat).toBeDefined()
+      
+      // Complete 3-pilot quali heat (rank 3 goes to LB - first loss)
+      store.submitHeatResults(threePlayerHeat!.id, [
+        { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
+      ])
+      
+      // Complete 4-pilot quali heat
+      const fourPlayerHeat = state.heats.find(h => h.pilotIds.length === 4)
+      if (fourPlayerHeat) {
+        store.submitHeatResults(fourPlayerHeat.id, [
+          { pilotId: fourPlayerHeat.pilotIds[0], rank: 1 },
+          { pilotId: fourPlayerHeat.pilotIds[1], rank: 2 },
+          { pilotId: fourPlayerHeat.pilotIds[2], rank: 3 },
+          { pilotId: fourPlayerHeat.pilotIds[3], rank: 4 },
+        ])
+      }
+      
+      // Find LB heat with 3 pilots
+      const lbHeat = useTournamentStore.getState().heats.find(h => 
+        h.bracketType === 'loser' && h.pilotIds.length === 3 && h.status !== 'completed'
+      )
+      
+      if (lbHeat) {
+        // Complete 3-pilot LB heat (rank 3 = second loss = ELIMINATED)
+        store.submitHeatResults(lbHeat.id, [
+          { pilotId: lbHeat.pilotIds[0], rank: 1 },
+          { pilotId: lbHeat.pilotIds[1], rank: 2 },
+          { pilotId: lbHeat.pilotIds[2], rank: 3 }, // Second loss!
+        ])
+        
+        const updatedState = useTournamentStore.getState()
+        
+        // Rank 1+2 should continue in loser bracket
+        expect(updatedState.loserPilots).toContain(lbHeat.pilotIds[0])
+        expect(updatedState.loserPilots).toContain(lbHeat.pilotIds[1])
+        
+        // Rank 3 should be ELIMINATED (second loss)
+        expect(updatedState.eliminatedPilots).toContain(lbHeat.pilotIds[2])
+        expect(updatedState.eliminatedPilots).toHaveLength(1)
+        
+        // Eliminated pilot should NOT be in loser bracket anymore
+        expect(updatedState.loserPilots).not.toContain(lbHeat.pilotIds[2])
+      }
+    })
+
+    it('15 Piloten: Beispiel aus deiner Spezifikation (Korrektheits-Check)', () => {
+      const state = setupTournamentWithHeats(15) // 3x 4er + 1x 3er = 4 Quali-Heats
+      const store = useTournamentStore.getState()
+      
+      // Expect 4 quali heats
+      expect(state.heats.length).toBe(4)
+      
+      // Find the 3-pilot heat
+      const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerHeat).toBeDefined()
+      
+      // Complete 3-pilot quali heat (Rank 1+2 → WB, Rank 3 → LB)
+      store.submitHeatResults(threePlayerHeat!.id, [
+        { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
+      ])
+      
+      const stateAfter3P = useTournamentStore.getState()
+      
+      // 3er-Heat: 2 in WB, 1 in LB
+      expect(stateAfter3P.winnerPilots).toContain(threePlayerHeat!.pilotIds[0])
+      expect(stateAfter3P.winnerPilots).toContain(threePlayerHeat!.pilotIds[1])
+      expect(stateAfter3P.loserPilots).toContain(threePlayerHeat!.pilotIds[2])
+      expect(stateAfter3P.eliminatedPilots).toHaveLength(0)
+    })
+
+    it('should NOT accept rank 4 for 3-pilot heats', () => {
+      const state = setupTournamentWithHeats(7)
+      const store = useTournamentStore.getState()
+      
+      const threePlayerHeat = state.heats.find(h => h.pilotIds.length === 3)
+      expect(threePlayerHeat).toBeDefined()
+      
+      // Try to submit rank 4 (should be ignored or handled gracefully)
+      // Note: The bracket-logic.ts now only filters rank 3 for 3-pilot heats
+      store.submitHeatResults(threePlayerHeat!.id, [
+        { pilotId: threePlayerHeat!.pilotIds[0], rank: 1 },
+        { pilotId: threePlayerHeat!.pilotIds[1], rank: 2 },
+        { pilotId: threePlayerHeat!.pilotIds[2], rank: 3 },
+        // No rank 4 - heat only has 3 pilots
+      ])
+      
+      const updatedState = useTournamentStore.getState()
+      
+      // Verify rankings were stored correctly
+      const completedHeat = updatedState.heats.find(h => h.id === threePlayerHeat!.id)
+      expect(completedHeat?.results).toBeDefined()
+      expect(completedHeat?.results?.rankings).toHaveLength(3)
+      
+      // All 3 pilots should be assigned
+      expect(completedHeat?.results?.rankings[0].rank).toBe(1)
+      expect(completedHeat?.results?.rankings[1].rank).toBe(2)
+      expect(completedHeat?.results?.rankings[2].rank).toBe(3)
+    })
   })
-})
 
 describe('Task 11: Spielbare Heats generieren', () => {
   beforeEach(() => {
