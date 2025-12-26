@@ -143,12 +143,12 @@ development_status:
   2-6-pool-visualisierung: backlog                # M  - Consolidate 3 pool components → 1
   3-3-types-ordner: backlog                       # M  - Create types/index.ts with re-exports
   
-  # --- Sprint 5: Finalisierung ---
-  # Depends on Sprints 2-4 completion
-  1-5-pool-aktionen-generisch: backlog            # S  - Generic pool add/remove functions
-  1-6-submit-heat-results-aufteilen: backlog      # L  - Split 300-line function into smaller parts
-  2-7-design-tokens: backlog                      # M  - Standardize border-radius, shadows
-  3-4-heatforhelper-konsolidieren: backlog        # XS - Final cleanup of Heat types
-  3-5-id-generierung: backlog                     # S  - Standardize ID generation with generateId()
-  
-  epic-refactoring-retrospective: optional
+   # --- Sprint 5: Finalisierung ---
+   # Depends on Sprints 2-4 completion
+   1-5-pool-aktionen-generisch: backlog            # S  - Generic pool add/remove functions
+   1-6-submit-heat-results-aufteilen: backlog      # L  - Split 300-line function into smaller parts
+   2-7-design-tokens: backlog                      # M  - Standardize border-radius, shadows
+   3-4-heatforhelper-konsolidieren: backlog        # XS - Final cleanup of Heat types
+   3-5-id-generierung: review                       # S  - Standardize ID generation with generateId()
+
+   epic-refactoring-retrospective: optional
