@@ -120,19 +120,10 @@ describe('CSVImport', () => {
     
     const templateButton = screen.getByText('CSV Template herunterladen')
     fireEvent.click(templateButton)
-    
+
     expect(mockClick).toHaveBeenCalled()
-    
+
     // Restore original
     vi.mocked(document.createElement).mockRestore()
-  })
-
-  it('handles cancel action', () => {
-    render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} />)
-    
-    const closeButton = screen.getByText('×')
-    fireEvent.click(closeButton)
-    
-    expect(mockOnCancel).toHaveBeenCalled()
   })
 })

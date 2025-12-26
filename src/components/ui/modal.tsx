@@ -9,6 +9,7 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg';
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;
+  'data-testid'?: string;
 }
 
 const sizeClasses = {
@@ -25,6 +26,7 @@ export function Modal({
   size = 'md',
   closeOnBackdropClick = true,
   closeOnEscape = true,
+  'data-testid': dataTestId,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +57,7 @@ export function Modal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
+      data-testid={dataTestId}
     >
       <div
         ref={modalRef}

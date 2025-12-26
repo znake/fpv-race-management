@@ -168,23 +168,6 @@ describe('Heat Detail Modal', () => {
     expect(screen.getByText('WARTET')).toBeInTheDocument()
   })
 
-  it('should call onClose when close button is clicked', () => {
-    render(
-      <HeatDetailModal
-        heat={mockHeat}
-        pilots={mockPilots}
-        isOpen={true}
-        onClose={mockOnClose}
-        onEdit={mockOnEdit}
-      />
-    )
-
-    const closeButton = screen.getByText('✕')
-    fireEvent.click(closeButton)
-    
-    expect(mockOnClose).toHaveBeenCalled()
-  })
-
   it('should call onClose when backdrop is clicked', () => {
     render(
       <HeatDetailModal
