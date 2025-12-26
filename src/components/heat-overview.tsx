@@ -1,6 +1,6 @@
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
-import { HeatCard } from './heat-card'
+import { HeatCard } from './ui/heat-card'
 import { useTournamentStore } from '../stores/tournamentStore'
 
 type HeatOverviewProps = {
@@ -9,9 +9,8 @@ type HeatOverviewProps = {
 }
 
 export function HeatOverview({ heats, pilots }: HeatOverviewProps) {
-  const pilotsById = new Map(pilots.map((p) => [p.id, p]))
   const reopenHeat = useTournamentStore((state) => state.reopenHeat)
-  
+
   // Story 9-2 AC7: Get next recommended heat
   const nextRecommendedHeat = useTournamentStore((state) => state.getNextRecommendedHeat())
 
@@ -33,17 +32,21 @@ export function HeatOverview({ heats, pilots }: HeatOverviewProps) {
           </p>
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {heats
           .slice()
           .sort((a, b) => a.heatNumber - b.heatNumber)
           .map((heat) => (
-            <HeatCard 
-              key={heat.id} 
-              heat={heat} 
-              pilotsById={pilotsById} 
-              onEdit={heat.status === 'completed' ? reopenHeat : undefined}
+            <HeatCard
+              key={heat.id}
+              variant="overview"
+              heatNumber={heat.heatNumber}
+              pilots={pilots}
+              pilotIds={heat.pilotIds}
+              results={heat.results}
+              status={heat.status}
+              onEdit={heat.status === 'completed' ? () => reopenHeat(heat.id) : undefined}
               // Story 9-2 AC7: Highlight recommended heat
               isRecommended={nextRecommendedHeat?.id === heat.id}
             />

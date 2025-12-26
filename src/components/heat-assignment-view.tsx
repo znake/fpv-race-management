@@ -3,7 +3,7 @@ import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
 import { useTournamentStore } from '../stores/tournamentStore'
 import { cn } from '../lib/utils'
-import { HeatCard } from './heat-card'
+import { HeatCard } from './ui/heat-card'
 import { Modal } from './ui/modal'
 
 type HeatAssignmentViewProps = {
@@ -20,8 +20,6 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
 
   const shuffleHeats = useTournamentStore((state) => state.shuffleHeats)
   const swapPilots = useTournamentStore((state) => state.swapPilots)
-
-  const pilotsById = new Map(pilots.map((p) => [p.id, p]))
 
   // Calculate heat distribution summary
   const fourPlayerHeats = heats.filter(h => h.pilotIds.length === 4).length
@@ -134,8 +132,12 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
           .map((heat) => (
             <HeatCard
               key={heat.id}
-              heat={heat}
-              pilotsById={pilotsById}
+              variant="overview"
+              heatNumber={heat.heatNumber}
+              pilots={pilots}
+              pilotIds={heat.pilotIds}
+              results={heat.results}
+              status={heat.status}
               swapMode={swapMode}
               selectedPilotId={selectedPilotId}
               onPilotClick={handlePilotClick}
