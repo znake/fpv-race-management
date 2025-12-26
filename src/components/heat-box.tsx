@@ -1,6 +1,6 @@
 import type { Pilot } from '../lib/schemas'
 import type { Heat } from '../stores/tournamentStore'
-import { FALLBACK_PILOT_IMAGE, sortPilotsByRank, getRankBadgeClasses, getHeatBorderClasses } from '../lib/utils'
+import { FALLBACK_PILOT_IMAGE, sortPilotsByRank, getRankBadgeClasses, getHeatBorderClasses } from '../lib/ui-helpers'
 import { useMemo } from 'react'
 
 type HeatBoxProps = {

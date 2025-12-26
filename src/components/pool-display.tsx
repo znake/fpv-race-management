@@ -5,7 +5,7 @@
  * Task 2: PoolStatusIndicator - Zeigt Status des Pools (bereit/warten)
  */
 
-import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 import type { Pilot } from '../lib/schemas'
 
 /**

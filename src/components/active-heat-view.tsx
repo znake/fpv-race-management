@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
 import { OnDeckPreview } from './on-deck-preview'
-import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/utils'
+import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 
 // Constants
 const SUBMIT_ANIMATION_DELAY = 300 // ms - Zeit für Success-Pulse Animation

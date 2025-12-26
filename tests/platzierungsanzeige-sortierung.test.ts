@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import type { Heat } from '../src/stores/tournamentStore'
-import { sortPilotsByRank, getPilotRank } from '../src/lib/utils'
+import { sortPilotsByRank, getPilotRank } from '../src/lib/ui-helpers'
 
 describe('US-4.4: Platzierungsanzeige & Sortierung', () => {
   beforeEach(() => {

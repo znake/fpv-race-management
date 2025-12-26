@@ -4,7 +4,7 @@ import type { Pilot } from '../lib/schemas'
 import { HeatDetailModal } from './heat-detail-modal'
 import { ActiveHeatView } from './active-heat-view'
 import { VictoryCeremony } from './victory-ceremony'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, sortPilotsByRank } from '../lib/utils'
+import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, sortPilotsByRank } from '../lib/ui-helpers'
 import type {
   BracketHeat as FullBracketHeat,
   BracketRound,

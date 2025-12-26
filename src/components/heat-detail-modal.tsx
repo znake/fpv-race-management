@@ -1,6 +1,6 @@
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE } from '../lib/utils'
+import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 
 interface HeatDetailModalProps {
   heat: Heat

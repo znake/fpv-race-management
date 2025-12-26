@@ -1,15 +1,23 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CSVImport } from '../src/components/csv-import'
-import { parseCSV, validateImageUrl } from '../src/lib/utils'
+import { parseCSV, validateImageUrl } from '../src/lib/csv-parser'
+import { debounce } from '../src/lib/utils'
 
 // Mock dependencies
+vi.mock('../src/lib/csv-parser', async () => {
+  const actual = await vi.importActual('../src/lib/csv-parser')
+  return {
+    ...actual,
+    parseCSV: vi.fn(),
+    validateImageUrl: vi.fn()
+  }
+})
+
 vi.mock('../src/lib/utils', async () => {
   const actual = await vi.importActual('../src/lib/utils')
   return {
     ...actual,
-    parseCSV: vi.fn(),
-    validateImageUrl: vi.fn(),
     debounce: (fn: any) => fn
   }
 })

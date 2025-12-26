@@ -12,7 +12,7 @@
  */
 
 import type { Pilot } from '../lib/schemas'
-import { FALLBACK_PILOT_IMAGE } from '../lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 
 interface Top4Pilots {
   place1: Pilot | undefined

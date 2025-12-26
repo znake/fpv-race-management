@@ -1,6 +1,7 @@
 import type { Heat } from '../stores/tournamentStore'
 import type { Pilot } from '../lib/schemas'
-import { getRankBadgeClasses, getHeatBorderClasses, cn } from '../lib/utils'
+import { getRankBadgeClasses, getHeatBorderClasses } from '../lib/ui-helpers'
+import { cn } from '../lib/utils'
 
 type HeatCardProps = {
   heat: Heat
