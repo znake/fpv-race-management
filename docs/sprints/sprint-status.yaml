@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2025-12-12
-updated: 2025-12-23T15:00:00Z
+updated: 2025-12-26T12:00:00Z
 project: FPV Racing Heats
 project_key:
 tracking_system: file-system
@@ -100,3 +100,55 @@ development_status:
   9-2-dynamische-lb-heat-generierung: in-progress  # FIFO statt Random, Warten auf Verlierer
   9-3-lb-finale-grand-finale: in-progress  # 4er Grand Finale statt 2er, LB bis 2 Piloten
   epic-9-retrospective: optional
+
+  # =============================================================================
+  # Epic Refactoring - Code-Qualität & Standardisierung
+  # =============================================================================
+  # Created: 2025-12-26
+  # Source: Comprehensive code analysis identifying technical debt
+  # Goal: Eliminate code duplication, establish consistent standards, improve maintainability
+  # Stories: 23 total, organized in 5 sprints
+  # Location: docs/sprints/user-stories/epic-refactoring/
+  
+  epic-refactoring: backlog
+  
+  # --- Sprint 1: Foundation (Quick Wins) - START HERE ---
+  # Recommended starting point for Dev agent
+  # Low risk, high impact cleanup tasks
+  1-1-initial-state-konstante: ready-for-dev      # XS - Extract INITIAL_TOURNAMENT_STATE constant
+  1-3-heatforhelper-ersetzen: ready-for-dev       # XS - Replace HeatForHelper with Pick<Heat>
+  4-1-store-reset-utility: ready-for-dev          # S  - Central resetTournamentStore() for tests
+  4-3-csv-dateien-verschieben: ready-for-dev      # XS - Move CSV test files to tests/fixtures/
+  4-4-dependencies-entfernen: ready-for-dev       # XS - Remove unused file-saver, uuid
+  4-5-path-alias-bereinigen: ready-for-dev        # XS - Remove unused @/ alias from vite.config
+  
+  # --- Sprint 2: Store & Types ---
+  # Depends on Sprint 1 completion
+  1-2-reset-funktionen-konsolidieren: drafted     # S  - Consolidate 4 reset functions → 1
+  1-4-helper-nach-bracket-logic: drafted          # S  - Move helper functions to bracket-logic.ts
+  3-1-utils-aufteilen: drafted                    # S  - Split utils.ts into csv-parser, ui-helpers
+  3-2-ranking-type-any: drafted                   # S  - Create Ranking type, eliminate any
+  4-2-mock-pilot-factory: drafted                 # S  - Central mock pilot factory for tests
+  
+  # --- Sprint 3: Komponenten Basis ---
+  # Can start in parallel with Sprint 2
+  2-1-modal-komponente: drafted                   # S  - Create generic Modal component
+  2-3-pilot-avatar-rank-badge: drafted            # S  - Create PilotAvatar, RankBadge components
+  2-4-bracket-tree-aufteilen: drafted             # L  - Split bracket-tree.tsx into folder structure
+  
+  # --- Sprint 4: Komponenten Konsolidierung ---
+  # Depends on Sprint 3 completion
+  2-2-modals-migrieren: backlog                   # M  - Migrate all 6 modals to generic Modal
+  2-5-heatcard-konsolidieren: backlog             # M  - Consolidate 4 heat components → 1
+  2-6-pool-visualisierung: backlog                # M  - Consolidate 3 pool components → 1
+  3-3-types-ordner: backlog                       # M  - Create types/index.ts with re-exports
+  
+  # --- Sprint 5: Finalisierung ---
+  # Depends on Sprints 2-4 completion
+  1-5-pool-aktionen-generisch: backlog            # S  - Generic pool add/remove functions
+  1-6-submit-heat-results-aufteilen: backlog      # L  - Split 300-line function into smaller parts
+  2-7-design-tokens: backlog                      # M  - Standardize border-radius, shadows
+  3-4-heatforhelper-konsolidieren: backlog        # XS - Final cleanup of Heat types
+  3-5-id-generierung: backlog                     # S  - Standardize ID generation with generateId()
+  
+  epic-refactoring-retrospective: optional
