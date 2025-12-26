@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useTournamentStore } from '../src/stores/tournamentStore'
+import { createMockPilots, resetMockPilotCounter } from './helpers'
 
 /**
  * Bracket Progression Tests
- * 
+ *
  * Tests für Story 4-2 Tasks 7-12:
  * - useBracketLogic Hook Funktionalität
  * - Quali-Heats → Bracket-Struktur Synchronisation
@@ -12,33 +13,25 @@ import { useTournamentStore } from '../src/stores/tournamentStore'
  * - Nächste Runde Generierung
  */
 
-// Test helper: Create mock pilots
-function createMockPilots(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `pilot-${i + 1}`,
-    name: `Pilot ${i + 1}`,
-    imageUrl: `https://example.com/pilot${i + 1}.jpg`,
-  }))
-}
-
 // Test helper: Setup tournament with heats
 function setupTournamentWithHeats(pilotCount: number) {
   const store = useTournamentStore.getState()
-  
+
   // Clear and add pilots
   store.resetAll()
   const pilots = createMockPilots(pilotCount)
   pilots.forEach(p => store.addPilot(p))
-  
+
   // Start tournament (generates heats + bracket structure)
   store.confirmTournamentStart()
   store.confirmHeatAssignment()
-  
+
   return useTournamentStore.getState()
 }
 
 describe('Task 7: useBracketLogic Hook', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -75,6 +68,7 @@ describe('Task 7: useBracketLogic Hook', () => {
 
 describe('Task 8: Bracket-Struktur Synchronisation', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -103,6 +97,7 @@ describe('Task 8: Bracket-Struktur Synchronisation', () => {
 
 describe('Task 9: Winner-Bracket Piloten befüllen', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -449,6 +444,7 @@ describe('Task 9: Winner-Bracket Piloten befüllen', () => {
 
 describe('Task 11: Spielbare Heats generieren', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -527,6 +523,7 @@ describe('Task 11: Spielbare Heats generieren', () => {
 
 describe('Task 12: Edge Cases', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -573,6 +570,7 @@ describe('Task 12: Edge Cases', () => {
 
 describe('Task 13-15: WB/LB Heat Progression', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -668,6 +666,7 @@ describe('Task 13-15: WB/LB Heat Progression', () => {
 
 describe('Task 14: Round Completion Detection', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -721,6 +720,7 @@ describe('Task 14: Round Completion Detection', () => {
 
 describe('Task 17: Finale Detection', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -761,6 +761,7 @@ describe('Task 17: Finale Detection', () => {
 
 describe('Task 18: Full Tournament Simulation', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 
@@ -856,6 +857,7 @@ describe('Task 18: Full Tournament Simulation', () => {
 
 describe('Review Follow-up: Bracket Rollback on Resubmit (AC5)', () => {
   beforeEach(() => {
+    resetMockPilotCounter()
     useTournamentStore.getState().resetAll()
   })
 

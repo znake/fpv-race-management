@@ -1,14 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PilotCard } from '../src/components/pilot-card'
+import { createMockPilot } from './helpers'
 
-// Mock pilot data
-const mockPilot = {
+// Mock pilot data using factory
+const mockPilot = createMockPilot({
   id: 'test-pilot-1',
   name: 'Test Pilot',
   imageUrl: 'https://example.com/image.jpg',
   instagramHandle: '@test_pilot'
-}
+})
 
 describe('PilotCard', () => {
   const mockOnEdit = vi.fn()

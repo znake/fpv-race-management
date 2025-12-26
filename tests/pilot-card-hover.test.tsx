@@ -1,13 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PilotCard } from '../src/components/pilot-card'
+import { createMockPilot } from './helpers'
 
-const mockPilot = {
+const mockPilot = createMockPilot({
   id: 'test-pilot-1',
   name: 'Test Pilot',
   imageUrl: 'https://example.com/image.jpg',
   instagramHandle: '@test_pilot'
-}
+})
 
 describe('PilotCard - Hover Actions', () => {
   const mockOnEdit = vi.fn().mockReturnValue(true)

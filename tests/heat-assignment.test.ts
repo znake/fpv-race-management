@@ -1,22 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
-import { resetTournamentStore } from './helpers'
-
-// Helper to create test pilots
-const createTestPilots = (count: number) => {
-  const pilots: Array<{ name: string; imageUrl: string }> = []
-  for (let i = 0; i < count; i++) {
-    pilots.push({
-      name: `Pilot ${i + 1}`,
-      imageUrl: `https://example.com/pilot${i + 1}.jpg`,
-    })
-  }
-  return pilots
-}
+import { resetTournamentStore, createMockPilots, resetMockPilotCounter } from './helpers'
 
 describe('Heat Assignment Actions (Story 3.3)', () => {
-  beforeEach(() => resetTournamentStore())
+  beforeEach(() => {
+    resetMockPilotCounter()
+    resetTournamentStore()
+  })
   afterEach(() => {
     cleanup()
     resetTournamentStore()
@@ -27,7 +18,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add 10 pilots and generate heats
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42) // Use seed for reproducibility
@@ -55,7 +46,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add pilots and generate heats
-      const pilots = createTestPilots(20)
+      const pilots = createMockPilots(20)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
@@ -84,7 +75,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add pilots and generate heats
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
@@ -112,7 +103,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add pilots and generate heats
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
@@ -137,7 +128,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add pilots and generate heats
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
@@ -160,7 +151,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament in heat-assignment phase
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -180,7 +171,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -203,7 +194,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -219,7 +210,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -239,7 +230,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -259,7 +250,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()
@@ -279,7 +270,7 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup tournament
-      const pilots = createTestPilots(10)
+      const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.confirmTournamentStart()

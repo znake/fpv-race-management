@@ -1,21 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { PilotCard } from '../src/components/pilot-card'
-import type { Pilot } from '../src/lib/schemas'
+import { createMockPilot } from './helpers'
 
-// Mock pilot data
-const mockPilot: Pilot = {
+// Mock pilot data using factory
+const mockPilot = createMockPilot({
   id: '1',
   name: 'Test Pilot',
   imageUrl: 'https://example.com/pilot.jpg',
   instagramHandle: '@test_pilot'
-}
+})
 
-const mockPilotNoInstagram: Pilot = {
+const mockPilotNoInstagram = createMockPilot({
   id: '2',
   name: 'No Instagram Pilot',
-  imageUrl: 'https://example.com/pilot2.jpg'
-}
+  imageUrl: 'https://example.com/pilot2.jpg',
+  instagramHandle: undefined
+})
 
 describe('PilotCard', () => {
   it('renders pilot information correctly', () => {
