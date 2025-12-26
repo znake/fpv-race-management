@@ -19,6 +19,103 @@ import {
   checkHasActiveWBHeats
 } from '../lib/bracket-logic'
 
+// Forward declaration of Heat type for helper functions
+interface HeatForHelper {
+  id: string
+  heatNumber: number
+  pilotIds: string[]
+  status: 'pending' | 'active' | 'completed'
+  bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
+  isFinale?: boolean
+  roundName?: string
+  results?: {
+    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
+    completedAt?: string
+  }
+}
+
+// Story 10-1: Helper functions for heat generation from pools
+// These work with local state (Sets) instead of mutating the store directly
+
+/**
+ * Creates a WB heat from winner pool using FIFO principle.
+ * Returns the new heat and updated pool, or null if not enough pilots.
+ * 
+ * @param winnerPool - Set of pilot IDs waiting in winner pool
+ * @param currentHeats - Current heats array (for heatNumber calculation)
+ * @returns Object with heat (or null) and updated pool Set
+ */
+function createWBHeatFromPool(
+  winnerPool: Set<string>,
+  currentHeats: HeatForHelper[]
+): { heat: HeatForHelper | null; updatedPool: Set<string> } {
+  if (winnerPool.size < 4) {
+    return { heat: null, updatedPool: winnerPool }
+  }
+
+  // FIFO: Take first 4 pilots from pool
+  const poolArray = Array.from(winnerPool)
+  const pilotsForHeat = poolArray.slice(0, 4)
+
+  // Create new pool without selected pilots
+  const updatedPool = new Set(winnerPool)
+  for (const pilotId of pilotsForHeat) {
+    updatedPool.delete(pilotId)
+  }
+
+  // Create WB heat
+  const wbHeat: HeatForHelper = {
+    id: `wb-heat-${crypto.randomUUID()}`,
+    heatNumber: currentHeats.length + 1,
+    pilotIds: pilotsForHeat,
+    status: 'pending',
+    bracketType: 'winner'
+  }
+
+  return { heat: wbHeat, updatedPool }
+}
+
+/**
+ * Creates a LB heat from loser pool using FIFO principle.
+ * Returns the new heat and updated pool, or null if not enough pilots.
+ * 
+ * @param loserPool - Set of pilot IDs waiting in loser pool
+ * @param currentHeats - Current heats array (for heatNumber calculation)
+ * @param minPilots - Minimum pilots required (4 if WB active, 3 otherwise)
+ * @returns Object with heat (or null) and updated pool Set
+ */
+function createLBHeatFromPool(
+  loserPool: Set<string>,
+  currentHeats: HeatForHelper[],
+  minPilots: number = 4
+): { heat: HeatForHelper | null; updatedPool: Set<string> } {
+  if (loserPool.size < minPilots) {
+    return { heat: null, updatedPool: loserPool }
+  }
+
+  // FIFO: Take first N pilots from pool (up to 4)
+  const poolArray = Array.from(loserPool)
+  const heatSize = Math.min(4, poolArray.length)
+  const pilotsForHeat = poolArray.slice(0, heatSize)
+
+  // Create new pool without selected pilots
+  const updatedPool = new Set(loserPool)
+  for (const pilotId of pilotsForHeat) {
+    updatedPool.delete(pilotId)
+  }
+
+  // Create LB heat
+  const lbHeat: HeatForHelper = {
+    id: `lb-heat-${crypto.randomUUID()}`,
+    heatNumber: currentHeats.length + 1,
+    pilotIds: pilotsForHeat,
+    status: 'pending',
+    bracketType: 'loser'
+  }
+
+  return { heat: lbHeat, updatedPool }
+}
+
 // Tournament phase types for granular control
 export type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
 
@@ -578,7 +675,7 @@ export const useTournamentStore = create<TournamentState>()(
         const newEliminatedPilots = new Set(eliminatedPilots)
         
         // Story 9-1: Track loserPool for dynamic LB heat generation
-        const newLoserPool = new Set(loserPool)
+        let newLoserPool = new Set(loserPool)
         
         // First, check if this is a re-submission (edit mode)
         // If so, we need to remove old bracket assignments from this heat
@@ -606,7 +703,7 @@ export const useTournamentStore = create<TournamentState>()(
         
         // Story 4-2: Track winnerPool for dynamic WB heat generation
         const { winnerPool } = get()
-        const newWinnerPool = new Set(winnerPool)
+        let newWinnerPool = new Set(winnerPool)
         
         // Track isQualificationComplete flag
         let newIsQualificationComplete = get().isQualificationComplete
@@ -660,25 +757,12 @@ export const useTournamentStore = create<TournamentState>()(
             }
             
             // AC 2, AC 3: Dynamische WB-Heat-Generierung aus winnerPool (FIFO)
-            // Generiere WB-Heats solange Pool >= 4 Piloten hat
-            const winnerPoolArray = Array.from(newWinnerPool)
-            while (winnerPoolArray.length >= 4) {
-              const pilotsForWBHeat = winnerPoolArray.splice(0, 4) // FIFO: erste 4 entfernen
-              
-              const wbHeat: Heat = {
-                id: `wb-heat-${crypto.randomUUID()}`,
-                heatNumber: updatedHeats.length + 1,
-                pilotIds: pilotsForWBHeat,
-                status: 'pending',
-                bracketType: 'winner'
-              }
-              
-              updatedHeats = [...updatedHeats, wbHeat]
-              
-              // Entferne Piloten aus Pool-Set
-              for (const pilotId of pilotsForWBHeat) {
-                newWinnerPool.delete(pilotId)
-              }
+            // Story 10-1: Use helper function instead of inline logic
+            let wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
+            while (wbResult.heat) {
+              updatedHeats = [...updatedHeats, wbResult.heat]
+              newWinnerPool = wbResult.updatedPool
+              wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
             }
             
             // Generiere auch LB-Heats aus loserPool (falls vorhanden)
@@ -718,24 +802,13 @@ export const useTournamentStore = create<TournamentState>()(
           }
           
           // AC 2, AC 3: Dynamische WB-Heat-Generierung nach WB-Heat-Abschluss
+          // Story 10-1: Use helper function instead of inline logic
           if (bracketType === 'winner') {
-            const winnerPoolArray = Array.from(newWinnerPool)
-            while (winnerPoolArray.length >= 4) {
-              const pilotsForWBHeat = winnerPoolArray.splice(0, 4) // FIFO
-              
-              const wbHeat: Heat = {
-                id: `wb-heat-${crypto.randomUUID()}`,
-                heatNumber: updatedHeats.length + 1,
-                pilotIds: pilotsForWBHeat,
-                status: 'pending',
-                bracketType: 'winner'
-              }
-              
-              updatedHeats = [...updatedHeats, wbHeat]
-              
-              for (const pilotId of pilotsForWBHeat) {
-                newWinnerPool.delete(pilotId)
-              }
+            let wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
+            while (wbResult.heat) {
+              updatedHeats = [...updatedHeats, wbResult.heat]
+              newWinnerPool = wbResult.updatedPool
+              wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
             }
           }
           
@@ -856,25 +929,12 @@ export const useTournamentStore = create<TournamentState>()(
                                    newPhase !== 'completed' &&
                                    (newPhase !== 'finale' || hasActiveWB)
         if (shouldAutoGenerate) {
-          const heatSize = hasActiveWB ? 4 : Math.min(4, loserPoolArray.length)
-          // AC 4: FIFO - erste 4 Piloten aus Pool nehmen (keine Zufallsauswahl)
-          const pilotsForNewLBHeat = loserPoolArray.slice(0, heatSize)
-          
-          // Remove selected pilots from pool
-          for (const pilotId of pilotsForNewLBHeat) {
-            newLoserPool.delete(pilotId)
+          // Story 10-1: Use helper function instead of inline logic
+          const lbResult = createLBHeatFromPool(newLoserPool, updatedHeats, minPoolForLB)
+          if (lbResult.heat) {
+            updatedHeats = [...updatedHeats, lbResult.heat]
+            newLoserPool = lbResult.updatedPool
           }
-          
-          // Create new LB heat
-          const newLBHeat: Heat = {
-            id: `lb-heat-${crypto.randomUUID()}`,
-            heatNumber: updatedHeats.length + 1,
-            pilotIds: pilotsForNewLBHeat,
-            status: 'pending',
-            bracketType: 'loser',
-          }
-          
-          updatedHeats = [...updatedHeats, newLBHeat]
         }
         
         set({ 
