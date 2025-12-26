@@ -172,13 +172,15 @@ interface TournamentState {
   markPilotAsDroppedOut: (id: string) => boolean
   clearAllPilots: () => boolean
   
-  // Tournament actions
-  startTournament: () => void
-  confirmTournamentStart: () => boolean
-  generateHeats: (seed?: number) => void
-  resetTournament: () => void
-  deleteAllPilots: () => void
-  resetAll: () => void
+   // Tournament actions
+   startTournament: () => void
+   confirmTournamentStart: () => boolean
+   generateHeats: (seed?: number) => void
+   resetTournament: () => void
+   deleteAllPilots: () => void
+   resetAll: () => void
+   // Story 1.2: Interne Helper-Funktion für Reset-Logik
+   performReset: (options?: { keepPilots?: boolean; clearLocalStorage?: boolean }) => void
   
   // Heat assignment actions (Story 3.3)
   shuffleHeats: (seed?: number) => void
@@ -410,76 +412,40 @@ export const useTournamentStore = create<TournamentState>()(
         set({ heats, currentHeatIndex: 0 })
       },
 
-      resetTournament: () => {
+      // Story 1.2: Interne Helper-Funktion für alle Reset-Operationen
+      // Konsolidiert 4 nahezu identische Reset-Funktionen
+      performReset: (options: {
+        keepPilots?: boolean
+        clearLocalStorage?: boolean
+      } = {}) => {
+        const { keepPilots = false, clearLocalStorage = false } = options
+
+        // Klone INITIAL_TOURNAMENT_STATE für neue Array-Referenzen
+        // Wichtig weil Tests Arrays direkt manipulieren könnten
         set({
-          tournamentStarted: false,
-          tournamentPhase: 'setup',
-          heats: [],
-          currentHeatIndex: 0,
-          winnerPilots: [],
-          loserPilots: [],
-          eliminatedPilots: [],
-          loserPool: [],
-          // Story 4-2: Reset neue Pool States
-          winnerPool: [],
-          grandFinalePool: [],
-          isQualificationComplete: false,
-          isWBFinaleComplete: false,
-          isLBFinaleComplete: false,
-          isGrandFinaleComplete: false,
-          fullBracketStructure: null,
-          lastCompletedBracketType: null
-          // pilots bleiben unverändert!
+          ...structuredClone(INITIAL_TOURNAMENT_STATE),
+          pilots: keepPilots ? get().pilots : [],
         })
+
+        if (clearLocalStorage) {
+          localStorage.removeItem('tournament-storage')
+        }
+      },
+
+      // Story 1.2: Öffentliche Reset-Actions (API-Kompatibilität)
+      resetTournament: () => {
+        const { performReset } = get()
+        performReset({ keepPilots: true })
       },
 
       deleteAllPilots: () => {
-        set({
-          pilots: [],
-          heats: [],
-          tournamentPhase: 'setup',
-          tournamentStarted: false,
-          currentHeatIndex: 0,
-          winnerPilots: [],
-          loserPilots: [],
-          eliminatedPilots: [],
-          loserPool: [],
-          // Story 4-2: Reset neue Pool States
-          winnerPool: [],
-          grandFinalePool: [],
-          isQualificationComplete: false,
-          isWBFinaleComplete: false,
-          isLBFinaleComplete: false,
-          isGrandFinaleComplete: false,
-          fullBracketStructure: null,
-          lastCompletedBracketType: null
-        })
+        const { performReset } = get()
+        performReset({ keepPilots: false })
       },
 
       resetAll: () => {
-        // Kompletter Reset auf Initial State
-        set({
-          pilots: [],
-          tournamentStarted: false,
-          tournamentPhase: 'setup',
-          heats: [],
-          currentHeatIndex: 0,
-          winnerPilots: [],
-          loserPilots: [],
-          eliminatedPilots: [],
-          loserPool: [],
-          // Story 4-2: Reset neue Pool States
-          winnerPool: [],
-          grandFinalePool: [],
-          isQualificationComplete: false,
-          isWBFinaleComplete: false,
-          isLBFinaleComplete: false,
-          isGrandFinaleComplete: false,
-          fullBracketStructure: null,
-          lastCompletedBracketType: null
-        })
-        // localStorage komplett leeren für sauberen Neustart
-        localStorage.removeItem('tournament-storage')
+        const { performReset } = get()
+        performReset({ keepPilots: false, clearLocalStorage: true })
       },
 
       // Story 3.3: Heat assignment actions
@@ -568,24 +534,13 @@ export const useTournamentStore = create<TournamentState>()(
         })
       },
 
+      // Story 1.2: Alias für deleteAllPilots (API-Kompatibilität)
       clearAllPilots: () => {
-        const { tournamentStarted } = get()
+        const { performReset, tournamentStarted } = get()
         if (tournamentStarted) {
           return false
         }
-        set({ 
-          pilots: [], 
-          tournamentStarted: false,
-          tournamentPhase: 'setup',
-          heats: [],
-          currentHeatIndex: 0,
-          winnerPilots: [],
-          loserPilots: [],
-          eliminatedPilots: [],
-          loserPool: [],
-          fullBracketStructure: null,
-          lastCompletedBracketType: null
-        })
+        performReset({ keepPilots: false })
         return true
       },
 
