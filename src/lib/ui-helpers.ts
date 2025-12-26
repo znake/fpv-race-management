@@ -1,3 +1,5 @@
+import type { Ranking } from './schemas'
+
 /**
  * Inline SVG data URL for offline-first fallback pilot image
  * No external dependencies - works completely offline
@@ -46,7 +48,7 @@ export function getRankBorderClasses(rank: number): string {
  */
 export function sortPilotsByRank(
   pilotIds: string[],
-  results?: { rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] }
+  results?: { rankings: Ranking[] }
 ): string[] {
   if (!results || !results.rankings) {
     return pilotIds // Ursprüngliche Reihenfolge für pending/active Heats
@@ -72,7 +74,7 @@ export function sortPilotsByRank(
  */
 export function getPilotRank(
   pilotId: string,
-  heat: { results?: { rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[] } }
+  heat: { results?: { rankings: Ranking[] } }
 ): number | undefined {
   if (!heat.results || !heat.results.rankings) {
     return undefined

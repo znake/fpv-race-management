@@ -53,3 +53,24 @@ export type CSVImportInput = z.infer<typeof csvImportSchema>
 export function validateCSVRow(row: { name: string; imageUrl: string }) {
   return csvImportSchema.safeParse(row)
 }
+
+/**
+ * Valid rank positions in a heat (1st to 4th place)
+ */
+export type RankPosition = 1 | 2 | 3 | 4
+
+/**
+ * A single pilot's ranking in a heat
+ */
+export interface Ranking {
+  pilotId: string
+  rank: RankPosition
+}
+
+/**
+ * Complete results for a heat
+ */
+export interface HeatResults {
+  rankings: Ranking[]
+  completedAt?: string
+}

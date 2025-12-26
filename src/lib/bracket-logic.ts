@@ -1,8 +1,8 @@
 /**
  * Bracket Logic - Double Elimination Bracket Management
- * 
+ *
  * Pure functions for bracket operations (no React hooks).
- * 
+ *
  * Responsibilities:
  * - Synchronize heats[] with fullBracketStructure
  * - Calculate pilot progression (Winner/Loser Bracket)
@@ -10,13 +10,14 @@
  * - Rollback bracket state for heat corrections
  * - Handle WB/LB heat completion with cross-bracket progression
  * - Detect and generate Grand Finale
- * 
+ *
  * Story 4-2 Tasks 7-18 (Course Corrections 2025-12-17, 2025-12-19)
  */
 
 import type { Heat } from '../stores/tournamentStore'
-import type { 
-  FullBracketStructure, 
+import type { Ranking } from './schemas'
+import type {
+  FullBracketStructure,
   BracketHeat,
   BracketHeatStatus,
   BracketType
@@ -120,12 +121,12 @@ export function rollbackBracketForHeat(
  * - Updates quali heat status
  * - Assigns pilots to WB/LB based on rankings
  * - Checks if round is complete for next phase generation
- * 
+ *
  * NOTE: For re-submissions, call rollbackBracketForHeat() first to avoid duplicates
  */
 export function updateBracketAfterHeatCompletion(
   heatId: string,
-  rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[],
+  rankings: Ranking[],
   bracketStructure: FullBracketStructure,
   isResubmission: boolean = false
 ): FullBracketStructure {
@@ -524,12 +525,12 @@ export function findBracketHeatWithLocation(
  * - WB Losers (rank 3+4) → feed into LB via targetLoserFromWB
  * - LB Winners (rank 1+2) → next LB round via targetHeat
  * - LB Losers (rank 3+4) → eliminated
- * 
+ *
  * Returns: Updated structure AND list of eliminated pilot IDs
  */
 export function updateBracketAfterWBLBHeatCompletion(
   heatId: string,
-  rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[],
+  rankings: Ranking[],
   bracketStructure: FullBracketStructure,
   isResubmission: boolean = false
 ): { structure: FullBracketStructure; eliminatedPilotIds: string[] } {

@@ -2,6 +2,11 @@ import Papa from 'papaparse'
 import type { CSVImportResult, CSVImportError } from '../types/csv'
 
 /**
+ * Raw CSV row type with all possible column variations
+ */
+type CSVRawRow = Record<string, string | undefined>
+
+/**
  * Parse CSV text using PapaParse with robust error handling
  */
 export function parseCSV(csvText: string): Promise<CSVImportResult> {
@@ -31,7 +36,7 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
         }
 
         if (results.data && Array.isArray(results.data)) {
-          results.data.forEach((row: any, index) => {
+          (results.data as CSVRawRow[]).forEach((row, index) => {
             const rowNum = index + 2 // +2 because of header and 0-based indexing
 
              // Check required columns

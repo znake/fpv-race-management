@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Pilot } from '../lib/schemas'
+import type { Pilot, HeatResults, Ranking } from '../lib/schemas'
 import { calculateHeatDistribution } from '../lib/heat-distribution'
 import { shuffleArray } from '../lib/utils'
-import { 
-  generateFullBracketStructure, 
+import {
+  generateFullBracketStructure,
   type FullBracketStructure
 } from '../lib/bracket-structure-generator'
 import {
@@ -27,10 +27,7 @@ export interface Heat {
   heatNumber: number
   pilotIds: string[]
   status: 'pending' | 'active' | 'completed'
-  results?: {
-    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
-    completedAt?: string
-  }
+  results?: HeatResults
   // Story 9-3: LB Finale & Grand Finale
   bracketType?: 'loser' | 'grand_finale' | 'qualification' | 'winner' | 'finale'
   isFinale?: boolean
@@ -111,10 +108,10 @@ interface TournamentState {
   confirmHeatAssignment: () => void
   cancelHeatAssignment: () => void
   
-  // Heat result actions (Story 4.1)
-  submitHeatResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
-  getActiveHeat: () => Heat | undefined
-  getNextHeat: () => Heat | undefined
+   // Heat result actions (Story 4.1)
+   submitHeatResults: (heatId: string, rankings: Ranking[]) => void
+   getActiveHeat: () => Heat | undefined
+   getNextHeat: () => Heat | undefined
   
   // Heat edit actions (Story 4.2)
   reopenHeat: (heatId: string) => void

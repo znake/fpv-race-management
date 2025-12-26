@@ -2,6 +2,14 @@ import { useTournamentStore } from '../stores/tournamentStore'
 import { pilotSchema, type PilotInput } from '../lib/schemas'
 import { useRef } from 'react'
 
+/**
+ * Optimistic pilot update for rollback functionality
+ */
+interface OptimisticPilotUpdate {
+  name: string
+  imageUrl: string
+}
+
 export function usePilots() {
   const pilots = useTournamentStore((state) => state.pilots)
   const tournamentStarted = useTournamentStore((state) => state.tournamentStarted)
@@ -15,9 +23,9 @@ export function usePilots() {
   const confirmTournamentStartInStore = useTournamentStore((state) => state.confirmTournamentStart)
   const resetTournamentInStore = useTournamentStore((state) => state.resetTournament)
   const clearAllPilotsInStore = useTournamentStore((state) => state.clearAllPilots)
-  
+
   // Refs for optimistic updates and rollback
-  const optimisticUpdatesRef = useRef<Map<string, any>>(new Map())
+  const optimisticUpdatesRef = useRef<Map<string, OptimisticPilotUpdate>>(new Map())
   
 
 
