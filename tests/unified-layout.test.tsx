@@ -218,8 +218,7 @@ describe('Story 11-1: Unified Layout Container', () => {
       )
 
       expect(screen.getByText('POOLS')).toBeInTheDocument()
-      expect(screen.getByText('QUALIFIKATION')).toBeInTheDocument()
-      expect(screen.getByText('RUNDE 2')).toBeInTheDocument()
+      expect(screen.getByText('BRACKET HEATS')).toBeInTheDocument()
       expect(screen.getByText('FINALE')).toBeInTheDocument()
       expect(screen.getByText('GRAND FINALE')).toBeInTheDocument()
     })
@@ -288,7 +287,7 @@ describe('Story 11-1: Unified Layout Container', () => {
       )
 
       const bracketTree = document.querySelector('.bracket-tree')
-      expect(bracketTree).toHaveClass('min-w-[1100px]')
+      expect(bracketTree).toHaveClass('min-w-[900px]')
     })
   })
 

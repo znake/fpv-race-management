@@ -126,9 +126,9 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: "QUALIFIKATION" und "RUNDE 2" sind jetzt die Column Labels
+      // Story 11-1: "QUALIFIKATION" ist jetzt eine separate Section, "BRACKET HEATS" im Bracket-Baum
       expect(screen.getByText('QUALIFIKATION')).toBeInTheDocument()
-      expect(screen.getByText('RUNDE 2')).toBeInTheDocument()
+      expect(screen.getByText('BRACKET HEATS')).toBeInTheDocument()
     })
 
     test('zeigt WINNER BRACKET Label am linken Rand', () => {

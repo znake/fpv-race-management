@@ -214,9 +214,37 @@ export function BracketTree({
   const intermediateWBHeats = getIntermediateWBHeats()
   const intermediateLBHeats = getIntermediateLBHeats()
 
-  // Render the unified bracket tree
-  const renderUnifiedBracketTree = () => (
-    <div ref={bracketContainerRef} className="bracket-tree flex items-stretch gap-0 min-w-[1100px] relative">
+  // Render Qualification Section (separate, horizontal)
+  const renderQualificationSection = () => {
+    if (qualiHeats.length === 0) return null
+    
+    return (
+      <div className="qualification-section mb-8">
+        <div className="font-display text-lg text-neon-cyan tracking-widest mb-4">
+          QUALIFIKATION
+        </div>
+        <p className="text-steel text-sm mb-4">
+          Platz 1+2 → Winner Bracket | Platz 3+4 → Loser Bracket
+        </p>
+        <div className="flex flex-wrap gap-4">
+          {qualiHeats.map((heat) => (
+            <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
+              <BracketHeatBox
+                heat={heat}
+                pilots={pilots}
+                bracketType="qualification"
+                onClick={() => handleHeatClick(heat.id)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Render the WB/LB bracket tree (without qualification)
+  const renderBracketTree = () => (
+    <div ref={bracketContainerRef} className="bracket-tree flex items-stretch gap-0 min-w-[900px] relative">
       {/* Story 11-2: SVG Connector Lines Layer */}
       <SVGConnectorLines
         heats={heats}
@@ -239,7 +267,7 @@ export function BracketTree({
         </div>
         
         {/* WB Pool */}
-        <div className="mt-16">
+        <div className="mt-8">
           <PoolDisplay
             title="WB POOL"
             pilotIds={winnerPool}
@@ -252,7 +280,7 @@ export function BracketTree({
         </div>
         
         {/* LB Pool - positioned lower */}
-        <div className="mt-32">
+        <div className="mt-24">
           <PoolDisplay
             title="LB POOL"
             pilotIds={loserPool}
@@ -265,34 +293,13 @@ export function BracketTree({
         </div>
       </div>
 
-      {/* Column 2: Qualification Heats (alle zusammen, nicht WB/LB getrennt) */}
-      <div className="heats-column w-[230px] flex flex-col justify-start pt-8">
-        <div className="column-label font-display text-xs text-neon-cyan tracking-widest text-center mb-3">
-          QUALIFIKATION
-        </div>
-        
-        {/* Alle Quali-Heats vertikal */}
-        <div className="heat-group flex flex-col gap-4">
-          {qualiHeats.map((heat) => (
-            <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
-              <BracketHeatBox
-                heat={heat}
-                pilots={pilots}
-                bracketType="qualification"
-                onClick={() => handleHeatClick(heat.id)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Column 3: WB/LB Intermediate Heats */}
+      {/* Column 2: WB/LB Heats (nach Quali) */}
       <div className="heats-column w-[230px] flex flex-col justify-between pt-8">
         <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
-          RUNDE 2
+          BRACKET HEATS
         </div>
         
-        {/* WB intermediate heats (upper half) */}
+        {/* WB heats (upper half) */}
         <div className="heat-group flex flex-col gap-4">
           {intermediateWBHeats.length > 0 ? (
             intermediateWBHeats.map((heat) => (
@@ -307,15 +314,15 @@ export function BracketTree({
             ))
           ) : (
             <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-xs text-center">WB Heats<br />nach Quali</span>
+              <span className="text-steel text-xs text-center">WB Heats<br />warten auf Quali</span>
             </div>
           )}
         </div>
 
         {/* Bracket Spacer (AC3) */}
-        <div className="bracket-spacer h-10" />
+        <div className="bracket-spacer h-8" />
 
-        {/* LB intermediate heats (lower half) */}
+        {/* LB heats (lower half) */}
         <div className="heat-group flex flex-col gap-4">
           {intermediateLBHeats.length > 0 ? (
             intermediateLBHeats.map((heat) => (
@@ -330,23 +337,23 @@ export function BracketTree({
             ))
           ) : (
             <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-xs text-center">LB Heats<br />nach Quali</span>
+              <span className="text-steel text-xs text-center">LB Heats<br />warten auf Quali</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Column 4: Connector Space (placeholder for SVG lines - Story 11-2) */}
+      {/* Column 3: Connector Space */}
       <div className="connector-column w-12 relative" />
 
-      {/* Column 5: Finals (WB Finale + LB Finale) */}
-      <div className="finals-column w-[230px] flex flex-col justify-between py-20">
+      {/* Column 4: Finals (WB Finale + LB Finale) */}
+      <div className="finals-column w-[230px] flex flex-col justify-between py-12">
         <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
           FINALE
         </div>
         
         {/* WB Finale (upper) */}
-        <div className="mb-12">
+        <div className="mb-8">
           {wbFinale ? (
             <div ref={(el) => registerHeatRef(wbFinale.id, el)}>
               <BracketHeatBox
@@ -357,7 +364,7 @@ export function BracketTree({
               />
             </div>
           ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
+            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
               <span className="text-steel text-sm">WB Finale</span>
             </div>
           )}
@@ -375,17 +382,17 @@ export function BracketTree({
               />
             </div>
           ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
+            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
               <span className="text-steel text-sm">LB Finale</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Column 6: Connector to Grand Finale (placeholder for SVG lines - Story 11-2) */}
+      {/* Column 5: Connector to Grand Finale */}
       <div className="connector-column w-12 relative" />
 
-      {/* Column 7: Grand Finale */}
+      {/* Column 6: Grand Finale */}
       <div className="grand-finale-column w-[260px] flex items-center justify-center pl-5">
         <div className="relative">
           <div className="column-label font-display text-xs text-gold tracking-widest text-center mb-3">
@@ -409,7 +416,7 @@ export function BracketTree({
               showCount={true}
             />
           ) : (
-            <div className="heat-box-placeholder bg-void border-3 border-dashed border-gold/30 rounded-2xl p-6 min-w-[240px] min-h-[180px] flex items-center justify-center shadow-glow-gold/20">
+            <div className="heat-box-placeholder bg-void border-3 border-dashed border-gold/30 rounded-2xl p-6 min-w-[240px] min-h-[160px] flex items-center justify-center shadow-glow-gold/20">
               <span className="text-gold/50 text-sm text-center">
                 Grand Finale<br />
                 <span className="text-xs">Wartet auf Finalisten</span>
@@ -436,7 +443,8 @@ export function BracketTree({
           <h3 className="font-display text-beamer-name text-steel text-center mb-4">
             Turnierverlauf
           </h3>
-          {renderUnifiedBracketTree()}
+          {renderQualificationSection()}
+          {renderBracketTree()}
           
           {/* Story 11-7: Bracket Legend */}
           <BracketLegend />
@@ -471,8 +479,11 @@ export function BracketTree({
         </div>
       )}
 
-      {/* 2. UNIFIED BRACKET TREE (AC1: Ein zusammenhängender Container) */}
-      {renderUnifiedBracketTree()}
+      {/* 2. QUALIFICATION SECTION (separate, horizontal) */}
+      {renderQualificationSection()}
+
+      {/* 3. WB/LB BRACKET TREE */}
+      {renderBracketTree()}
 
       {/* 3. BRACKET LEGEND (Story 11-7) */}
       <BracketLegend />
