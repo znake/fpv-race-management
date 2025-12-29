@@ -376,6 +376,7 @@ export function BracketTree({
               <GrandFinaleHeatBox
                 heat={grandFinale}
                 pilots={pilots}
+                heats={heats}
               />
             </div>
           ) : grandFinalePool.length > 0 ? (

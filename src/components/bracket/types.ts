@@ -81,4 +81,5 @@ export interface DynamicLBHeatsSectionProps {
 export interface GrandFinaleHeatBoxProps {
   heat: Heat
   pilots: Pilot[]
+  heats?: Heat[]  // Story 11-6: Needed for bracket origin tags
 }

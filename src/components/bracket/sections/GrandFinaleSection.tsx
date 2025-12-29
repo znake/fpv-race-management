@@ -54,6 +54,7 @@ export function GrandFinaleSection({
           <GrandFinaleHeatBox
             heat={grandFinaleHeat}
             pilots={pilots}
+            heats={heats}
           />
         ) : !grandFinalePool.length && fullBracket.grandFinale ? (
           <EmptyBracketHeatBox

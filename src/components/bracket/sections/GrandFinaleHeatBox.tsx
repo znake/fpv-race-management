@@ -1,13 +1,17 @@
 import { FALLBACK_PILOT_IMAGE, getRankBadgeClasses } from '../../../lib/ui-helpers'
+import { getPilotBracketOrigin } from '../../../lib/bracket-logic'
 import type { GrandFinaleHeatBoxProps } from '../types'
 
 /**
  * Grand Finale Heat Box - Special styling for the finale
  * Shows 2 pilots with "WB Champion" / "LB Champion" labels
+ * 
+ * Story 11-6: Tags zeigen Herkunft (WB/LB) der Finalisten
  */
 export function GrandFinaleHeatBox({
   heat,
-  pilots
+  pilots,
+  heats = []
 }: GrandFinaleHeatBoxProps) {
   const borderClass = {
     pending: 'border-gold border-dashed',
@@ -29,6 +33,9 @@ export function GrandFinaleHeatBox({
           const pilot = pilots.find(p => p.id === pilotId)
           const ranking = heat.results?.rankings.find(r => r.pilotId === pilotId)
           const championLabel = index === 0 ? 'WB Champion' : 'LB Champion'
+          
+          // Story 11-6: Determine bracket origin for tag
+          const bracketOrigin = getPilotBracketOrigin(pilotId, heats)
 
           return (
             <div key={pilotId} className="flex flex-col items-center">
@@ -61,10 +68,19 @@ export function GrandFinaleHeatBox({
                 )}
               </div>
 
-              {/* Pilot Name - Beamer-optimiert */}
-              <span className="font-display text-beamer-name text-chrome mt-2">
-                {pilot?.name}
-              </span>
+              {/* Pilot Name with Bracket Origin Tag - Story 11-6 */}
+              <div className="flex items-center gap-2 mt-2">
+                <span className="font-display text-beamer-name text-chrome">
+                  {pilot?.name}
+                </span>
+                {/* AC1/AC2: WB/LB Tag */}
+                <span
+                  data-testid={`pilot-tag-${pilotId}`}
+                  className={`pilot-tag ${bracketOrigin}`}
+                >
+                  {bracketOrigin.toUpperCase()}
+                </span>
+              </div>
             </div>
           )
         })}

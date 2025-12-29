@@ -585,6 +585,31 @@
   .heat-status.gf {
     background: var(--gold);
   }
+
+  /* ========================================
+     PILOT BRACKET ORIGIN TAGS (Story 11-6)
+     ======================================== */
+  /* AC1/AC2: WB/LB Tags für Grand Finale Piloten */
+  .pilot-tag {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* AC1: WB Tag ist grün (winner-green) */
+  .pilot-tag.wb {
+    background: var(--winner-green);
+    color: var(--void);
+  }
+
+  /* AC2: LB Tag ist rot (loser-red) */
+  .pilot-tag.lb {
+    background: var(--loser-red);
+    color: var(--void);
+  }
 }
 
 /* Reduced Motion Preferences */

@@ -23,6 +23,30 @@ import type {
   BracketType
 } from './bracket-structure-generator'
 
+// ============================================================================
+// Story 11-6: Pilot Bracket Origin (Herkunfts-Tags)
+// ============================================================================
+
+/**
+ * Determines whether a pilot came through Winner Bracket or Loser Bracket
+ * 
+ * Story 11-6 AC4: Herkunft wird aus Pilot-Historie ermittelt
+ * - Checks if pilot was ever in a Loser Bracket heat
+ * - If yes → 'lb' (pilot lost once, fought back)
+ * - If no → 'wb' (pilot never lost in elimination rounds)
+ * 
+ * @param pilotId - The pilot's ID
+ * @param heats - All heats in the tournament
+ * @returns 'wb' or 'lb'
+ */
+export function getPilotBracketOrigin(pilotId: string, heats: Heat[]): 'wb' | 'lb' {
+  const wasInLoserBracket = heats.some(heat =>
+    heat.bracketType === 'loser' &&
+    heat.pilotIds.includes(pilotId)
+  )
+  return wasInLoserBracket ? 'lb' : 'wb'
+}
+
 /**
  * Result of finding a bracket heat - includes context about its location
  */
