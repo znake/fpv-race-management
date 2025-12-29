@@ -218,7 +218,8 @@ describe('Story 11-1: Unified Layout Container', () => {
       )
 
       expect(screen.getByText('POOLS')).toBeInTheDocument()
-      expect(screen.getByText('RUNDE 1')).toBeInTheDocument()
+      expect(screen.getByText('QUALIFIKATION')).toBeInTheDocument()
+      expect(screen.getByText('RUNDE 2')).toBeInTheDocument()
       expect(screen.getByText('FINALE')).toBeInTheDocument()
       expect(screen.getByText('GRAND FINALE')).toBeInTheDocument()
     })
