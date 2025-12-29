@@ -9,6 +9,7 @@ import { VictoryCeremony } from '../victory-ceremony'
 import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
 import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 import { PoolDisplay } from './PoolDisplay'
+import { SVGConnectorLines } from './SVGConnectorLines'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -59,6 +60,19 @@ export function BracketTree({
 
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)
+  
+  // Story 11-2: Refs for SVG connector lines
+  const bracketContainerRef = useRef<HTMLDivElement>(null)
+  const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
+  
+  // Callback to register heat refs
+  const registerHeatRef = useCallback((heatId: string, element: HTMLDivElement | null) => {
+    if (element) {
+      heatRefsMap.current.set(heatId, element)
+    } else {
+      heatRefsMap.current.delete(heatId)
+    }
+  }, [])
 
   // Modal state
   const [selectedHeat, setSelectedHeat] = useState<string | null>(null)
@@ -188,7 +202,14 @@ export function BracketTree({
 
   // Render the unified bracket tree
   const renderUnifiedBracketTree = () => (
-    <div className="bracket-tree flex items-stretch gap-0 min-w-[1100px] relative">
+    <div ref={bracketContainerRef} className="bracket-tree flex items-stretch gap-0 min-w-[1100px] relative">
+      {/* Story 11-2: SVG Connector Lines Layer */}
+      <SVGConnectorLines
+        heats={heats}
+        containerRef={bracketContainerRef}
+        heatRefs={heatRefsMap.current}
+      />
+      
       {/* Bracket Labels am linken Rand */}
       <div className="bracket-label wb font-display text-sm text-winner-green tracking-widest absolute -left-8 top-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
         WINNER BRACKET
@@ -240,23 +261,25 @@ export function BracketTree({
         <div className="heat-group flex flex-col gap-4">
           {qualiHeats.length > 0 ? (
             qualiHeats.slice(0, Math.ceil(qualiHeats.length / 2)).map((heat) => (
-              <BracketHeatBox
-                key={heat.id}
-                heat={heat}
-                pilots={pilots}
-                bracketType="qualification"
-                onClick={() => handleHeatClick(heat.id)}
-              />
+              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
+                <BracketHeatBox
+                  heat={heat}
+                  pilots={pilots}
+                  bracketType="qualification"
+                  onClick={() => handleHeatClick(heat.id)}
+                />
+              </div>
             ))
           ) : wbHeats.length > 0 ? (
             wbHeats.slice(0, 2).map((heat) => (
-              <BracketHeatBox
-                key={heat.id}
-                heat={heat}
-                pilots={pilots}
-                bracketType="winner"
-                onClick={() => handleHeatClick(heat.id)}
-              />
+              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
+                <BracketHeatBox
+                  heat={heat}
+                  pilots={pilots}
+                  bracketType="winner"
+                  onClick={() => handleHeatClick(heat.id)}
+                />
+              </div>
             ))
           ) : null}
         </div>
@@ -268,23 +291,25 @@ export function BracketTree({
         <div className="heat-group flex flex-col gap-4">
           {qualiHeats.length > 0 ? (
             qualiHeats.slice(Math.ceil(qualiHeats.length / 2)).map((heat) => (
-              <BracketHeatBox
-                key={heat.id}
-                heat={heat}
-                pilots={pilots}
-                bracketType="qualification"
-                onClick={() => handleHeatClick(heat.id)}
-              />
+              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
+                <BracketHeatBox
+                  heat={heat}
+                  pilots={pilots}
+                  bracketType="qualification"
+                  onClick={() => handleHeatClick(heat.id)}
+                />
+              </div>
             ))
           ) : lbHeats.length > 0 ? (
             lbHeats.slice(0, 2).map((heat) => (
-              <BracketHeatBox
-                key={heat.id}
-                heat={heat}
-                pilots={pilots}
-                bracketType="loser"
-                onClick={() => handleHeatClick(heat.id)}
-              />
+              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
+                <BracketHeatBox
+                  heat={heat}
+                  pilots={pilots}
+                  bracketType="loser"
+                  onClick={() => handleHeatClick(heat.id)}
+                />
+              </div>
             ))
           ) : null}
         </div>
@@ -302,12 +327,14 @@ export function BracketTree({
         {/* WB Finale (upper) */}
         <div className="mb-12">
           {wbFinale ? (
-            <BracketHeatBox
-              heat={wbFinale}
-              pilots={pilots}
-              bracketType="winner"
-              onClick={() => handleHeatClick(wbFinale.id)}
-            />
+            <div ref={(el) => registerHeatRef(wbFinale.id, el)}>
+              <BracketHeatBox
+                heat={wbFinale}
+                pilots={pilots}
+                bracketType="winner"
+                onClick={() => handleHeatClick(wbFinale.id)}
+              />
+            </div>
           ) : (
             <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
               <span className="text-steel text-sm">WB Finale</span>
@@ -318,12 +345,14 @@ export function BracketTree({
         {/* LB Finale (lower) */}
         <div>
           {lbFinale ? (
-            <BracketHeatBox
-              heat={lbFinale}
-              pilots={pilots}
-              bracketType="loser"
-              onClick={() => handleHeatClick(lbFinale.id)}
-            />
+            <div ref={(el) => registerHeatRef(lbFinale.id, el)}>
+              <BracketHeatBox
+                heat={lbFinale}
+                pilots={pilots}
+                bracketType="loser"
+                onClick={() => handleHeatClick(lbFinale.id)}
+              />
+            </div>
           ) : (
             <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
               <span className="text-steel text-sm">LB Finale</span>
@@ -343,10 +372,12 @@ export function BracketTree({
           </div>
           
           {grandFinale && grandFinale.pilotIds.length > 0 ? (
-            <GrandFinaleHeatBox
-              heat={grandFinale}
-              pilots={pilots}
-            />
+            <div ref={(el) => registerHeatRef(grandFinale.id, el)}>
+              <GrandFinaleHeatBox
+                heat={grandFinale}
+                pilots={pilots}
+              />
+            </div>
           ) : grandFinalePool.length > 0 ? (
             <PoolDisplay
               title="GF POOL"

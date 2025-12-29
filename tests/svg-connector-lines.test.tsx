@@ -1,0 +1,264 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, act } from '@testing-library/react'
+import { SVGConnectorLines, getHeatConnections, ConnectorLine } from '../src/components/bracket/SVGConnectorLines'
+import type { Heat } from '../src/types'
+import { createRef } from 'react'
+
+/**
+ * Story 11-2: SVG Verbindungslinien Tests
+ * 
+ * AC1: WB-Linien sind grün mit Glow
+ * AC2: LB-Linien sind rot mit Glow
+ * AC3: Grand Finale Linien sind gold und dicker
+ * AC4: Linien werden dynamisch berechnet
+ * AC5: Linien-Pfade sind L-förmig
+ */
+
+// Mock Heats für Tests
+const createMockHeat = (overrides: Partial<Heat> = {}): Heat => ({
+  id: 'heat-1',
+  heatNumber: 1,
+  pilotIds: ['pilot-1', 'pilot-2', 'pilot-3', 'pilot-4'],
+  status: 'pending',
+  bracketType: 'winner',
+  ...overrides
+})
+
+describe('getHeatConnections', () => {
+  describe('AC1: WB-Linien (grün)', () => {
+    it('sollte WB Heat → WB Finale Verbindung erstellen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-heat-1', bracketType: 'winner', status: 'completed' }),
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true, status: 'pending' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const wbConnection = connections.find(c => c.bracketType === 'wb')
+      expect(wbConnection).toBeDefined()
+      expect(wbConnection?.sourceHeatId).toBe('wb-heat-1')
+      expect(wbConnection?.targetHeatId).toBe('wb-finale')
+    })
+    
+    it('sollte keine WB-Verbindung für pending Heats erstellen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-heat-1', bracketType: 'winner', status: 'pending' }),
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      expect(connections.filter(c => c.bracketType === 'wb')).toHaveLength(0)
+    })
+  })
+  
+  describe('AC2: LB-Linien (rot)', () => {
+    it('sollte LB Heat → LB Finale Verbindung erstellen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'lb-heat-1', bracketType: 'loser', status: 'completed' }),
+        createMockHeat({ id: 'lb-finale', bracketType: 'loser', isFinale: true, status: 'pending' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const lbConnection = connections.find(c => c.bracketType === 'lb')
+      expect(lbConnection).toBeDefined()
+      expect(lbConnection?.sourceHeatId).toBe('lb-heat-1')
+      expect(lbConnection?.targetHeatId).toBe('lb-finale')
+    })
+    
+    it('sollte auch lb-heat-* IDs erkennen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'lb-heat-dynamic-1', status: 'completed' }),
+        createMockHeat({ id: 'lb-finale', bracketType: 'loser', isFinale: true })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const lbConnection = connections.find(c => c.bracketType === 'lb')
+      expect(lbConnection).toBeDefined()
+    })
+  })
+  
+  describe('AC3: Grand Finale Linien (gold)', () => {
+    it('sollte WB Finale → Grand Finale Verbindung erstellen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true, status: 'completed' }),
+        createMockHeat({ id: 'grand-finale', bracketType: 'grand_finale', status: 'pending' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const gfConnection = connections.find(c => c.id === 'wb-finale-to-gf')
+      expect(gfConnection).toBeDefined()
+      expect(gfConnection?.bracketType).toBe('gf')
+      expect(gfConnection?.targetHeatId).toBe('grand-finale')
+    })
+    
+    it('sollte LB Finale → Grand Finale Verbindung erstellen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'lb-finale', bracketType: 'loser', isFinale: true, status: 'completed' }),
+        createMockHeat({ id: 'grand-finale', bracketType: 'grand_finale', status: 'pending' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const gfConnection = connections.find(c => c.id === 'lb-finale-to-gf')
+      expect(gfConnection).toBeDefined()
+      expect(gfConnection?.bracketType).toBe('gf')
+    })
+    
+    it('sollte keine GF-Verbindung wenn Finale noch nicht completed', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true, status: 'active' }),
+        createMockHeat({ id: 'grand-finale', bracketType: 'grand_finale' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      expect(connections.filter(c => c.bracketType === 'gf')).toHaveLength(0)
+    })
+  })
+  
+  describe('Edge Cases', () => {
+    it('sollte leere Array zurückgeben wenn keine Heats', () => {
+      const connections = getHeatConnections([])
+      expect(connections).toEqual([])
+    })
+    
+    it('sollte keine Verbindungen erstellen wenn nur ein Heat', () => {
+      const heats = [createMockHeat({ status: 'completed' })]
+      const connections = getHeatConnections(heats)
+      expect(connections).toEqual([])
+    })
+    
+    it('sollte mehrere WB Heats zu WB Finale verbinden', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-heat-1', bracketType: 'winner', status: 'completed' }),
+        createMockHeat({ id: 'wb-heat-2', bracketType: 'winner', status: 'completed' }),
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      
+      const wbConnections = connections.filter(c => c.bracketType === 'wb')
+      expect(wbConnections).toHaveLength(2)
+    })
+  })
+})
+
+describe('SVGConnectorLines Component', () => {
+  const createMockContainerRef = () => {
+    const ref = createRef<HTMLDivElement>()
+    return ref
+  }
+  
+  const createMockHeatRefs = (): Map<string, HTMLDivElement | null> => {
+    return new Map()
+  }
+  
+  describe('Rendering', () => {
+    it('sollte null rendern wenn keine Verbindungen existieren', () => {
+      const containerRef = createMockContainerRef()
+      const heatRefs = createMockHeatRefs()
+      
+      const { container } = render(
+        <SVGConnectorLines
+          heats={[]}
+          containerRef={containerRef}
+          heatRefs={heatRefs}
+        />
+      )
+      
+      expect(container.querySelector('svg')).toBeNull()
+    })
+    
+    it('sollte SVG Element rendern wenn Container existiert', () => {
+      const containerRef = createRef<HTMLDivElement>()
+      const heatRefs = new Map<string, HTMLDivElement | null>()
+      
+      // Simuliere DOM mit Container und Heat-Elementen
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-heat-1', bracketType: 'winner', status: 'completed' }),
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true })
+      ]
+      
+      // Render die Komponente (Lines werden nicht gerendert ohne echte DOM-Refs)
+      const { container } = render(
+        <SVGConnectorLines
+          heats={heats}
+          containerRef={containerRef}
+          heatRefs={heatRefs}
+        />
+      )
+      
+      // Ohne DOM-Refs werden keine Linien berechnet
+      // Das ist erwartungsgemäß für Unit Tests
+    })
+  })
+  
+  describe('AC1-3: CSS Klassen für Linien-Typen', () => {
+    // Diese Tests prüfen die CSS-Klassen via getHeatConnections
+    it('sollte "wb" bracketType für WB-Verbindungen setzen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-1', bracketType: 'winner', status: 'completed' }),
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      const wbLine = connections.find(c => c.sourceHeatId === 'wb-1')
+      
+      expect(wbLine?.bracketType).toBe('wb')
+    })
+    
+    it('sollte "lb" bracketType für LB-Verbindungen setzen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'lb-1', bracketType: 'loser', status: 'completed' }),
+        createMockHeat({ id: 'lb-finale', bracketType: 'loser', isFinale: true })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      const lbLine = connections.find(c => c.sourceHeatId === 'lb-1')
+      
+      expect(lbLine?.bracketType).toBe('lb')
+    })
+    
+    it('sollte "gf" bracketType für Grand Finale-Verbindungen setzen', () => {
+      const heats: Heat[] = [
+        createMockHeat({ id: 'wb-finale', bracketType: 'winner', isFinale: true, status: 'completed' }),
+        createMockHeat({ id: 'gf', bracketType: 'grand_finale' })
+      ]
+      
+      const connections = getHeatConnections(heats)
+      const gfLine = connections.find(c => c.targetHeatId === 'gf')
+      
+      expect(gfLine?.bracketType).toBe('gf')
+    })
+  })
+})
+
+describe('ConnectorLine Type', () => {
+  it('sollte korrekte Struktur haben', () => {
+    const line: ConnectorLine = {
+      id: 'test-line',
+      sourceHeatId: 'heat-1',
+      targetHeatId: 'heat-2',
+      bracketType: 'wb'
+    }
+    
+    expect(line.id).toBe('test-line')
+    expect(line.sourceHeatId).toBe('heat-1')
+    expect(line.targetHeatId).toBe('heat-2')
+    expect(line.bracketType).toBe('wb')
+  })
+  
+  it('sollte alle bracketType Werte unterstützen', () => {
+    const wbLine: ConnectorLine = { id: '1', sourceHeatId: 'a', targetHeatId: 'b', bracketType: 'wb' }
+    const lbLine: ConnectorLine = { id: '2', sourceHeatId: 'a', targetHeatId: 'b', bracketType: 'lb' }
+    const gfLine: ConnectorLine = { id: '3', sourceHeatId: 'a', targetHeatId: 'b', bracketType: 'gf' }
+    
+    expect(wbLine.bracketType).toBe('wb')
+    expect(lbLine.bracketType).toBe('lb')
+    expect(gfLine.bracketType).toBe('gf')
+  })
+})

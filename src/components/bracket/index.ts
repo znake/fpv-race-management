@@ -22,3 +22,7 @@ export { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 
 // Pools
 export { PoolDisplay } from './PoolDisplay'
+
+// SVG Lines (Story 11-2)
+export { SVGConnectorLines, getHeatConnections } from './SVGConnectorLines'
+export type { ConnectorLine } from './SVGConnectorLines'

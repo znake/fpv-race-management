@@ -490,6 +490,46 @@
   .pool-update {
     animation: pool-update 300ms ease-out;
   }
+
+  /* ========================================
+     SVG CONNECTOR LINES (Story 11-2)
+     ======================================== */
+  /* AC4: SVG Layer über dem Bracket */
+  .svg-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* AC1-3: Linien-Basis-Styling */
+  .line {
+    fill: none;
+    stroke-width: 2px;
+    stroke-linecap: square;
+  }
+
+  /* AC1: WB-Linien sind grün mit Glow */
+  .line.wb {
+    stroke: var(--winner-green);
+    filter: drop-shadow(0 0 3px rgba(57, 255, 20, 0.6));
+  }
+
+  /* AC2: LB-Linien sind rot mit Glow */
+  .line.lb {
+    stroke: var(--loser-red);
+    filter: drop-shadow(0 0 3px rgba(255, 7, 58, 0.6));
+  }
+
+  /* AC3: Grand Finale Linien sind gold und dicker (3px statt 2px) */
+  .line.gf {
+    stroke: var(--gold);
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 5px rgba(249, 200, 14, 0.7));
+  }
 }
 
 /* Reduced Motion Preferences */
