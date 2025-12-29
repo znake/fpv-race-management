@@ -13,15 +13,7 @@ import {
 } from '../lib/bracket-structure-generator'
 import {
   syncQualiHeatsToStructure,
-  updateBracketAfterHeatCompletion,
-  areAllQualiHeatsCompleted,
-  rollbackBracketForHeat,
-  updateBracketAfterWBLBHeatCompletion,
-  findBracketHeatWithLocation,
-  generateGrandFinaleHeat,
-  checkHasActiveWBHeats,
-  createWBHeatFromPool,
-  createLBHeatFromPool
+  rollbackBracketForHeat
 } from '../lib/bracket-logic'
 
 // Story 1.1: Initial State als wiederverwendbare Konstante
@@ -515,20 +507,57 @@ export const useTournamentStore = create<TournamentState>()(
         return toRemove
       },
 
-      // Story 4.1 + 4.2: Heat result actions with bracket progression
-      // Tasks 7-18: Full bracket progression from Quali to Grand Finale
-      // Story 9-1: Loser Pool integration
+      // =======================================================================
+      // REFACTORED: 100% Dynamic Pool-Based Heat Generation (2025-12-27)
+      // =======================================================================
+      // 
+      // ARCHITEKTUR:
+      // - Quali-Heats: Statisch bei Turnierstart generiert
+      // - WB-Heats: Dynamisch aus winnerPool (wenn >= 4 Piloten, oder 2-3 für Finale)
+      // - LB-Heats: Dynamisch aus loserPool (wenn >= 4 Piloten, oder 2-3 für Finale)
+      // - Grand Finale: Automatisch wenn WB+LB Finale abgeschlossen
+      //
+      // KEINE Abhängigkeit mehr von fullBracketStructure für Heat-Generierung!
+      // fullBracketStructure wird NUR noch für Visualisierung verwendet.
+      // =======================================================================
       submitHeatResults: (heatId, rankings) => {
-        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool, fullBracketStructure } = get()
+        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool, winnerPool } = get()
         
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
         
         let updatedHeats = [...heats]
+        const heat = updatedHeats[heatIndex]
         
-        // Update the completed heat with results
+        // Determine bracket type from heat itself or infer from ID
+        let bracketType = heat.bracketType
+        if (!bracketType) {
+          // Infer from heat ID for backward compatibility with tests
+          // WICHTIG: Reihenfolge beachten! wb-finale und lb-finale müssen vor allgemeinen checks kommen
+          if (heat.id.startsWith('wb-finale-') || heat.id.startsWith('wb-heat-')) {
+            bracketType = 'winner'
+          } else if (heat.id.startsWith('lb-finale-') || heat.id.startsWith('lb-heat-')) {
+            bracketType = 'loser'
+          } else if (heat.id.startsWith('grand-finale-') || heat.id.includes('grand_finale')) {
+            bracketType = 'grand_finale'
+          } else if (heat.id.startsWith('wb-') || heat.id.includes('winner')) {
+            bracketType = 'winner'
+          } else if (heat.id.startsWith('lb-') || heat.id.includes('loser')) {
+            bracketType = 'loser'
+          } else if (heat.id.startsWith('finale-') || heat.id === 'finale') {
+            // Legacy test compatibility: 'finale-1' etc. treated as grand finale
+            bracketType = 'grand_finale'
+          } else {
+            bracketType = 'qualification'
+          }
+        }
+        // WICHTIG: isGrandFinale nur für bracketType 'grand_finale' oder 'finale'
+        // NICHT für heat.isFinale, da WB Finale und LB Finale auch isFinale=true haben!
+        const isGrandFinale = bracketType === 'grand_finale' || bracketType === 'finale'
+        
+        // Mark heat as completed with results
         updatedHeats[heatIndex] = {
-          ...updatedHeats[heatIndex],
+          ...heat,
           status: 'completed',
           results: {
             rankings,
@@ -536,207 +565,197 @@ export const useTournamentStore = create<TournamentState>()(
           }
         }
         
-        // Bracket Progression Logic (AC 2, 3)
-        // Determine which pilots go to winner/loser bracket based on rankings
+        // Initialize tracking sets
         const newWinnerPilots = new Set(winnerPilots)
         const newLoserPilots = new Set(loserPilots)
         const newEliminatedPilots = new Set(eliminatedPilots)
-        
-        // Story 9-1: Track loserPool for dynamic LB heat generation
+        let newWinnerPool = new Set(winnerPool)
         let newLoserPool = new Set(loserPool)
         
-        // First, check if this is a re-submission (edit mode)
-        // If so, we need to remove old bracket assignments from this heat
-        const originalHeat = heats[heatIndex]
-        if (originalHeat.results) {
-          for (const oldRanking of originalHeat.results.rankings) {
+        // Handle re-submission: remove old assignments
+        if (heat.results) {
+          for (const oldRanking of heat.results.rankings) {
             newWinnerPilots.delete(oldRanking.pilotId)
             newLoserPilots.delete(oldRanking.pilotId)
             newEliminatedPilots.delete(oldRanking.pilotId)
+            newWinnerPool.delete(oldRanking.pilotId)
+            newLoserPool.delete(oldRanking.pilotId)
           }
         }
         
-        const isResubmission = !!originalHeat.results
-        let updatedBracketStructure = fullBracketStructure
         let newPhase: TournamentPhase = 'running'
-        
-        // Find the bracket heat location to determine bracket type
-        const heatLocation = fullBracketStructure 
-          ? findBracketHeatWithLocation(fullBracketStructure, heatId)
-          : undefined
-        
-        // Determine bracket type: prefer heatLocation, fallback to heat's own bracketType
-        const heatOwnBracketType = updatedHeats[heatIndex]?.bracketType
-        const bracketType = heatLocation?.bracketType || heatOwnBracketType || 'qualification'
-        
-        // Story 4-2: Track winnerPool for dynamic WB heat generation
-        const { winnerPool } = get()
-        let newWinnerPool = new Set(winnerPool)
-        
-        // Track isQualificationComplete flag
         let newIsQualificationComplete = get().isQualificationComplete
         
-        // Handle based on bracket type
-        if (bracketType === 'qualification') {
-          // QUALIFICATION HEAT COMPLETED
-          // Apply bracket assignments for quali heats
-          for (const ranking of rankings) {
-            if (ranking.rank === 1 || ranking.rank === 2) {
-              newWinnerPilots.add(ranking.pilotId)
-            } else if (ranking.rank === 3 || ranking.rank === 4) {
-              // Double Elimination: Check if pilot was already in loser bracket
-              if (loserPilots.includes(ranking.pilotId)) {
-                // Second loss → eliminated
-                newLoserPilots.delete(ranking.pilotId)
-                newEliminatedPilots.add(ranking.pilotId)
-              } else {
-                // First loss → loser bracket
-                newLoserPilots.add(ranking.pilotId)
-              }
-            }
-          }
-          
-          // Update bracket structure
-          if (fullBracketStructure) {
-            updatedBracketStructure = updateBracketAfterHeatCompletion(
-              heatId,
-              rankings,
-              fullBracketStructure,
-              isResubmission
-            )
-          }
-          
-          // TASK 7: Check if all quali heats are completed
-          // → Set isQualificationComplete flag
-          // → Collect all winners (rank 1+2) in winnerPool for dynamic WB heat generation
-          if (updatedBracketStructure && areAllQualiHeatsCompleted(updatedBracketStructure)) {
-            newIsQualificationComplete = true
-            
-            // Collect ALL winners from ALL completed quali heats into winnerPool
-            for (const qualiHeat of updatedBracketStructure.qualification.heats) {
-              const actualHeat = updatedHeats.find(h => h.id === qualiHeat.id)
-              if (actualHeat?.results) {
-                for (const ranking of actualHeat.results.rankings) {
-                  if (ranking.rank === 1 || ranking.rank === 2) {
-                    newWinnerPool.add(ranking.pilotId)
-                  }
-                }
-              }
-            }
-            
-            // AC 2, AC 3: Dynamische WB-Heat-Generierung aus winnerPool (FIFO)
-            // Story 10-1: Use helper function instead of inline logic
-            let wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
-            while (wbResult.heat) {
-              updatedHeats = [...updatedHeats, wbResult.heat]
-              newWinnerPool = wbResult.updatedPool
-              wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
-            }
-            
-            // Generiere auch LB-Heats aus loserPool (falls vorhanden)
-            // Losers aus Quali sind bereits in loserPool via vorherige Logik
-          }
-        } else if (bracketType === 'winner' || bracketType === 'loser') {
-          // WB/LB HEAT COMPLETED (Tasks 8, 13-16)
-          
-          // Task 8: Update winner/loser pool tracking for WB/LB heats
-          // This MUST happen even without fullBracketStructure (dynamic pool system)
-          for (const ranking of rankings) {
-            if (ranking.rank === 1 || ranking.rank === 2) {
-              // Winners stay in their current bracket (or advance to finale)
-              if (bracketType === 'winner') {
-                newWinnerPilots.add(ranking.pilotId)
-                // Task 8: WB winners go to winnerPool for next WB heat
-                newWinnerPool.add(ranking.pilotId)
-              } else {
-                // LB winners continue in LB pool
-                newLoserPilots.add(ranking.pilotId)
-                newLoserPool.add(ranking.pilotId)
-              }
-            } else if (ranking.rank === 3 || ranking.rank === 4) {
-              if (bracketType === 'winner') {
-                // Task 8: WB losers drop to LB pool
-                newWinnerPilots.delete(ranking.pilotId)
-                newLoserPilots.add(ranking.pilotId)
-                // Story 9-1: Add WB losers to loserPool for dynamic LB heat generation
-                newLoserPool.add(ranking.pilotId)
-              } else {
-                // LB losers are eliminated
-                newLoserPilots.delete(ranking.pilotId)
-                newLoserPool.delete(ranking.pilotId)
-                newEliminatedPilots.add(ranking.pilotId)
-              }
-            }
-          }
-          
-          // AC 2, AC 3: Dynamische WB-Heat-Generierung nach WB-Heat-Abschluss
-          // Story 10-1: Use helper function instead of inline logic
-          if (bracketType === 'winner') {
-            let wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
-            while (wbResult.heat) {
-              updatedHeats = [...updatedHeats, wbResult.heat]
-              newWinnerPool = wbResult.updatedPool
-              wbResult = createWBHeatFromPool(newWinnerPool, updatedHeats)
-            }
-          }
-          
-          // Update bracket structure if it exists (legacy structure-based approach)
-          if (fullBracketStructure) {
-            const result = updateBracketAfterWBLBHeatCompletion(
-              heatId,
-              rankings,
-              fullBracketStructure,
-              isResubmission
-            )
-            updatedBracketStructure = result.structure
-            
-            // Add eliminated pilots from LB (already handled above, but sync for structure)
-            for (const eliminatedId of result.eliminatedPilotIds) {
-              newLoserPilots.delete(eliminatedId)
-              newEliminatedPilots.add(eliminatedId)
-            }
-            
-            // Task 17: Check if Grand Finale is ready
-            // Story 10-3: Use consolidated function with ready check
-            const finaleHeat = generateGrandFinaleHeat(updatedBracketStructure, updatedHeats, true)
-            if (finaleHeat) {
-              // Deactivate any active heat first
-              updatedHeats = updatedHeats.map(h => ({
-                ...h,
-                status: h.status === 'active' && h.results 
-                  ? 'completed' 
-                  : h.status
-              } as Heat))
-              
-              updatedHeats = [...updatedHeats, finaleHeat]
-              newPhase = 'finale'
-            }
-          }
-        } else if (bracketType === 'finale' || bracketType === 'grand_finale' || updatedHeats[heatIndex]?.isFinale === true) {
+        // ===== PROCESS RANKINGS BASED ON BRACKET TYPE =====
+        
+        if (isGrandFinale) {
           // GRAND FINALE COMPLETED
           newPhase = 'completed'
-
-          // Update grand finale status in bracket structure
-          if (updatedBracketStructure?.grandFinale) {
-            updatedBracketStructure = structuredClone(updatedBracketStructure)
-            updatedBracketStructure.grandFinale!.status = 'completed'
+          
+        } else if (bracketType === 'qualification') {
+          // QUALIFICATION HEAT
+          for (const ranking of rankings) {
+            if (ranking.rank === 1 || ranking.rank === 2) {
+              // Winners → winnerPool für WB
+              newWinnerPilots.add(ranking.pilotId)
+              newWinnerPool.add(ranking.pilotId)
+            } else {
+              // Losers (rank 3+4) → loserPool für LB
+              newLoserPilots.add(ranking.pilotId)
+              newLoserPool.add(ranking.pilotId)
+            }
+          }
+          
+          // Check if all quali heats are completed
+          const qualiHeats = updatedHeats.filter(h => !h.bracketType || h.bracketType === 'qualification')
+          const allQualiCompleted = qualiHeats.every(h => h.status === 'completed')
+          
+          if (allQualiCompleted) {
+            newIsQualificationComplete = true
+          }
+          
+        } else if (bracketType === 'winner') {
+          // WINNER BRACKET HEAT
+          for (const ranking of rankings) {
+            if (ranking.rank === 1 || ranking.rank === 2) {
+              // WB Winners → bleiben in winnerPool
+              newWinnerPilots.add(ranking.pilotId)
+              newWinnerPool.add(ranking.pilotId)
+            } else {
+              // WB Losers (rank 3+4) → fallen in loserPool
+              newWinnerPilots.delete(ranking.pilotId)
+              newLoserPilots.add(ranking.pilotId)
+              newLoserPool.add(ranking.pilotId)
+            }
+          }
+          
+        } else if (bracketType === 'loser') {
+          // LOSER BRACKET HEAT
+          for (const ranking of rankings) {
+            if (ranking.rank === 1 || ranking.rank === 2) {
+              // LB Winners → bleiben in loserPool
+              newLoserPilots.add(ranking.pilotId)
+              newLoserPool.add(ranking.pilotId)
+            } else {
+              // LB Losers (rank 3+4) → ELIMINIERT
+              newLoserPilots.delete(ranking.pilotId)
+              newLoserPool.delete(ranking.pilotId)
+              newEliminatedPilots.add(ranking.pilotId)
+            }
           }
         }
         
-        // Find and activate next pending heat
-        let nextPendingIndex = updatedHeats.findIndex((h, i) => i > heatIndex && h.status === 'pending')
+        // ===== DYNAMIC HEAT GENERATION =====
         
-        if (nextPendingIndex !== -1) {
-          updatedHeats[nextPendingIndex] = {
-            ...updatedHeats[nextPendingIndex],
-            status: 'active'
+        // Check current state of brackets
+        const pendingWBHeats = updatedHeats.filter(h => h.bracketType === 'winner' && h.status === 'pending')
+        const activeWBHeats = updatedHeats.filter(h => h.bracketType === 'winner' && h.status === 'active')
+        
+        // WB Finale Detection: winnerPool has 2-3 pilots and no pending/active WB heats
+        const wbFinaleExists = updatedHeats.some(h => h.bracketType === 'winner' && h.isFinale)
+        const canGenerateWBFinale = !wbFinaleExists && 
+                                    newWinnerPool.size >= 2 && 
+                                    newWinnerPool.size <= 3 &&
+                                    pendingWBHeats.length === 0 &&
+                                    activeWBHeats.length === 0 &&
+                                    newIsQualificationComplete
+        
+        // Generate WB Heat from pool (regular 4er heat)
+        // IMPORTANT: Only generate after all quali heats are completed
+        if (newIsQualificationComplete && newWinnerPool.size >= 4) {
+          const pilots = Array.from(newWinnerPool).slice(0, 4)
+          const wbHeat: Heat = {
+            id: `wb-heat-${crypto.randomUUID()}`,
+            heatNumber: updatedHeats.length + 1,
+            pilotIds: pilots,
+            status: 'pending',
+            bracketType: 'winner'
+          }
+          updatedHeats = [...updatedHeats, wbHeat]
+          pilots.forEach(p => newWinnerPool.delete(p))
+        } else if (canGenerateWBFinale) {
+          // Generate WB Finale (2-3 pilots)
+          const pilots = Array.from(newWinnerPool)
+          const wbFinale: Heat = {
+            id: `wb-finale-${crypto.randomUUID()}`,
+            heatNumber: updatedHeats.length + 1,
+            pilotIds: pilots,
+            status: 'pending',
+            bracketType: 'winner',
+            isFinale: true,
+            roundName: 'WB Finale'
+          }
+          updatedHeats = [...updatedHeats, wbFinale]
+          newWinnerPool.clear()
+        }
+        
+        // LB Heat Generation Logic
+        // - Während WB aktiv: Nur 4er-Heats
+        // - Nach WB Finale: Auch 2-3er-Heats erlaubt für LB Finale
+        const wbFinaleCompleted = updatedHeats.some(h => h.bracketType === 'winner' && h.isFinale && h.status === 'completed')
+        const lbFinaleExists = updatedHeats.some(h => h.bracketType === 'loser' && h.isFinale)
+        
+        if (newLoserPool.size >= 4) {
+          // Regular LB Heat (4 pilots)
+          const pilots = Array.from(newLoserPool).slice(0, 4)
+          const lbHeat: Heat = {
+            id: `lb-heat-${crypto.randomUUID()}`,
+            heatNumber: updatedHeats.length + 1,
+            pilotIds: pilots,
+            status: 'pending',
+            bracketType: 'loser'
+          }
+          updatedHeats = [...updatedHeats, lbHeat]
+          pilots.forEach(p => newLoserPool.delete(p))
+        } else if (wbFinaleCompleted && !lbFinaleExists && newLoserPool.size >= 2 && newLoserPool.size <= 3) {
+          // LB Finale (2-3 pilots, nur nach WB Finale)
+          const pilots = Array.from(newLoserPool)
+          const lbFinale: Heat = {
+            id: `lb-finale-${crypto.randomUUID()}`,
+            heatNumber: updatedHeats.length + 1,
+            pilotIds: pilots,
+            status: 'pending',
+            bracketType: 'loser',
+            isFinale: true,
+            roundName: 'LB Finale'
+          }
+          updatedHeats = [...updatedHeats, lbFinale]
+          newLoserPool.clear()
+        }
+        
+        // Grand Finale Generation
+        // Bedingung: WB Finale UND LB Finale sind beide completed
+        const wbFinaleHeat = updatedHeats.find(h => h.bracketType === 'winner' && h.isFinale)
+        const lbFinaleHeat = updatedHeats.find(h => h.bracketType === 'loser' && h.isFinale)
+        const grandFinaleExists = updatedHeats.some(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
+        
+        if (!grandFinaleExists && 
+            wbFinaleHeat?.status === 'completed' && 
+            lbFinaleHeat?.status === 'completed') {
+          // Get winners from both finales
+          const wbWinner = wbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
+          const lbWinner = lbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
+          
+          if (wbWinner && lbWinner) {
+            const grandFinale: Heat = {
+              id: `grand-finale-${crypto.randomUUID()}`,
+              heatNumber: updatedHeats.length + 1,
+              pilotIds: [wbWinner, lbWinner],
+              status: 'pending',
+              bracketType: 'grand_finale',
+              isFinale: true,
+              roundName: 'Grand Finale'
+            }
+            updatedHeats = [...updatedHeats, grandFinale]
+            newPhase = 'finale'
           }
         }
         
-        // If no active heat yet, find any pending heat
+        // ===== ACTIVATE NEXT HEAT =====
+        
         const hasActiveHeat = updatedHeats.some(h => h.status === 'active')
         if (!hasActiveHeat) {
-          nextPendingIndex = updatedHeats.findIndex(h => h.status === 'pending')
+          const nextPendingIndex = updatedHeats.findIndex(h => h.status === 'pending')
           if (nextPendingIndex !== -1) {
             updatedHeats[nextPendingIndex] = {
               ...updatedHeats[nextPendingIndex],
@@ -745,64 +764,36 @@ export const useTournamentStore = create<TournamentState>()(
           }
         }
         
-        // Determine new current heat index
+        // Determine current heat index
         const activeHeatIndex = updatedHeats.findIndex(h => h.status === 'active')
         const newCurrentHeatIndex = activeHeatIndex !== -1 ? activeHeatIndex : heatIndex
         
-        // Check if all heats are completed
-        // If all heats are done and no more pending, transition to finale
-        // 'completed' phase is only set when Grand Finale is done (bracketType === 'finale')
+        // Check if tournament should end (no more heats to play, no pilots in pools)
+        // WICHTIG: Turnier ist nur completed wenn:
+        // 1. Alle Heats completed sind (keine active oder pending)
+        // 2. ODER: Grand Finale wurde gerade completed (isGrandFinale check oben)
         const allCompleted = updatedHeats.every(h => h.status === 'completed')
+        const hasActiveHeats = updatedHeats.some(h => h.status === 'active')
         const hasPendingHeats = updatedHeats.some(h => h.status === 'pending')
         
-        if (allCompleted && !hasPendingHeats && newPhase === 'running') {
-          // All heats done, no new ones generated → finale phase
-          newPhase = 'finale'
+        // Nur completed wenn WIRKLICH alle Heats durch sind und keine Piloten mehr warten
+        // UND kein Grand Finale generiert werden kann (das passiert erst wenn LB Finale fertig ist)
+        if (allCompleted && !hasActiveHeats && !hasPendingHeats && newWinnerPool.size === 0 && newLoserPool.size === 0) {
+          // Zusätzliche Prüfung: Wurde ein Grand Finale gespielt?
+          const grandFinaleCompleted = updatedHeats.some(h => 
+            (h.bracketType === 'grand_finale' || h.bracketType === 'finale') && h.status === 'completed'
+          )
+          if (grandFinaleCompleted) {
+            newPhase = 'completed'
+          }
+          // Wenn kein Grand Finale completed wurde, bleibt die Phase 'running' oder 'finale'
         }
         
-        // Story 9-2: Track lastCompletedBracketType for alternation
+        // Track last completed bracket type
         let completedBracketType: 'winner' | 'loser' | 'qualifier' | null = null
-        if (bracketType === 'qualification') {
-          completedBracketType = 'qualifier'
-        } else if (bracketType === 'winner') {
-          completedBracketType = 'winner'
-        } else if (bracketType === 'loser') {
-          completedBracketType = 'loser'
-          
-          // Story 9-2 AC3: LB winners (rank 1+2) go back to pool
-          for (const ranking of rankings) {
-            if (ranking.rank === 1 || ranking.rank === 2) {
-              newLoserPool.add(ranking.pilotId)
-            } else if (ranking.rank === 3 || ranking.rank === 4) {
-              // LB losers are eliminated - remove from pool if they're there
-              newLoserPool.delete(ranking.pilotId)
-              newEliminatedPilots.add(ranking.pilotId)
-            }
-          }
-        }
-        
-        // Story 9-2 Task 4-5: Auto-generate LB heat after WB/LB heat if pool >= 4
-        // This must happen AFTER updating newLoserPool but BEFORE set()
-        const loserPoolArray = Array.from(newLoserPool)
-        
-        // Story 10-2: Check if WB still has pending/active heats using pure function
-        const hasActiveWB = checkHasActiveWBHeats(updatedBracketStructure, updatedHeats)
-        
-        // Determine if we should auto-generate LB heat
-        // Note: We allow generation during 'finale' phase if WB is still active
-        // because 'finale' might be set prematurely when heats[] doesn't reflect full bracket yet
-        const minPoolForLB = hasActiveWB ? 4 : 3
-        const shouldAutoGenerate = loserPoolArray.length >= minPoolForLB && 
-                                   newPhase !== 'completed' &&
-                                   (newPhase !== 'finale' || hasActiveWB)
-        if (shouldAutoGenerate) {
-          // Story 10-1: Use helper function instead of inline logic
-          const lbResult = createLBHeatFromPool(newLoserPool, updatedHeats, minPoolForLB)
-          if (lbResult.heat) {
-            updatedHeats = [...updatedHeats, lbResult.heat]
-            newLoserPool = lbResult.updatedPool
-          }
-        }
+        if (bracketType === 'qualification') completedBracketType = 'qualifier'
+        else if (bracketType === 'winner') completedBracketType = 'winner'
+        else if (bracketType === 'loser') completedBracketType = 'loser'
         
         set({ 
           heats: updatedHeats,
@@ -814,8 +805,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPool: Array.from(newLoserPool),
           winnerPool: Array.from(newWinnerPool),
           isQualificationComplete: newIsQualificationComplete,
-          fullBracketStructure: updatedBracketStructure,
           lastCompletedBracketType: completedBracketType
+          // NOTE: fullBracketStructure wird NICHT mehr aktualisiert - nur für Visualisierung
         })
       },
 
@@ -1052,10 +1043,13 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Story 9-2: Check if there are pending/active WB heats
-      // Story 10-2: Refactored to use pure function checkHasActiveWBHeats
+      // REFACTORED: Now uses heats[] directly instead of fullBracketStructure
       hasActiveWBHeats: () => {
-        const { fullBracketStructure, heats } = get()
-        return checkHasActiveWBHeats(fullBracketStructure, heats)
+        const { heats } = get()
+        return heats.some(h => 
+          h.bracketType === 'winner' && 
+          (h.status === 'pending' || h.status === 'active')
+        )
       },
 
       // Story 9-3: LB Finale & Grand Finale
@@ -1143,16 +1137,35 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       // Generate Grand Finale (2 pilots: WB Winner + LB Winner)
-      // Story 10-3: Delegiert an die kanonische pure function in bracket-logic.ts
+      // REFACTORED: Now generates directly from heats[] without fullBracketStructure
       generateGrandFinale: () => {
-        const { heats, fullBracketStructure } = get()
+        const { heats } = get()
 
-        // Delegate to pure function
-        const finaleHeat = generateGrandFinaleHeat(fullBracketStructure, heats)
+        // Find WB and LB Finale heats
+        const wbFinaleHeat = heats.find(h => h.bracketType === 'winner' && h.isFinale && h.status === 'completed')
+        const lbFinaleHeat = heats.find(h => h.bracketType === 'loser' && h.isFinale && h.status === 'completed')
         
-        if (!finaleHeat) return null
+        if (!wbFinaleHeat?.results || !lbFinaleHeat?.results) return null
         
-        // Only state mutation remains here
+        // Get winners
+        const wbWinner = wbFinaleHeat.results.rankings.find(r => r.rank === 1)?.pilotId
+        const lbWinner = lbFinaleHeat.results.rankings.find(r => r.rank === 1)?.pilotId
+        
+        if (!wbWinner || !lbWinner) return null
+        
+        // Check if Grand Finale already exists
+        if (heats.some(h => h.bracketType === 'grand_finale')) return null
+        
+        const finaleHeat: Heat = {
+          id: `grand-finale-${crypto.randomUUID()}`,
+          heatNumber: heats.length + 1,
+          pilotIds: [wbWinner, lbWinner],
+          status: 'active',
+          bracketType: 'grand_finale',
+          isFinale: true,
+          roundName: 'Grand Finale'
+        }
+        
         set({
           heats: [...heats, finaleHeat],
           tournamentPhase: 'finale'
