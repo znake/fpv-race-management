@@ -102,3 +102,34 @@ export function getHeatBorderClasses(status: string, isRecommended?: boolean): s
   }
   return 'border-steel'
 }
+
+/**
+ * Story 11-3: Get CSS class for pilot row based on placement in completed heat
+ * 
+ * Color coding:
+ * - 'top': Green background/border for rank 1+2 (Weiterkommer)
+ * - 'bottom': Red background/border for rank 3+4 (Eliminiert)
+ * - 'champ': Gold background/border for rank 1 in Grand Finale (Champion)
+ * 
+ * @param rank - Pilot's rank in the heat (1-4)
+ * @param heatStatus - Current heat status
+ * @param isGrandFinale - Whether this is the grand finale
+ * @returns CSS class name ('top', 'bottom', 'champ', or '')
+ */
+export function getPilotRowClass(
+  rank: number,
+  heatStatus: string,
+  isGrandFinale: boolean
+): string {
+  // Only apply color coding for completed heats
+  if (heatStatus !== 'completed') return ''
+  
+  // Grand Finale: Champion (rank 1) gets gold
+  if (isGrandFinale && rank === 1) return 'champ'
+  
+  // Rank 1+2: Weiterkommer (green)
+  if (rank <= 2) return 'top'
+  
+  // Rank 3+4: Eliminiert (red)
+  return 'bottom'
+}

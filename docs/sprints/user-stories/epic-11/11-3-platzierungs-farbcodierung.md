@@ -1,6 +1,6 @@
 # Story 11.3: Platzierungs-Farbcodierung in Heats
 
-**Status:** ready
+**Status:** review
 **Created:** 2025-12-28
 **Story Points:** 3 (S-Shirt - CSS + Logik-Integration)
 **Mockup:** [bracket-tree-mockup.html](../../../design/bracket-tree-mockup.html)
@@ -81,11 +81,11 @@ function getPilotRowClass(rank: number, heatStatus: string, isGrandFinale: boole
 
 ## Tasks
 
-- [ ] **Task 1:** CSS-Klassen für `pilot-row.top`, `.bottom`, `.champ` hinzufügen
-- [ ] **Task 2:** Logik für Klassenzuweisung basierend auf Rang implementieren
-- [ ] **Task 3:** Nur bei abgeschlossenen Heats anwenden
-- [ ] **Task 4:** Champion-Hervorhebung im Grand Finale
-- [ ] **Task 5:** Visuelle Tests mit Mockup vergleichen
+- [x] **Task 1:** CSS-Klassen für `pilot-row.top`, `.bottom`, `.champ` hinzufügen
+- [x] **Task 2:** Logik für Klassenzuweisung basierend auf Rang implementieren
+- [x] **Task 3:** Nur bei abgeschlossenen Heats anwenden
+- [x] **Task 4:** Champion-Hervorhebung im Grand Finale
+- [x] **Task 5:** Visuelle Tests mit Mockup vergleichen
 
 ## Zu ändernde Dateien
 

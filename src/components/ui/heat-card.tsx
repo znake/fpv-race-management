@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { cn } from '../../lib/utils'
 import { PilotAvatar } from './pilot-avatar'
 import { RankBadge } from './rank-badge'
-import { sortPilotsByRank, getHeatBorderClasses } from '../../lib/ui-helpers'
+import { sortPilotsByRank, getHeatBorderClasses, getPilotRowClass } from '../../lib/ui-helpers'
 import type { Pilot, HeatResults } from '../../lib/schemas'
 import type { BracketType } from '../../lib/bracket-structure-generator'
 
@@ -291,6 +291,7 @@ function BracketVariant({
 }
 
 // Variant: Filled (Mit Ergebnissen für Bracket)
+// Story 11-3: Added placement color coding for completed heats
 function FilledVariant({
   heatNumber,
   sortedPilots,
@@ -323,6 +324,9 @@ function FilledVariant({
     ? 'bg-night'
     : 'bg-night'
 
+  // Story 11-3 AC4: Grand Finale is identified by bracketType === 'finale'
+  const isGrandFinale = bracketType === 'finale'
+
   return (
     <div
       className={cn(
@@ -342,13 +346,23 @@ function FilledVariant({
         </span>
       </div>
 
-      {/* Pilots */}
-      <div className="space-y-2">
+      {/* Pilots - Story 11-3: With placement color coding */}
+      <div className="space-y-1">
         {sortedPilots.map((pilot) => {
           const ranking = results?.rankings.find((r) => r.pilotId === pilot.id)
+          // Story 11-3: Get placement class for completed heats
+          const placementClass = ranking 
+            ? getPilotRowClass(ranking.rank, status, isGrandFinale)
+            : ''
 
           return (
-            <div key={pilot.id} className="flex items-center gap-2">
+            <div 
+              key={pilot.id} 
+              className={cn(
+                'pilot-row',
+                placementClass
+              )}
+            >
               <PilotAvatar
                 imageUrl={pilot.imageUrl}
                 name={pilot.name}

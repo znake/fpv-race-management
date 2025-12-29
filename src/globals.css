@@ -459,6 +459,37 @@
     box-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
   }
 
+  /* ========================================
+     PILOT ROW PLACEMENT COLOR CODING (Story 11-3)
+     ======================================== */
+  /* Base pilot row styling */
+  .pilot-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    margin: 2px 0;
+  }
+
+  /* AC1: Weiterkommer (Platz 1+2) - Green */
+  .pilot-row.top {
+    background: rgba(57, 255, 20, 0.25);
+    border-left: 3px solid var(--winner-green);
+  }
+
+  /* AC2: Eliminiert (Platz 3+4) - Red */
+  .pilot-row.bottom {
+    background: rgba(255, 7, 58, 0.25);
+    border-left: 3px solid var(--loser-red);
+  }
+
+  /* AC4: Champion im Grand Finale - Gold */
+  .pilot-row.champ {
+    background: rgba(249, 200, 14, 0.2);
+    border-left: 3px solid var(--gold);
+  }
+
   /* Story 4.3 Task 6: Heat-Animation beim Erstellen (AC: 4) */
   @keyframes heat-appear {
     0% {
