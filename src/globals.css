@@ -561,6 +561,30 @@
     stroke-width: 3px;
     filter: drop-shadow(0 0 5px rgba(249, 200, 14, 0.7));
   }
+
+  /* ========================================
+     HEAT STATUS INDICATORS (Story 11-4)
+     ======================================== */
+  /* AC1: Abgeschlossene Heats zeigen Checkmark */
+  /* AC3: Checkmark-Farbe passt zum Bracket-Typ */
+  .heat-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--winner-green);
+    color: var(--void);
+    font-weight: 600;
+  }
+
+  /* AC3: LB-Heats haben rotes Checkmark */
+  .heat-status.lb {
+    background: var(--loser-red);
+  }
+
+  /* AC3: Grand Finale hat goldenes Checkmark */
+  .heat-status.gf {
+    background: var(--gold);
+  }
 }
 
 /* Reduced Motion Preferences */

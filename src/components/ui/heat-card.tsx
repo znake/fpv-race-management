@@ -292,6 +292,7 @@ function BracketVariant({
 
 // Variant: Filled (Mit Ergebnissen für Bracket)
 // Story 11-3: Added placement color coding for completed heats
+// Story 11-4: Added heat status indicators
 function FilledVariant({
   heatNumber,
   sortedPilots,
@@ -327,6 +328,13 @@ function FilledVariant({
   // Story 11-3 AC4: Grand Finale is identified by bracketType === 'finale'
   const isGrandFinale = bracketType === 'finale'
 
+  // Story 11-4: Get status indicator class based on bracket type
+  const getStatusIndicatorClass = () => {
+    if (bracketType === 'finale') return 'heat-status gf'
+    if (bracketType === 'loser') return 'heat-status lb'
+    return 'heat-status' // Default: winner (green)
+  }
+
   return (
     <div
       className={cn(
@@ -339,11 +347,17 @@ function FilledVariant({
       onClick={onClick}
       data-testid={`bracket-heat-${heatNumber}`}
     >
-      {/* Header */}
+      {/* Header - Story 11-4: Added status indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className="font-display text-beamer-body text-chrome">
           HEAT {heatNumber}
         </span>
+        {/* Story 11-4 AC1+AC2: Show checkmark only for completed heats */}
+        {status === 'completed' && (
+          <span className={getStatusIndicatorClass()} data-testid="heat-status-indicator">
+            ✓
+          </span>
+        )}
       </div>
 
       {/* Pilots - Story 11-3: With placement color coding */}

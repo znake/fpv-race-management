@@ -1,6 +1,6 @@
 # Story 11.4: Heat-Status Indikatoren
 
-**Status:** ready
+**Status:** review
 **Created:** 2025-12-28
 **Story Points:** 2 (XS-Shirt - einfache UI-Erweiterung)
 **Mockup:** [bracket-tree-mockup.html](../../../design/bracket-tree-mockup.html)
@@ -92,10 +92,10 @@ function getHeatStatusIndicator(heat: Heat) {
 
 ## Tasks
 
-- [ ] **Task 1:** Heat-Header Komponente um Status-Indikator erweitern
-- [ ] **Task 2:** CSS für Status-Badge implementieren
-- [ ] **Task 3:** Farbvarianten für WB/LB/GF
-- [ ] **Task 4:** Testen mit abgeschlossenen und wartenden Heats
+- [x] **Task 1:** Heat-Header Komponente um Status-Indikator erweitern
+- [x] **Task 2:** CSS für Status-Badge implementieren
+- [x] **Task 3:** Farbvarianten für WB/LB/GF
+- [x] **Task 4:** Testen mit abgeschlossenen und wartenden Heats
 
 ## Zu ändernde Dateien
 
