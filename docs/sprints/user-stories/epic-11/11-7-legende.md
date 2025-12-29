@@ -1,6 +1,6 @@
 # Story 11.7: Bracket-Legende
 
-**Status:** ready
+**Status:** review
 **Created:** 2025-12-28
 **Story Points:** 2 (XS-Shirt - neue statische Komponente)
 **Mockup:** [bracket-tree-mockup.html](../../../design/bracket-tree-mockup.html)
@@ -131,11 +131,11 @@ Am unteren Rand des Brackets wird eine Legende angezeigt, die erklärt:
 
 ## Tasks
 
-- [ ] **Task 1:** `BracketLegend` Komponente erstellen
-- [ ] **Task 2:** CSS für Legende implementieren
-- [ ] **Task 3:** Positionierung unterhalb des Brackets
-- [ ] **Task 4:** Beamer-Lesbarkeit testen (Schriftgröße)
-- [ ] **Task 5:** Responsive Wrapping bei schmalen Bildschirmen
+- [x] **Task 1:** `BracketLegend` Komponente erstellen
+- [x] **Task 2:** CSS für Legende implementieren
+- [x] **Task 3:** Positionierung unterhalb des Brackets
+- [x] **Task 4:** Beamer-Lesbarkeit testen (Schriftgröße)
+- [x] **Task 5:** Responsive Wrapping bei schmalen Bildschirmen
 
 ## Zu ändernde Dateien
 

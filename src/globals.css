@@ -610,6 +610,64 @@
     background: var(--loser-red);
     color: var(--void);
   }
+
+  /* ========================================
+     BRACKET LEGEND (Story 11-7)
+     ======================================== */
+  /* AC3: Legende am unteren Rand mit margin-top */
+  .legend {
+    display: flex;
+    gap: 30px;
+    padding: 15px 20px;
+    background: var(--night);
+    border-radius: 10px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+
+  /* AC4: Beamer-lesbare Schriftgröße (min 13px) */
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--steel);
+  }
+
+  /* AC1: Linien-Elemente für Bracket-Typen */
+  .legend-line {
+    width: 30px;
+    height: 3px;
+  }
+
+  .legend-line.green {
+    background: var(--winner-green);
+  }
+
+  .legend-line.red {
+    background: var(--loser-red);
+  }
+
+  .legend-line.gold {
+    background: var(--gold);
+  }
+
+  /* AC2: Farb-Boxen für Platzierungen */
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .legend-color.winner {
+    background: rgba(57, 255, 20, 0.25);
+    border: 2px solid var(--winner-green);
+  }
+
+  .legend-color.loser {
+    background: rgba(255, 7, 58, 0.25);
+    border: 2px solid var(--loser-red);
+  }
 }
 
 /* Reduced Motion Preferences */

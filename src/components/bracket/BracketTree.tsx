@@ -10,6 +10,7 @@ import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
 import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 import { PoolDisplay } from './PoolDisplay'
 import { SVGConnectorLines } from './SVGConnectorLines'
+import { BracketLegend } from './BracketLegend'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -416,6 +417,9 @@ export function BracketTree({
             Turnierverlauf
           </h3>
           {renderUnifiedBracketTree()}
+          
+          {/* Story 11-7: Bracket Legend */}
+          <BracketLegend />
         </div>
 
         {/* Heat Detail Modal */}
@@ -449,6 +453,9 @@ export function BracketTree({
 
       {/* 2. UNIFIED BRACKET TREE (AC1: Ein zusammenhängender Container) */}
       {renderUnifiedBracketTree()}
+
+      {/* 3. BRACKET LEGEND (Story 11-7) */}
+      <BracketLegend />
 
       {/* Heat Detail Modal */}
       {selectedHeatData && (
