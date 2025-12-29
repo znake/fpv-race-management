@@ -265,9 +265,149 @@
     50% { box-shadow: 0 0 40px rgba(57, 255, 20, 0.7); }
   }
 
-  /* Bracket Container (Story 4.3) */
+  /* Bracket Container (Story 4.3 + Story 11-1) */
+  /* AC1: Unified container ohne getrennte Sections */
+  /* AC4: Horizontales Scrolling bei Bedarf */
+  /* AC5: Mindesthöhe 600px für Beamer */
   .bracket-container {
     @apply relative min-h-[600px];
+    background: var(--night);
+    border-radius: 16px;
+    padding: 30px;
+    position: relative;
+    overflow-x: auto;
+  }
+
+  /* Story 11-1: Unified Bracket Tree Layout */
+  /* AC2: Horizontales Spalten-Layout */
+  .bracket-tree {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 1100px;
+    position: relative;
+  }
+
+  /* Bracket Columns */
+  .bracket-column {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .column-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    color: var(--steel);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  /* Pools Column (Story 11-1 AC2) */
+  .pools-column {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 30px;
+    gap: 0;
+  }
+
+  /* Heats Column - Runde 1 (Story 11-1 AC2) */
+  .heats-column {
+    width: 230px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 30px;
+  }
+
+  /* Connector Column - Platzhalter für SVG-Linien (Story 11-2) */
+  .connector-column {
+    width: 80px;
+    position: relative;
+  }
+
+  /* Finals Column - WB + LB Finale (Story 11-1 AC2) */
+  .finals-column {
+    width: 230px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 80px 0;
+  }
+
+  /* Grand Finale Column (Story 11-1 AC2) */
+  .grand-finale-column {
+    width: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 20px;
+  }
+
+  /* Heat Box Base (Story 11-1 AC5: min 200px Breite) */
+  .heat-box {
+    background: var(--night-light);
+    border: 2px solid var(--winner-green);
+    border-radius: 10px;
+    padding: 10px 12px;
+    width: 210px;
+    min-width: 200px;
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+  }
+
+  .heat-box.lb {
+    border-color: var(--loser-red);
+    box-shadow: 0 0 12px rgba(255, 7, 58, 0.5);
+  }
+
+  .heat-box.gf {
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 20px rgba(249, 200, 14, 0.6);
+    width: 240px;
+  }
+
+  /* Heat Groups (Story 11-1) */
+  .heat-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Bracket Spacer (Story 11-1 AC3) */
+  .bracket-spacer {
+    height: 40px;
+  }
+
+  /* Bracket Labels - vertikale WB/LB Labels am linken Rand */
+  .bracket-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    padding: 10px 5px;
+    position: absolute;
+    left: -30px;
+  }
+
+  .bracket-label.wb {
+    color: var(--winner-green);
+    top: 30px;
+  }
+
+  .bracket-label.lb {
+    color: var(--loser-red);
+    bottom: 30px;
+  }
+
+  /* Heat Box Placeholder (für leere Slots) */
+  .heat-box-placeholder {
+    min-width: 200px;
+    min-height: 120px;
   }
 
   /* Winner Bracket */

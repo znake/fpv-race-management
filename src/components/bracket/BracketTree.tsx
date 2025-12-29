@@ -5,11 +5,10 @@ import { HeatDetailModal } from '../heat-detail-modal'
 import { ActiveHeatView } from '../active-heat-view'
 import { VictoryCeremony } from '../victory-ceremony'
 
-// Import all section components
-import { HeatsSection } from './layout/HeatsSection'
-import { WinnerBracketSection } from './sections/WinnerBracketSection'
-import { LoserBracketSection } from './sections/LoserBracketSection'
-import { GrandFinaleSection } from './sections/GrandFinaleSection'
+// Import heat box components
+import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
+import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
+import { PoolDisplay } from './PoolDisplay'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -22,15 +21,21 @@ interface BracketTreeProps {
 }
 
 /**
- * Main BracketTree Component with integrated ActiveHeatView
- *
- * Layout (TURNIER tab):
- * 1. ACTIVE HEAT (top) - Current heat with rank input (when running)
- * 2. ON-DECK PREVIEW - Next heat preview (integrated in ActiveHeatView)
- * 3. HEATS - Horizontal row of initial heats
- * 4. WINNER BRACKET - Tree structure for quali winners
- * 5. LOSER BRACKET - Tree structure for quali losers
- * 6. GRAND FINALE (bottom) - Final heat
+ * Story 11-1: Unified Layout Container
+ * 
+ * Layout nach Mockup (horizontal):
+ * Spalte 1: Pools (WB Pool oben, LB Pool unten)
+ * Spalte 2: Runde 1 Heats (WB Heats oben, LB Heats unten)
+ * Spalte 3: Connector Space (Platzhalter für SVG-Linien)
+ * Spalte 4: Finals (WB Finale oben, LB Finale unten)
+ * Spalte 5: Connector Space (Platzhalter für SVG-Linien)
+ * Spalte 6: Grand Finale (vertikal zentriert)
+ * 
+ * AC1: Keine getrennten Sections/Borders mehr
+ * AC2: Horizontales Spalten-Layout
+ * AC3: WB oben, LB unten mit Spacer dazwischen
+ * AC4: Horizontales Scrolling bei Bedarf
+ * AC5: Beamer-lesbare Mindestgrößen (Heat-Boxen 200px, Text 12px+, Container 600px)
  */
 export function BracketTree({
   pilots,
@@ -49,8 +54,8 @@ export function BracketTree({
   const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
 
   // Story 10-2: Check if WB has pending/active heats using Store method
-  // This replaces the local useMemo with a call to the unified Store method
-  const hasActiveWBHeats = useTournamentStore(state => state.hasActiveWBHeats())
+  // Note: hasActiveWBHeats wird in späteren Stories (z.B. für LB-Steuerung) verwendet
+  void useTournamentStore(state => state.hasActiveWBHeats())
 
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)
@@ -100,7 +105,7 @@ export function BracketTree({
   // Empty state: No pilots - Beamer-optimiert
   if (pilots.length === 0) {
     return (
-      <div className="bg-night border-3 border-steel rounded-2xl p-8 text-center">
+      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
         <p className="font-ui text-beamer-body text-steel">Keine Piloten für Bracket verfügbar</p>
       </div>
     )
@@ -109,7 +114,7 @@ export function BracketTree({
   // Empty state: No heats generated yet - Beamer-optimiert
   if (heats.length === 0) {
     return (
-      <div className="bg-night border-3 border-steel rounded-2xl p-8 text-center">
+      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
         <p className="font-ui text-beamer-body text-steel">Noch keine Heats generiert</p>
         <p className="font-ui text-steel/60 text-beamer-caption mt-2">
           Starte ein Turnier um das Bracket zu sehen
@@ -121,7 +126,7 @@ export function BracketTree({
   // No full bracket structure yet (legacy state) - Beamer-optimiert
   if (!fullBracketStructure) {
     return (
-      <div className="bg-night border-3 border-steel rounded-2xl p-8 text-center">
+      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
         <p className="font-ui text-beamer-body text-steel">Bracket-Struktur wird generiert...</p>
       </div>
     )
@@ -130,10 +135,243 @@ export function BracketTree({
   // Get Top 4 for Victory Ceremony
   const top4 = tournamentPhase === 'completed' ? getTop4Pilots() : null
 
+  // Helper: Get heats for different brackets
+  const getQualiHeats = () => {
+    const qualiHeatIds = new Set(fullBracketStructure.qualification.heats.map(h => h.id))
+    return heats.filter(h => qualiHeatIds.has(h.id))
+  }
+
+  const getWBHeats = () => {
+    // Get WB heats from rounds + dynamic WB heats
+    const wbFromRounds = fullBracketStructure.winnerBracket.rounds.flatMap(r => r.heats)
+    const wbHeatIds = new Set(wbFromRounds.map(h => h.id))
+    
+    // Also get dynamically generated WB heats not in structure
+    const dynamicWBHeats = heats.filter(h => 
+      h.bracketType === 'winner' && 
+      !wbHeatIds.has(h.id)
+    )
+    
+    return [...heats.filter(h => wbHeatIds.has(h.id)), ...dynamicWBHeats]
+  }
+
+  const getLBHeats = () => {
+    // Get LB heats (dynamic + from rounds)
+    return heats.filter(h => 
+      (h.bracketType === 'loser' || h.id.startsWith('lb-heat-')) && 
+      !h.isFinale
+    )
+  }
+
+  const getWBFinale = () => {
+    return heats.find(h => h.bracketType === 'winner' && h.isFinale)
+  }
+
+  const getLBFinale = () => {
+    return heats.find(h => h.bracketType === 'loser' && h.isFinale)
+  }
+
+  const getGrandFinale = () => {
+    return heats.find(h => 
+      h.bracketType === 'grand_finale' || 
+      h.bracketType === 'finale'
+    )
+  }
+
+  // Collect data for rendering
+  const qualiHeats = getQualiHeats()
+  const wbHeats = getWBHeats()
+  const lbHeats = getLBHeats()
+  const wbFinale = getWBFinale()
+  const lbFinale = getLBFinale()
+  const grandFinale = getGrandFinale()
+
+  // Render the unified bracket tree
+  const renderUnifiedBracketTree = () => (
+    <div className="bracket-tree flex items-stretch gap-0 min-w-[1100px] relative">
+      {/* Bracket Labels am linken Rand */}
+      <div className="bracket-label wb font-display text-sm text-winner-green tracking-widest absolute -left-8 top-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+        WINNER BRACKET
+      </div>
+      <div className="bracket-label lb font-display text-sm text-loser-red tracking-widest absolute -left-8 bottom-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+        LOSER BRACKET
+      </div>
+
+      {/* Column 1: Pools */}
+      <div className="pools-column w-[140px] flex flex-col justify-start pt-8 gap-0">
+        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
+          POOLS
+        </div>
+        
+        {/* WB Pool */}
+        <div className="mt-16">
+          <PoolDisplay
+            title="WB POOL"
+            pilotIds={winnerPool}
+            pilots={pilots}
+            variant="compact"
+            maxDisplay={4}
+            showCount={true}
+            className="w-[120px]"
+          />
+        </div>
+        
+        {/* LB Pool - positioned lower */}
+        <div className="mt-32">
+          <PoolDisplay
+            title="LB POOL"
+            pilotIds={loserPool}
+            pilots={pilots}
+            variant="compact"
+            maxDisplay={4}
+            showCount={true}
+            className="w-[120px]"
+          />
+        </div>
+      </div>
+
+      {/* Column 2: Runde 1 Heats (Quali + early WB/LB) */}
+      <div className="heats-column w-[230px] flex flex-col justify-between pt-8">
+        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
+          RUNDE 1
+        </div>
+        
+        {/* WB Heats (upper half) */}
+        <div className="heat-group flex flex-col gap-4">
+          {qualiHeats.length > 0 ? (
+            qualiHeats.slice(0, Math.ceil(qualiHeats.length / 2)).map((heat) => (
+              <BracketHeatBox
+                key={heat.id}
+                heat={heat}
+                pilots={pilots}
+                bracketType="qualification"
+                onClick={() => handleHeatClick(heat.id)}
+              />
+            ))
+          ) : wbHeats.length > 0 ? (
+            wbHeats.slice(0, 2).map((heat) => (
+              <BracketHeatBox
+                key={heat.id}
+                heat={heat}
+                pilots={pilots}
+                bracketType="winner"
+                onClick={() => handleHeatClick(heat.id)}
+              />
+            ))
+          ) : null}
+        </div>
+
+        {/* Bracket Spacer (AC3) */}
+        <div className="bracket-spacer h-10" />
+
+        {/* LB Heats (lower half) */}
+        <div className="heat-group flex flex-col gap-4">
+          {qualiHeats.length > 0 ? (
+            qualiHeats.slice(Math.ceil(qualiHeats.length / 2)).map((heat) => (
+              <BracketHeatBox
+                key={heat.id}
+                heat={heat}
+                pilots={pilots}
+                bracketType="qualification"
+                onClick={() => handleHeatClick(heat.id)}
+              />
+            ))
+          ) : lbHeats.length > 0 ? (
+            lbHeats.slice(0, 2).map((heat) => (
+              <BracketHeatBox
+                key={heat.id}
+                heat={heat}
+                pilots={pilots}
+                bracketType="loser"
+                onClick={() => handleHeatClick(heat.id)}
+              />
+            ))
+          ) : null}
+        </div>
+      </div>
+
+      {/* Column 3: Connector Space (placeholder for SVG lines - Story 11-2) */}
+      <div className="connector-column w-20 relative" />
+
+      {/* Column 4: Finals (WB Finale + LB Finale) */}
+      <div className="finals-column w-[230px] flex flex-col justify-between py-20">
+        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
+          FINALE
+        </div>
+        
+        {/* WB Finale (upper) */}
+        <div className="mb-12">
+          {wbFinale ? (
+            <BracketHeatBox
+              heat={wbFinale}
+              pilots={pilots}
+              bracketType="winner"
+              onClick={() => handleHeatClick(wbFinale.id)}
+            />
+          ) : (
+            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
+              <span className="text-steel text-sm">WB Finale</span>
+            </div>
+          )}
+        </div>
+
+        {/* LB Finale (lower) */}
+        <div>
+          {lbFinale ? (
+            <BracketHeatBox
+              heat={lbFinale}
+              pilots={pilots}
+              bracketType="loser"
+              onClick={() => handleHeatClick(lbFinale.id)}
+            />
+          ) : (
+            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[120px] flex items-center justify-center">
+              <span className="text-steel text-sm">LB Finale</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Column 5: Connector to Grand Finale (placeholder for SVG lines - Story 11-2) */}
+      <div className="connector-column w-20 relative" />
+
+      {/* Column 6: Grand Finale */}
+      <div className="grand-finale-column w-[260px] flex items-center justify-center pl-5">
+        <div className="relative">
+          <div className="column-label font-display text-xs text-gold tracking-widest text-center mb-3">
+            GRAND FINALE
+          </div>
+          
+          {grandFinale && grandFinale.pilotIds.length > 0 ? (
+            <GrandFinaleHeatBox
+              heat={grandFinale}
+              pilots={pilots}
+            />
+          ) : grandFinalePool.length > 0 ? (
+            <PoolDisplay
+              title="GF POOL"
+              pilotIds={grandFinalePool}
+              pilots={pilots}
+              variant="grandFinale"
+              showCount={true}
+            />
+          ) : (
+            <div className="heat-box-placeholder bg-void border-3 border-dashed border-gold/30 rounded-2xl p-6 min-w-[240px] min-h-[180px] flex items-center justify-center shadow-glow-gold/20">
+              <span className="text-gold/50 text-sm text-center">
+                Grand Finale<br />
+                <span className="text-xs">Wartet auf Finalisten</span>
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
   // Tournament Completed State - Show Victory Ceremony
   if (tournamentPhase === 'completed' && top4 && onNewTournament) {
     return (
-      <div className="bracket-container relative overflow-x-auto min-h-[600px]">
+      <div className="bracket-container bg-night rounded-2xl p-8 relative overflow-x-auto min-h-[600px]">
         {/* Victory Ceremony */}
         <VictoryCeremony
           top4={top4}
@@ -145,41 +383,7 @@ export function BracketTree({
           <h3 className="font-display text-beamer-name text-steel text-center mb-4">
             Turnierverlauf
           </h3>
-
-          {/* 2. HEATS Section (formerly QUALIFIKATION) */}
-          <HeatsSection
-            fullBracket={fullBracketStructure}
-            heats={heats}
-            pilots={pilots}
-            onHeatClick={handleHeatClick}
-          />
-
-          {/* 3. WINNER BRACKET Section */}
-          <WinnerBracketSection
-            fullBracket={fullBracketStructure}
-            pilots={pilots}
-            heats={heats}
-            winnerPool={winnerPool}
-            onHeatClick={handleHeatClick}
-          />
-
-          {/* 4. LOSER BRACKET Section */}
-          <LoserBracketSection
-            fullBracket={fullBracketStructure}
-            pilots={pilots}
-            heats={heats}
-            loserPool={loserPool}
-            hasActiveWBHeats={hasActiveWBHeats}
-            onHeatClick={handleHeatClick}
-          />
-
-          {/* 5. GRAND FINALE Section */}
-          <GrandFinaleSection
-            fullBracket={fullBracketStructure}
-            pilots={pilots}
-            heats={heats}
-            grandFinalePool={grandFinalePool}
-          />
+          {renderUnifiedBracketTree()}
         </div>
 
         {/* Heat Detail Modal */}
@@ -197,7 +401,7 @@ export function BracketTree({
   }
 
   return (
-    <div className="bracket-container bracket-beamer-container relative overflow-x-auto min-h-[600px]">
+    <div className="bracket-container bg-night rounded-2xl p-8 relative overflow-x-auto min-h-[600px]">
       {/* 1. ACTIVE HEAT Section - when tournament is running OR in finale phase */}
       {(tournamentPhase === 'running' || tournamentPhase === 'finale') && activeHeat && (
         <div ref={activeHeatRef} className="mb-8">
@@ -211,42 +415,8 @@ export function BracketTree({
         </div>
       )}
 
-      {/* 2. HEATS Section - Beamer-optimiert Container */}
-      <div className="bracket-beamer-container mb-6">
-        <HeatsSection
-          fullBracket={fullBracketStructure}
-          heats={heats}
-          pilots={pilots}
-          onHeatClick={handleHeatClick}
-        />
-      </div>
-
-      {/* 3. WINNER BRACKET Section */}
-      <WinnerBracketSection
-        fullBracket={fullBracketStructure}
-        pilots={pilots}
-        heats={heats}
-        winnerPool={winnerPool}
-        onHeatClick={handleHeatClick}
-      />
-
-      {/* 4. LOSER BRACKET Section */}
-      <LoserBracketSection
-        fullBracket={fullBracketStructure}
-        pilots={pilots}
-        heats={heats}
-        loserPool={loserPool}
-        hasActiveWBHeats={hasActiveWBHeats}
-        onHeatClick={handleHeatClick}
-      />
-
-      {/* 5. GRAND FINALE Section - at the very bottom */}
-      <GrandFinaleSection
-        fullBracket={fullBracketStructure}
-        pilots={pilots}
-        heats={heats}
-        grandFinalePool={grandFinalePool}
-      />
+      {/* 2. UNIFIED BRACKET TREE (AC1: Ein zusammenhängender Container) */}
+      {renderUnifiedBracketTree()}
 
       {/* Heat Detail Modal */}
       {selectedHeatData && (

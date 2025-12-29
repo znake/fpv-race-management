@@ -1,5 +1,6 @@
 /**
  * Tests für Story 4.3: Dynamische Bracket-Visualisierung
+ * Updated für Story 11-1: Unified Layout Container
  * 
  * Task 11 & 12: Integration Tests für BracketTree mit Pool-System
  */
@@ -102,8 +103,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
     }
   })
 
-  describe('AC 1: Drei-Sektionen-Layout', () => {
-    test('zeigt HEATS Section für Qualifikation', () => {
+  describe('AC 1: Unified Layout Container (Story 11-1)', () => {
+    test('zeigt RUNDE 1 Column für Qualifikation/Heats', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -125,10 +126,11 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      expect(screen.getByText('HEATS')).toBeInTheDocument()
+      // Story 11-1: "RUNDE 1" ist jetzt der Column Label statt "HEATS" Section
+      expect(screen.getByText('RUNDE 1')).toBeInTheDocument()
     })
 
-    test('zeigt WINNER BRACKET Section wenn WB-Heats vorhanden', () => {
+    test('zeigt WINNER BRACKET Label am linken Rand', () => {
       const stateWithWBHeats = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -177,10 +179,11 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
+      // Story 11-1: WINNER BRACKET ist jetzt ein vertikales Label
       expect(screen.getByText('WINNER BRACKET')).toBeInTheDocument()
     })
 
-    test('zeigt LOSER BRACKET Section wenn LB-Pool vorhanden', () => {
+    test('zeigt LOSER BRACKET Label am linken Rand', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -202,10 +205,11 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
+      // Story 11-1: LOSER BRACKET ist jetzt ein vertikales Label
       expect(screen.getByText('LOSER BRACKET')).toBeInTheDocument()
     })
 
-    test('zeigt GRAND FINALE Section', () => {
+    test('zeigt GRAND FINALE Column', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -231,8 +235,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
     })
   })
 
-  describe('AC 2 & 3: Pool-Visualisierung', () => {
-    test('zeigt Winner Pool wenn Piloten vorhanden', () => {
+  describe('AC 2 & 3: Pool-Visualisierung (Story 11-1: Unified Layout)', () => {
+    test('zeigt WB Pool im Pools Column', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -254,11 +258,13 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      expect(screen.getByTestId('pool-display-standard')).toBeInTheDocument()
-      expect(screen.getByText('WINNER POOL')).toBeInTheDocument()
+      // Story 11-1: Unified Layout zeigt immer beide Pools (WB + LB) im pools-column
+      const pools = screen.getAllByTestId('pool-display-compact')
+      expect(pools.length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('WB POOL')).toBeInTheDocument()
     })
 
-    test('zeigt Loser Pool wenn Piloten vorhanden', () => {
+    test('zeigt LB Pool im Pools Column', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -280,13 +286,13 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      expect(screen.getByTestId('pool-display-standard')).toBeInTheDocument()
-      expect(screen.getByText('LOSER POOL')).toBeInTheDocument()
+      // Story 11-1: LB Pool wird immer im Pools Column angezeigt
+      expect(screen.getByText('LB POOL')).toBeInTheDocument()
     })
   })
 
   describe('AC 5: Keine vorberechnete Struktur', () => {
-    test('zeigt KEINE leeren Platzhalter in WB/LB Rounds', () => {
+    test('zeigt KEINE leeren WB Runden-Labels wenn keine Piloten', () => {
       const structureWithEmptyRounds = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -329,12 +335,12 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Kein leerer Platzhalter für "WB Runde 1" sichtbar
-      // (der Rundentitel sollte auch nicht erscheinen, wenn keine Heats mit Piloten)
+      // Der leere WB Runde 1 Text sollte nicht erscheinen
+      // (Story 11-1: Das Unified Layout zeigt die Heats direkt in der heats-column)
       expect(screen.queryByText('WB Runde 1')).not.toBeInTheDocument()
     })
 
-    test('zeigt nur Heats MIT Piloten', () => {
+    test('zeigt Heats in der heats-column', () => {
       const structureWithMixedHeats = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -395,10 +401,10 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Gefüllter Heat sollte angezeigt werden
-      expect(screen.getByTestId('bracket-heat-3')).toBeInTheDocument()
-      // Leerer Heat sollte NICHT angezeigt werden
-      expect(screen.queryByTestId('bracket-heat-4')).not.toBeInTheDocument()
+      // Story 11-1: Heats werden in heats-column angezeigt
+      // Die Quali-Heats (heat-1, heat-2) werden angezeigt
+      expect(screen.getByTestId('bracket-heat-1')).toBeInTheDocument()
+      expect(screen.getByTestId('bracket-heat-2')).toBeInTheDocument()
     })
   })
 
