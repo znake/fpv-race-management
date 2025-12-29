@@ -1,10 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { PilotCard } from '../src/components/pilot-card'
-import { HeatBox } from '../src/components/heat-box'
 import { Header } from '../src/components/header'
 import type { Pilot } from '../src/lib/schemas'
-import type { Heat } from '../src/stores/tournamentStore'
 
 // Mock pilot data for testing
 const mockPilot: Pilot = {
@@ -14,12 +12,8 @@ const mockPilot: Pilot = {
   instagramHandle: '@test_pilot'
 }
 
-const mockHeat: Heat = {
-  id: 'heat-1',
-  heatNumber: 1,
-  pilotIds: ['1', '2', '3', '4'],
-  status: 'pending'
-}
+// TODO: HeatBox/HeatCard tests need to be rewritten - HeatBox component was removed
+// The current HeatCard component has different props structure
 
 describe('Story 6.2: Beamer-Optimierung', () => {
   describe('AC1: Mindest-Schriftgrößen', () => {
@@ -33,22 +27,6 @@ describe('Story 6.2: Beamer-Optimierung', () => {
       // Instagram Handle: min 16px
       const instagramHandle = screen.getByText('@test_pilot')
       expect(instagramHandle).toHaveClass('text-beamer-caption')
-    })
-
-    it('HeatBox uses beamer-optimized font sizes', () => {
-      render(
-        <div>
-          <HeatBox heat={mockHeat} pilots={[mockPilot]} />
-        </div>
-      )
-      
-      // Heat Titel: min 36px
-      const heatTitle = screen.getByText('HEAT 1')
-      expect(heatTitle).toHaveClass('text-beamer-heat')
-      
-      // Piloten-Info: min 18px
-      const pilotInfo = screen.getByText('Test Pilot')
-      expect(pilotInfo).toHaveClass('text-beamer-body')
     })
 
     it('Header uses beamer-optimized font sizes', () => {
@@ -69,21 +47,6 @@ describe('Story 6.2: Beamer-Optimierung', () => {
       const pilotPhotoContainer = screen.getByAltText('Test Pilot').closest('[class*="w-[120px]"]')
       expect(pilotPhotoContainer).toBeInTheDocument()
       expect(pilotPhotoContainer).toHaveClass('w-[120px]', 'h-[120px]')
-    })
-
-    it('HeatBox shows medium pilot photos (40px)', () => {
-      render(
-        <div>
-          <HeatBox heat={mockHeat} pilots={[mockPilot]} />
-        </div>
-      )
-      
-      // Verify we have pilot photos rendered in HeatBox
-      const pilotPhotos = screen.getAllByAltText('Test Pilot')
-      expect(pilotPhotos.length).toBeGreaterThan(0)
-      
-      // Check that pilot photos exist (size verification via class is complex)
-      expect(pilotPhotos[0]).toBeInTheDocument()
     })
   })
 
@@ -119,18 +82,6 @@ describe('Story 6.2: Beamer-Optimierung', () => {
       expect(screen.getByText('1')).toBeInTheDocument()
       expect(screen.getByText('1')).toBeVisible()
     })
-
-    it('Heat status is always visible', () => {
-      render(
-        <div>
-          <HeatBox heat={mockHeat} pilots={[mockPilot]} />
-        </div>
-      )
-      
-      // Heat title and status should be visible without interaction
-      expect(screen.getByText('HEAT 1')).toBeInTheDocument()
-      expect(screen.getByText(/1\/4 Piloten/)).toBeInTheDocument()
-    })
   })
 
   describe('Integration Tests', () => {
@@ -147,21 +98,6 @@ describe('Story 6.2: Beamer-Optimierung', () => {
       
       // Check status visibility
       expect(screen.getByText('Test Pilot')).toBeVisible()
-    })
-
-    it('All Beamer optimizations work together in HeatBox', () => {
-      render(
-        <div>
-          <HeatBox heat={mockHeat} pilots={[mockPilot]} />
-        </div>
-      )
-      
-      // Check font sizes
-      expect(screen.getByText('HEAT 1')).toHaveClass('text-beamer-heat')
-      expect(screen.getByText('Test Pilot')).toHaveClass('text-beamer-body')
-      
-      // Check status visibility
-      expect(screen.getByText(/1\/4 Piloten/)).toBeVisible()
     })
 
     it('Beamer font sizes are properly configured in Tailwind', () => {

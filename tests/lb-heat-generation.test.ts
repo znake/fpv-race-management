@@ -65,7 +65,14 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: ['p1', 'p2', 'p3'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        // REFACTORED: hasActiveWBHeats now uses heats[] not fullBracketStructure
+        heats: [{
+          id: 'wb-heat-1',
+          heatNumber: 1,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          status: 'pending',
+          bracketType: 'winner'
+        }]
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()
@@ -76,7 +83,13 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: ['p1', 'p2', 'p3', 'p4'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: [{
+          id: 'wb-heat-1',
+          heatNumber: 1,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          status: 'pending',
+          bracketType: 'winner'
+        }]
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()
@@ -87,7 +100,13 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: [{
+          id: 'wb-heat-1',
+          heatNumber: 1,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          status: 'pending',
+          bracketType: 'winner'
+        }]
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()
@@ -98,7 +117,14 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: ['p1', 'p2', 'p3'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: false }) as any
+        // No pending/active WB heats
+        heats: [{
+          id: 'wb-heat-1',
+          heatNumber: 1,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          status: 'completed',
+          bracketType: 'winner'
+        }]
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()
@@ -109,7 +135,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: [],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: []
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()

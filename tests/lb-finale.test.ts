@@ -592,39 +592,40 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
 
   describe('Task 6: generateGrandFinale() - AC3', () => {
     it('should generate Grand Finale with 2 pilots: WB Winner + LB Winner', () => {
-      const bracketStructure = {
-        qualification: { heats: [] },
-        winnerBracket: {
-          rounds: [{
-            heats: [{
-              id: 'wb-finale-heat',
-              pilotIds: ['p1', 'p2', 'p3', 'p4'],
-              status: 'completed',
-              roundNumber: 3,
-              bracketType: 'winner',
-              sourceHeats: [],
-              position: { x: 0, y: 0 }
-            }]
-          }]
-        },
-        loserBracket: { rounds: [] },
-        grandFinale: {
-          id: 'grand-finale-placeholder',
-          heatNumber: 11,
-          pilotIds: ['p1', 'p5'], // WB Winner (p1) + LB Winner (p5)
-          status: 'pending',
-          roundNumber: 99,
-          bracketType: 'finale',
-          sourceHeats: [],
-          position: { x: 0, y: 0 }
-        }
-      }
-
+      // REFACTORED: generateGrandFinale now uses heats[] directly
       useTournamentStore.setState({
         heats: [
-          { id: 'wb-finale-heat', heatNumber: 10, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'completed' }
-        ],
-        fullBracketStructure: bracketStructure as any
+          { 
+            id: 'wb-finale-heat', 
+            heatNumber: 1, 
+            pilotIds: ['p1', 'p2'], 
+            status: 'completed',
+            bracketType: 'winner',
+            isFinale: true,
+            results: {
+              rankings: [
+                { pilotId: 'p1', rank: 1 },
+                { pilotId: 'p2', rank: 2 }
+              ],
+              completedAt: new Date().toISOString()
+            }
+          },
+          {
+            id: 'lb-finale-heat',
+            heatNumber: 2,
+            pilotIds: ['p5', 'p6'],
+            status: 'completed',
+            bracketType: 'loser',
+            isFinale: true,
+            results: {
+              rankings: [
+                { pilotId: 'p5', rank: 1 },
+                { pilotId: 'p6', rank: 2 }
+              ],
+              completedAt: new Date().toISOString()
+            }
+          }
+        ]
       })
 
       const { generateGrandFinale } = useTournamentStore.getState()
@@ -639,40 +640,41 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
     })
 
     it('should set tournament phase to finale when generating Grand Finale', () => {
-      const bracketStructure = {
-        qualification: { heats: [] },
-        winnerBracket: {
-          rounds: [{
-            heats: [{
-              id: 'wb-finale-heat',
-              pilotIds: ['p1', 'p2', 'p3', 'p4'],
-              status: 'completed',
-              roundNumber: 3,
-              bracketType: 'winner',
-              sourceHeats: [],
-              position: { x: 0, y: 0 }
-            }]
-          }]
-        },
-        loserBracket: { rounds: [] },
-        grandFinale: {
-          id: 'grand-finale-placeholder',
-          heatNumber: 11,
-          pilotIds: ['p1', 'p5'],
-          status: 'pending',
-          roundNumber: 99,
-          bracketType: 'finale',
-          sourceHeats: [],
-          position: { x: 0, y: 0 }
-        }
-      }
-
+      // REFACTORED: generateGrandFinale now uses heats[] directly
       useTournamentStore.setState({
         heats: [
-          { id: 'wb-finale-heat', heatNumber: 10, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'completed' }
+          { 
+            id: 'wb-finale-heat', 
+            heatNumber: 1, 
+            pilotIds: ['p1', 'p2'], 
+            status: 'completed',
+            bracketType: 'winner',
+            isFinale: true,
+            results: {
+              rankings: [
+                { pilotId: 'p1', rank: 1 },
+                { pilotId: 'p2', rank: 2 }
+              ],
+              completedAt: new Date().toISOString()
+            }
+          },
+          {
+            id: 'lb-finale-heat',
+            heatNumber: 2,
+            pilotIds: ['p5', 'p6'],
+            status: 'completed',
+            bracketType: 'loser',
+            isFinale: true,
+            results: {
+              rankings: [
+                { pilotId: 'p5', rank: 1 },
+                { pilotId: 'p6', rank: 2 }
+              ],
+              completedAt: new Date().toISOString()
+            }
+          }
         ],
-        tournamentPhase: 'running',
-        fullBracketStructure: bracketStructure as any
+        tournamentPhase: 'running'
       })
 
       const { generateGrandFinale } = useTournamentStore.getState()
@@ -682,15 +684,19 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
       expect(state.tournamentPhase).toBe('finale')
     })
 
-    it('should return null when grandFinale in bracket structure is null', () => {
+    it('should return null when WB or LB Finale not completed', () => {
+      // REFACTORED: generateGrandFinale now requires completed WB and LB Finale heats
       useTournamentStore.setState({
-        heats: [],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: { rounds: [] },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+        heats: [
+          { 
+            id: 'wb-finale-heat', 
+            heatNumber: 1, 
+            pilotIds: ['p1', 'p2'], 
+            status: 'pending', // NOT completed
+            bracketType: 'winner',
+            isFinale: true
+          }
+        ]
       })
 
       const { generateGrandFinale } = useTournamentStore.getState()
