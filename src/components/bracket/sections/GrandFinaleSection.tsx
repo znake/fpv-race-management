@@ -14,10 +14,11 @@ export function GrandFinaleSection({
   grandFinalePool
 }: GrandFinaleSectionProps) {
   // Find actual Grand Finale heat from heats array (dynamically created)
+  // WICHTIG: Nur grand_finale oder finale bracketType matchen, NICHT isFinale
+  // da WB Finale und LB Finale auch isFinale=true haben
   const grandFinaleHeat = heats.find(h =>
     h.bracketType === 'grand_finale' ||
-    h.bracketType === 'finale' ||
-    h.isFinale === true
+    h.bracketType === 'finale'
   )
 
   // Show section if there's a GF heat OR pilots in GF pool OR bracket structure has GF
