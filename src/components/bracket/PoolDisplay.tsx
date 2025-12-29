@@ -69,13 +69,14 @@ export function PoolDisplay({
   const isReady = pilotIds.length >= threshold
   const glowClass = isReady && isGF ? 'shadow-glow-gold' : isReady ? 'shadow-glow-green' : ''
 
+  // Story 11-5 AC5: Pools haben IMMER dashed border um sie von Heats zu unterscheiden
+  // Heats haben solid border, Pools haben dashed border
   return (
     <div
       className={cn(
-        'bg-night border-2 rounded-xl p-4 min-w-[180px]',
+        'bg-night border-2 border-dashed rounded-xl p-4 min-w-[180px]',
         borderClass,
         glowClass,
-        !isReady && 'border-dashed',
         className
       )}
       data-testid={`pool-display-${variant}`}

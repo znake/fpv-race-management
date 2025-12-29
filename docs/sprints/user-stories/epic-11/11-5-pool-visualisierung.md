@@ -1,6 +1,6 @@
 # Story 11.5: Pool-Visualisierung im Bracket
 
-**Status:** ready
+**Status:** review
 **Created:** 2025-12-28
 **Story Points:** 3 (S-Shirt - Komponenten-Anpassung + Positionierung)
 **Mockup:** [bracket-tree-mockup.html](../../../design/bracket-tree-mockup.html)
@@ -100,13 +100,13 @@ Pools haben einen **gestrichelten Border** (dashed) um sie von aktiven Heats zu 
 
 ## Tasks
 
-- [ ] **Task 1:** `PoolBox` Komponente erstellen oder anpassen
-- [ ] **Task 2:** Dashed Border Styling implementieren
-- [ ] **Task 3:** Pool-Positionierung in der Pools-Spalte
-- [ ] **Task 4:** Piloten-Avatare als kleine Kreise
-- [ ] **Task 5:** Anzahl-Anzeige
-- [ ] **Task 6:** Leere Pools ausblenden
-- [ ] **Task 7:** Integration mit Epic-9 loserPool State
+- [x] **Task 1:** `PoolBox` Komponente erstellen oder anpassen
+- [x] **Task 2:** Dashed Border Styling implementieren
+- [x] **Task 3:** Pool-Positionierung in der Pools-Spalte
+- [x] **Task 4:** Piloten-Avatare als kleine Kreise
+- [x] **Task 5:** Anzahl-Anzeige
+- [x] **Task 6:** Leere Pools ausblenden
+- [x] **Task 7:** Integration mit Epic-9 loserPool State
 
 ## Zu ändernde Dateien
 
