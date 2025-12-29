@@ -11,12 +11,12 @@ Als Entwickler möchte ich eine einheitliche ID-Generierung für alle Entitäten
 
 ## Akzeptanzkriterien
 
-- [ ] AC1: Utility-Funktion `generateId(prefix: string): string` in `utils.ts` erstellt
-- [ ] AC2: Alle Heat-IDs nutzen Format `{prefix}-{uuid}` (z.B. `quali-heat-abc123...`, `wb-heat-abc123...`)
-- [ ] AC3: `crypto.randomUUID()` Aufrufe in tournamentStore.ts nutzen `generateId()`
-- [ ] AC4: `Date.now()` basierte IDs werden durch UUID ersetzt
-- [ ] AC5: Bracket-Heats in `bracket-structure-generator.ts` nutzen `generateId('bracket')`
-- [ ] AC6: Alle Tests laufen weiterhin erfolgreich
+- [x] AC1: Utility-Funktion `generateId(prefix: string): string` in `utils.ts` erstellt
+- [x] AC2: Alle Heat-IDs nutzen Format `{prefix}-{uuid}` (z.B. `quali-heat-abc123...`, `wb-heat-abc123...`)
+- [x] AC3: `crypto.randomUUID()` Aufrufe in tournamentStore.ts nutzen `generateId()`
+- [x] AC4: `Date.now()` basierte IDs werden durch UUID ersetzt
+- [x] AC5: Bracket-Heats in `bracket-structure-generator.ts` nutzen `generateId('bracket')`
+- [x] AC6: Alle Tests laufen weiterhin erfolgreich
 
 ## Technische Details
 
@@ -130,9 +130,107 @@ export function generateId(prefix?: string): string {
 
 1. `npm test` - alle Tests müssen grün bleiben
 2. Prüfe ID-Format in laufender App:
-   - Neuen Piloten hinzufügen → ID prüfen
-   - Turnier starten → Heat-IDs prüfen
+    - Neuen Piloten hinzufügen → ID prüfen
+    - Turnier starten → Heat-IDs prüfen
 3. Prüfe dass keine `Date.now()` IDs mehr generiert werden:
    ```bash
    grep -r "Date.now()" src/ | grep -v node_modules
    ```
+
+---
+
+## Dev Agent Record
+
+### Implementation Plan
+
+1. **RED Phase:** Created comprehensive tests for `generateId()` function
+2. **GREEN Phase:** Implemented `generateId(prefix?: string): string` in `utils.ts`
+3. **REFACTOR Phase:** Migrated all ID generation sites to use `generateId()`
+
+### Completion Notes
+
+✅ **AC1:** `generateId()` Funktion in `src/lib/utils.ts` erstellt
+- Funktion generiert UUID mit optionalem Prefix
+- Format: `{prefix}-{uuid}` oder nur `{uuid}` bei leerem Prefix
+- Volle UUID (36 Zeichen) verwendet für bessere Sicherheit
+
+✅ **AC2:** Alle Heat-IDs nutzen `{prefix}-{uuid}` Format
+- Quali-Heats: `quali-{uuid}`
+- WB-Heats: `wb-{uuid}`
+- LB-Heats: `lb-{uuid}`
+- WB-Finale: `wb-finale-{uuid}`
+- LB-Finale: `lb-finale-{uuid}`
+- Bracket-Heats: `bracket-{uuid}`
+
+✅ **AC3:** `crypto.randomUUID()` Aufrufe in tournamentStore.ts ersetzt
+- `addPilot()`: `generateId('pilot')` statt `crypto.randomUUID()`
+- `generateHeats()`: `generateId('quali')` für Quali-Heats
+- `generateLBFinale()`: `generateId('lb-finale')` statt `crypto.randomUUID()`
+- `generateLBHeat()`: `generateId('lb')` statt Template String
+- `generateWBHeatFromPool()`: `generateId('wb')` statt Template String
+- `generateWBFinale()`: `generateId('wb-finale')` statt Template String
+
+✅ **AC4:** `Date.now()` basierte IDs durch UUID ersetzt
+- `generateWBHeatFromPool()`: War `wb-heat-${Date.now()}-${Math.random()...}`
+- `generateWBFinale()`: War `wb-finale-${Date.now()}`
+- Alle `Date.now()` Aufrufe entfernt, verifiziert via `grep -r "Date.now()" src/`
+
+✅ **AC5:** Bracket-Heats in `bracket-structure-generator.ts` nutzen `generateId('bracket')`
+- War: `const generateHeatId = () => \`bracket-heat-${heatCounter++}\``
+- Jetzt: `const generateHeatId = () => generateId('bracket')`
+- Counter `heatCounter` weiterhin für `heatNumber` Feld beibehalten
+
+✅ **AC6:** Alle Tests laufen weiterhin erfolgreich
+- Neue Tests: `tests/generate-id.test.ts` (6 Tests, alle grün)
+- Bestehende Tests: Keine Regressions festgestellt
+- Build: TypeScript-Kompilierung erfolgreich
+
+### Technical Decisions
+
+1. **Volle UUID statt Short-ID**: Story bietet Short-ID Option, aber volle UUID gewählt für:
+   - Bessere Kollisionssicherheit
+   - Industry Standard (RFC 4122)
+   - Einfache Implementierung ohne zusätzliche Logik
+
+2. **Prefix-Schema konsistent mit Story-Spezifikation**:
+   - Pilot: `pilot-{uuid}`
+   - Quali: `quali-{uuid}` (nicht `quali-heat-{uuid}` - verkürzt für Lesbarkeit)
+   - WB: `wb-{uuid}`
+   - LB: `lb-{uuid}`
+   - Finale: `{bracket}-finale-{uuid}`
+   - Bracket: `bracket-{uuid}`
+
+3. **Counter weiterhin für heatNumber**: bracket-structure-generator.ts nutzt weiterhin Counter für `heatNumber` Feld, da dies für Heat-Reihenfolge in UI relevant ist, nicht für ID-Eindeutigkeit.
+
+### Test Coverage
+
+- ✅ Unit Tests für `generateId()`: 6 Tests
+  - UUID ohne Prefix
+  - UUID mit Prefix
+  - Eindeutigkeit (1000 IDs ohne Kollision)
+  - Verschiedene Entity-Präfixe
+  - Hyphenated Prefixes
+  - Leerer Prefix
+
+---
+
+## File List
+
+### Geänderte Dateien
+
+- `src/lib/utils.ts` - `generateId()` Funktion hinzugefügt
+- `src/stores/tournamentStore.ts` - Alle ID-Generierung zu `generateId()` migriert
+- `src/lib/bracket-structure-generator.ts` - Bracket-Heat-ID-Generierung zu `generateId('bracket')` migriert
+
+### Neue Dateien
+
+- `tests/generate-id.test.ts` - Tests für `generateId()` Funktion
+
+---
+
+## Status: Ready for Review
+
+**Datum:** 2025-12-26
+**Implementierung:** Abgeschlossen
+**Tests:** Alle bestanden
+**Build:** Erfolgreich

@@ -55,10 +55,10 @@ Thomas kann ein Turnier starten mit automatischer Heat-Aufteilung (3er/4er Heats
 
 ### Epic 4: Heat-Durchführung & Bracket
 
-Thomas kann Ergebnisse per Toggle-to-Rank eingeben (2 Klicks + Fertig), Bracket aktualisiert automatisch mit Winner/Loser-Zuordnung und On-Deck Vorschau. Platzierungen werden in Heat-Übersicht und Brackets angezeigt und sortiert.
+Thomas kann Ergebnisse per Toggle-to-Rank eingeben (2 Klicks + Fertig), Bracket aktualisiert automatisch mit Winner/Loser-Zuordnung und On-Deck Vorschau. Platzierungen werden in Heat-Übersicht und Brackets angezeigt und sortiert. Das Bracket wird als klassische horizontale Baumstruktur mit SVG-Verbindungslinien dargestellt.
 
 **FRs covered:** FR11, FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR19, FR20, FR21  
-**Stories:** US-4.1, US-4.2, US-4.3, US-4.4
+**Stories:** US-4.1, US-4.2, US-4.3, US-4.4, US-4.5 (SVG-Baumstruktur)
 
 ---
 
@@ -110,6 +110,94 @@ Refactoring des Loser Brackets von vorberechneter Struktur zu dynamischem Pool-S
 
 ---
 
+### Epic 10: Code-Konsolidierung (Refactoring)
+
+Technische Schulden abbauen durch Konsolidierung redundanter Logik für Heat-Generierung, Grand Finale und Zustandsmanagement.
+
+**Quelle:** Technische Analyse (2025-12-23)  
+**Stories:** US-10.1, US-10.2, US-10.3  
+**MVP:** ⚠️ Should – Technische Stabilität
+
+---
+
+### Epic 11: Unified Bracket Tree Visualisierung
+
+Das aktuelle Bracket-Layout mit getrennten Sections (WB/LB/Grand Finale) wird durch einen **zusammenhängenden visuellen Turnierbraum** ersetzt. Alle Heats werden in einer horizontalen Baumstruktur dargestellt, verbunden durch farbcodierte SVG-Linien, die den Turnierfluss zeigen.
+
+**Vision:** Zuschauer (auf Beamer) verstehen auf einen Blick: Wer fliegt gegen wen? Wohin führt dieser Heat? Wer kommt weiter, wer ist raus?
+
+**Mockup-Referenz:** [`docs/design/bracket-tree-mockup.html`](design/bracket-tree-mockup.html)
+
+#### Akzeptanzkriterien (Epic-Level)
+
+1. **Zusammenhängendes Layout**
+   - Alle Heats (WB + LB + Grand Finale) in EINEM visuellen Container
+   - Keine getrennten Sections mit eigenem Border mehr
+   - Horizontales Layout: Pools → Runde 1 → Finale → Grand Finale
+
+2. **SVG Verbindungslinien**
+   - Grüne Linien für Winner Bracket Verbindungen (mit Glow-Effekt)
+   - Rote Linien für Loser Bracket Verbindungen (mit Glow-Effekt)
+   - Goldene Linien für Verbindungen zum Grand Finale (dicker, mit Glow)
+   - Linien werden dynamisch basierend auf Bracket-Struktur generiert
+
+3. **Farbcodierung der Platzierungen**
+   - Platz 1 + 2: Grüner Hintergrund + grüner linker Border (Weiterkommer)
+   - Platz 3 + 4: Roter Hintergrund + roter linker Border (Eliminiert/zum LB)
+   - Sofort erkennbar wer weiterkommt
+
+4. **Heat-Status Indikatoren**
+   - Checkmark (✓) bei abgeschlossenen Heats im Header
+   - Kein Badge bei noch nicht abgeschlossenen Heats (visuell neutral)
+
+5. **Pool-Integration**
+   - WB Pool: Mittig positioniert zwischen Winner Bracket Heats (Runde 1)
+   - LB Pool: Mittig positioniert zwischen Loser Bracket Heats (Runde 1)
+   - Gestrichelte Border (dashed) zur Unterscheidung von aktiven Heats
+
+6. **Grand Finale Herkunfts-Tags**
+   - Piloten im Grand Finale zeigen "WB" (grün) oder "LB" (rot) Tag
+   - Zeigt woher jeder Finalist kommt
+
+7. **Legende**
+   - Erklärt alle Farbcodierungen für Zuschauer
+   - Am unteren Rand des Brackets
+
+8. **Performance & Responsiveness**
+   - Smooth Rendering auf typischen Beamer-Laptops
+   - Horizontales Scrolling auf kleineren Bildschirmen
+   - Minimum-Breite definiert für lesbare Darstellung
+
+#### Mögliche User Stories (zur Verfeinerung mit SM)
+
+| ID | Titel | Beschreibung |
+|----|-------|--------------|
+| US-11.1 | Unified Layout Container | Von getrennten Sections zu einem zusammenhängenden Bracket-Container |
+| US-11.2 | SVG Verbindungslinien | Dynamische Liniengenerierung mit Farbcodierung (WB/LB/GF) und Glow |
+| US-11.3 | Platzierungs-Farbcodierung | Grün/Rot Hintergrund für Weiterkommer/Eliminierte in Heat-Boxen |
+| US-11.4 | Heat-Status Indikatoren | ✓ für abgeschlossene Heats, kein Badge für wartende |
+| US-11.5 | Pool-Visualisierung | Pools mittig zwischen zugehörigen Heats mit dashed Border |
+| US-11.6 | Grand Finale Tags | WB/LB Herkunfts-Tags für Finalisten |
+| US-11.7 | Legende | Farbcodierungs-Erklärung für Zuschauer |
+
+#### Technische Hinweise
+
+- SVG-Linien müssen dynamisch berechnet werden basierend auf DOM-Positionen der Heat-Boxen
+- Glow-Effekte via CSS `filter: drop-shadow()` oder SVG `<filter>`
+- Pools müssen dynamisch positioniert werden basierend auf LB-Pool-State (Epic 9)
+- Berücksichtigung von verschiedenen Bracket-Größen (8-60 Piloten)
+
+#### Abhängigkeiten
+
+- **Epic 9 (LB Pooling)** muss abgeschlossen sein für korrekte Pool-Darstellung
+- **Epic 4 (Heat-Durchführung)** liefert die Daten für Status-Indikatoren
+
+**FRs covered:** FR20 (Farbcodierung), FR27 (Bracket-Tab) – Enhancement  
+**Stories:** US-11.1 bis US-11.7 (7 Stories geschätzt)  
+**MVP:** ⚠️ Should – Signifikantes UX-Upgrade für Zuschauer-Erlebnis
+
+---
+
 ## Epics-Übersicht
 
 | Epic | Beschreibung | FRs | MVP? | Stories |
@@ -117,12 +205,14 @@ Refactoring des Loser Brackets von vorberechneter Struktur zu dynamischem Pool-S
 | **Epic 1** | Piloten-Verwaltung | FR1-5 | ✅ Must | 3 |
 | **Epic 2** | Synthwave Visual Design | FR36 | ✅ Must | 3 |
 | **Epic 3** | Turnier-Setup & Heat-Aufteilung | FR6-10 | ✅ Must | 3 |
-| **Epic 4** | Heat-Durchführung & Bracket | FR11-21 | ✅ Must | 4 |
+| **Epic 4** | Heat-Durchführung & Bracket | FR11-21 | ✅ Must | 5 |
 | **Epic 5** | Finale & Siegerehrung | FR22-25 | ✅ Must | 1 |
 | **Epic 6** | Navigation & Beamer-Optimierung | FR26-31 | ✅ Must | 2 |
 | **Epic 7** | Offline & Persistenz + Reset | FR32-35 | ✅ Must | 1 |
 | **Epic 8** | Zeiterfassung | FR37-40 | ❌ Growth | 2 |
 | **Epic 9** | Loser Bracket Pooling | CP-LB | ✅ Must | 3 |
+| **Epic 10** | Code-Konsolidierung (Refactoring) | Tech Debt | ⚠️ Should | 3 |
+| **Epic 11** | Unified Bracket Tree Visualisierung | FR20, FR27+ | ⚠️ Should | 7 |
 
 ## FR Coverage Map
 
@@ -175,3 +265,4 @@ Refactoring des Loser Brackets von vorberechneter Struktur zu dynamischem Pool-S
 2. **Sprint 2:** Epic 3 (Turnier-Setup) + Epic 4 (Heat & Bracket)
 3. **Sprint 3:** Epic 5 (Finale) + Epic 6 (Navigation) + Epic 7 (Persistenz)
 4. **Sprint 4:** Epic 9 (Loser Bracket Pooling) – Critical Bug Fix
+5. **Sprint 5:** Epic 10 (Refactoring) + Epic 11 (Unified Bracket Tree) – UX Enhancement
