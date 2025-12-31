@@ -141,14 +141,14 @@ development_status:
   # Source: Epic-Definition in epics.md
   # Zusammenhängender visueller Turnierbaum mit SVG-Linien
   # Abhängigkeit: Epic 9 (LB Pooling) - abgeschlossen
-  epic-11: in-progress
-  11-1-unified-layout-container: review
-  11-2-svg-verbindungslinien: review
-  11-3-platzierungs-farbcodierung: review
-  11-4-heat-status-indikatoren: review
-  11-5-pool-visualisierung: review
-  11-6-grand-finale-tags: review
-  11-7-legende: review
+epic-11: done
+   11-1-unified-layout-container: done
+   11-2-svg-verbindungslinien: done
+   11-3-platzierungs-farbcodierung: done
+   11-4-heat-status-indikatoren: done
+   11-5-pool-visualisierung: done
+   11-6-grand-finale-tags: done
+   11-7-legende: done
   epic-11-retrospective: optional
 
   # =============================================================================
