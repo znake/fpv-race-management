@@ -107,29 +107,43 @@ export function getHeatBorderClasses(status: string, isRecommended?: boolean): s
  * Story 11-3: Get CSS class for pilot row based on placement in completed heat
  * 
  * Color coding:
- * - 'top': Green background/border for rank 1+2 (Weiterkommer)
- * - 'bottom': Red background/border for rank 3+4 (Eliminiert)
+ * - 'top': Green background/border for Weiterkommer
+ * - 'bottom': Red background/border for Eliminiert
  * - 'champ': Gold background/border for rank 1 in Grand Finale (Champion)
+ * 
+ * Rules:
+ * - Qualification & Regular Heats: Rank 1+2 = green, Rank 3+4 = red
+ * - WB/LB Finale (isFinale=true): Nur Rank 1 = green (geht ins Grand Finale), Rank 2 = rot
+ * - Grand Finale: Rank 1 = gold (Champion), Rank 2 = silver (kein rot)
  * 
  * @param rank - Pilot's rank in the heat (1-4)
  * @param heatStatus - Current heat status
  * @param isGrandFinale - Whether this is the grand finale
+ * @param isFinale - Whether this is a WB or LB finale (only rank 1 advances)
  * @returns CSS class name ('top', 'bottom', 'champ', or '')
  */
 export function getPilotRowClass(
   rank: number,
   heatStatus: string,
-  isGrandFinale: boolean
+  isGrandFinale: boolean,
+  isFinale?: boolean
 ): string {
   // Only apply color coding for completed heats
   if (heatStatus !== 'completed') return ''
   
-  // Grand Finale: Champion (rank 1) gets gold
-  if (isGrandFinale && rank === 1) return 'champ'
+  // Grand Finale: Champion (rank 1) gets gold, rank 2 gets no special color (silver podium)
+  if (isGrandFinale) {
+    if (rank === 1) return 'champ'
+    return '' // Kein rot für Platz 2 im Grand Finale
+  }
   
-  // Rank 1+2: Weiterkommer (green)
+  // WB Finale / LB Finale: Nur Platz 1 geht ins Grand Finale weiter
+  if (isFinale) {
+    if (rank === 1) return 'top'
+    return 'bottom' // Platz 2+ ist raus (wird automatisch Platz 3 bzw 4)
+  }
+  
+  // Regular heats (Quali, WB, LB): Rank 1+2 weiter, 3+4 raus
   if (rank <= 2) return 'top'
-  
-  // Rank 3+4: Eliminiert (red)
   return 'bottom'
 }

@@ -25,6 +25,7 @@ export interface HeatCardProps {
   // Bracket-spezifische Props
   bracketType?: BracketType
   displayHeatNumber?: number
+  isFinale?: boolean // WB/LB Finale - nur Platz 1 geht weiter
 
   // Interaktion
   onClick?: () => void
@@ -51,6 +52,7 @@ export function HeatCard({
   isRecommended,
   bracketType,
   displayHeatNumber,
+  isFinale,
   onClick,
   onEdit,
   swapMode = false,
@@ -96,6 +98,7 @@ export function HeatCard({
           results={results}
           status={status}
           bracketType={bracketType}
+          isFinale={isFinale}
           onClick={onClick}
           onEdit={onEdit}
           className={className}
@@ -109,6 +112,7 @@ export function HeatCard({
           results={results}
           status={status}
           bracketType={bracketType}
+          isFinale={isFinale}
           onClick={onClick}
           className={className}
         />
@@ -196,12 +200,15 @@ function EmptyVariant({
 }
 
 // Variant: Bracket (Kompakte Ansicht für Bracket)
+// Story 11-3: Added placement color coding
+// Story 11-4: Added status indicator
 function BracketVariant({
   heatNumber,
   sortedPilots,
   results,
   status,
   bracketType,
+  isFinale,
   onClick,
   onEdit,
   className,
@@ -211,59 +218,101 @@ function BracketVariant({
   results?: HeatResults
   status: 'empty' | 'pending' | 'active' | 'completed'
   bracketType?: BracketType
+  isFinale?: boolean
   onClick?: () => void
   onEdit?: () => void
   className?: string
 }) {
-  const borderClass = {
-    empty: 'border-steel border-dashed',
-    pending: 'border-steel border-dashed',
-    active: 'border-neon-cyan shadow-glow-cyan',
-    completed: 'border-winner-green shadow-glow-green'
-  }[status] || 'border-steel'
+  // Border color based on bracket type (not status) - matching mockup
+  const getBorderClass = () => {
+    // Active status overrides bracket type
+    if (status === 'active') return 'border-neon-cyan shadow-glow-cyan'
+    
+    // Grand Finale always gold
+    if (bracketType === 'finale') {
+      return 'border-gold shadow-glow-gold'
+    }
+    
+    // Loser bracket = red
+    if (bracketType === 'loser') {
+      return status === 'completed' || status === 'pending' 
+        ? 'border-loser-red shadow-glow-red' 
+        : 'border-loser-red/50 border-dashed'
+    }
+    
+    // Winner bracket = green (default)
+    return status === 'completed' || status === 'pending'
+      ? 'border-winner-green shadow-glow-green'
+      : 'border-winner-green/50 border-dashed'
+  }
 
   const bgClass = bracketType === 'finale'
-    ? 'bg-void border-gold shadow-glow-gold'
-    : bracketType === 'winner'
-    ? 'bg-night'
-    : bracketType === 'loser'
-    ? 'bg-night'
-    : 'bg-night'
+    ? 'bg-void'
+    : 'bg-night-light'
+
+  // Status indicator class based on bracket type
+  const getStatusIndicatorClass = () => {
+    if (bracketType === 'finale') return 'heat-status gf'
+    if (bracketType === 'loser') return 'heat-status lb'
+    return 'heat-status' // Default: winner (green)
+  }
+
+  // Check if grand finale for champion highlighting
+  const isGrandFinale = bracketType === 'finale'
 
   return (
     <div
       className={cn(
         bgClass,
         'border-2',
-        borderClass,
+        getBorderClass(),
         'rounded-xl p-3 min-w-[180px] cursor-pointer hover:scale-105 transition-transform',
         className
       )}
       onClick={onClick}
       data-testid={`bracket-heat-${heatNumber}`}
     >
-      {/* Header */}
+      {/* Header with status indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className="font-display text-beamer-body text-chrome">
           HEAT {heatNumber}
         </span>
-        {status === 'completed' && onEdit && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="text-steel hover:text-neon-cyan p-1"
-          >
-            ✏️
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {/* Status indicator for completed heats */}
+          {status === 'completed' && (
+            <span className={getStatusIndicatorClass()} data-testid="heat-status-indicator">
+              ✓
+            </span>
+          )}
+          {status === 'completed' && onEdit && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="text-steel hover:text-neon-cyan p-1"
+            >
+              ✏️
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Pilots */}
-      <div className="space-y-2">
+      {/* Pilots with placement color coding */}
+      <div className="space-y-1">
         {sortedPilots.map((pilot) => {
           const ranking = results?.rankings.find((r) => r.pilotId === pilot.id)
+          // Get placement class for completed heats
+          // isFinale = WB/LB Finale (nur Platz 1 geht weiter)
+          const placementClass = ranking 
+            ? getPilotRowClass(ranking.rank, status, isGrandFinale, isFinale)
+            : ''
 
           return (
-            <div key={pilot.id} className="flex items-center gap-2">
+            <div 
+              key={pilot.id} 
+              className={cn(
+                'pilot-row',
+                placementClass
+              )}
+            >
               <PilotAvatar
                 imageUrl={pilot.imageUrl}
                 name={pilot.name}
@@ -299,6 +348,7 @@ function FilledVariant({
   results,
   status,
   bracketType,
+  isFinale,
   onClick,
   className,
 }: {
@@ -307,6 +357,7 @@ function FilledVariant({
   results?: HeatResults
   status: 'empty' | 'pending' | 'active' | 'completed'
   bracketType?: BracketType
+  isFinale?: boolean
   onClick?: () => void
   className?: string
 }) {
@@ -365,8 +416,9 @@ function FilledVariant({
         {sortedPilots.map((pilot) => {
           const ranking = results?.rankings.find((r) => r.pilotId === pilot.id)
           // Story 11-3: Get placement class for completed heats
+          // isFinale = WB/LB Finale (nur Platz 1 geht weiter)
           const placementClass = ranking 
-            ? getPilotRowClass(ranking.rank, status, isGrandFinale)
+            ? getPilotRowClass(ranking.rank, status, isGrandFinale, isFinale)
             : ''
 
           return (

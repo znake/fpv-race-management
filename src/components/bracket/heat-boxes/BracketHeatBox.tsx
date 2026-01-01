@@ -27,6 +27,7 @@ export function BracketHeatBox({
       results={heat.results}
       status={heat.status}
       bracketType={bracketType}
+      isFinale={heat.isFinale}
       onClick={onClick}
       onEdit={onEdit}
       className={`min-w-[180px] cursor-pointer hover:scale-105 transition-transform ${animationClass}`}

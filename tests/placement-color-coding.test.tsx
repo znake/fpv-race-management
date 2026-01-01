@@ -57,13 +57,27 @@ describe('Story 11-3: Platzierungs-Farbcodierung', () => {
       expect(getPilotRowClass(1, 'completed', true)).toBe('champ')
     })
 
-    it('should return "top" for rank 2 in grand finale', () => {
-      expect(getPilotRowClass(2, 'completed', true)).toBe('top')
+    it('should return empty string for rank 2 in grand finale (no red for 2nd place)', () => {
+      // Grand Finale: Platz 2 bekommt kein rot - ist ja Silber-Podium
+      expect(getPilotRowClass(2, 'completed', true)).toBe('')
     })
 
-    it('should return "bottom" for rank 3 and 4 in grand finale', () => {
-      expect(getPilotRowClass(3, 'completed', true)).toBe('bottom')
-      expect(getPilotRowClass(4, 'completed', true)).toBe('bottom')
+    it('should return empty string for rank 3 and 4 in grand finale', () => {
+      // Grand Finale hat normalerweise nur 2 Piloten, aber falls mehr: keine Farbe
+      expect(getPilotRowClass(3, 'completed', true)).toBe('')
+      expect(getPilotRowClass(4, 'completed', true)).toBe('')
+    })
+
+    it('should return "top" only for rank 1 in WB/LB Finale (isFinale=true)', () => {
+      // WB/LB Finale: Nur Platz 1 geht ins Grand Finale
+      expect(getPilotRowClass(1, 'completed', false, true)).toBe('top')
+      expect(getPilotRowClass(2, 'completed', false, true)).toBe('bottom')
+    })
+
+    it('should return "bottom" for rank 2+ in WB/LB Finale', () => {
+      expect(getPilotRowClass(2, 'completed', false, true)).toBe('bottom')
+      expect(getPilotRowClass(3, 'completed', false, true)).toBe('bottom')
+      expect(getPilotRowClass(4, 'completed', false, true)).toBe('bottom')
     })
   })
 
@@ -193,10 +207,9 @@ describe('Story 11-3: Platzierungs-Farbcodierung', () => {
       // Champion (rank 1) should have 'champ' class in finale
       expect(pilotRows[0].classList.contains('champ')).toBe(true)
       
-      // Others should have 'top' or 'bottom' depending on rank
-      expect(pilotRows[1].classList.contains('top')).toBe(true)
-      expect(pilotRows[2].classList.contains('bottom')).toBe(true)
-      expect(pilotRows[3].classList.contains('bottom')).toBe(true)
+      // Grand Finale: Platz 2+ bekommt keine spezielle Farbe (kein rot)
+      expect(pilotRows[1].classList.contains('top')).toBe(false)
+      expect(pilotRows[1].classList.contains('bottom')).toBe(false)
     })
 
     it('should not apply champ class if grand finale is not completed', () => {
@@ -218,6 +231,68 @@ describe('Story 11-3: Platzierungs-Farbcodierung', () => {
       pilotRows.forEach(row => {
         expect(row.classList.contains('champ')).toBe(false)
       })
+    })
+  })
+
+  describe('AC5: WB/LB Finale - nur Platz 1 geht weiter', () => {
+    it('should mark only rank 1 as green in WB Finale (isFinale=true)', () => {
+      const pilots = createTestPilots().slice(0, 2) // WB Finale hat meist nur 2 Piloten
+      const results: HeatResults = {
+        rankings: [
+          { pilotId: 'p1', rank: 1 as RankPosition },
+          { pilotId: 'p2', rank: 2 as RankPosition },
+        ]
+      }
+
+      render(
+        <HeatCard
+          variant="bracket"
+          heatNumber={5}
+          pilots={pilots}
+          pilotIds={['p1', 'p2']}
+          results={results}
+          status="completed"
+          bracketType="winner"
+          isFinale={true}
+        />
+      )
+
+      const pilotRows = document.querySelectorAll('.pilot-row')
+      
+      // Nur Platz 1 ist grün (geht ins Grand Finale)
+      expect(pilotRows[0].classList.contains('top')).toBe(true)
+      // Platz 2 ist rot (wird automatisch Platz 3 im Turnier)
+      expect(pilotRows[1].classList.contains('bottom')).toBe(true)
+    })
+
+    it('should mark only rank 1 as green in LB Finale (isFinale=true)', () => {
+      const pilots = createTestPilots().slice(0, 2)
+      const results: HeatResults = {
+        rankings: [
+          { pilotId: 'p1', rank: 1 as RankPosition },
+          { pilotId: 'p2', rank: 2 as RankPosition },
+        ]
+      }
+
+      render(
+        <HeatCard
+          variant="bracket"
+          heatNumber={7}
+          pilots={pilots}
+          pilotIds={['p1', 'p2']}
+          results={results}
+          status="completed"
+          bracketType="loser"
+          isFinale={true}
+        />
+      )
+
+      const pilotRows = document.querySelectorAll('.pilot-row')
+      
+      // Nur Platz 1 ist grün (geht ins Grand Finale)
+      expect(pilotRows[0].classList.contains('top')).toBe(true)
+      // Platz 2 ist rot (wird automatisch Platz 4 im Turnier)
+      expect(pilotRows[1].classList.contains('bottom')).toBe(true)
     })
   })
 })
