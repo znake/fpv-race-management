@@ -20,7 +20,7 @@
 - **Primary:** docs/architecture.md (6,8K, 14 Dez. 12:53)
 
 #### Epics & Stories Documents
-- **Primary Epics:** docs/epics.md (6,5K, 23 Dez. 19:33)
+- **Primary Epics:** _bmad-output/planning-artifacts/epics.md (6,5K, 23 Dez. 19:33)
 - **Detailed User Stories:** docs/sprints/user-stories/ (all epic folders)
   - epic-1/: Piloten management (3 stories)
   - epic-2/: Synthwave branding & design (3 stories)
@@ -34,11 +34,11 @@
   - epic-refactoring/: Refactoring epic with multiple sub-tasks
 
 #### UX Design Documents
-- **Primary:** docs/design/ux-design-specification.md (47K, 12 Dez. 09:30)
-- **Additional:** docs/design/ux-design-directions.html (HTML guidelines)
+- **Primary:** _bmad-output/planning-artifacts/design/ux-design-specification.md (47K, 12 Dez. 09:30)
+- **Additional:** _bmad-output/planning-artifacts/design/ux-design-directions.html (HTML guidelines)
 
 #### Context Documents
-- docs/project-context.md (8,8K, 14 Dez. 12:56)
+- _bmad-output/planning-artifacts/project-context.md (8,8K, 14 Dez. 12:56)
 
 ### Issues Found
 - **None** - No duplicate documents found, all required document types present
