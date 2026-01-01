@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPV Racing Heats - Vertical Bracket Mockup (Epic 12) - 32 Piloten</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void: #0d0221;
+      --night: #1a0533;
+      --night-light: #2a0845;
+      --neon-pink: #ff2a6d;
+      --neon-cyan: #05d9e8;
+      --gold: #f9c80e;
+      --winner-green: #39ff14;
+      --loser-red: #ff073a;
+      --chrome: #e0e0e0;
+      --steel: #888888;
+      --quali-blue: #00bfff;
+
+      --bg-winner: rgba(57, 255, 20, 0.25);
+      --bg-loser: rgba(255, 7, 58, 0.25);
+
+      --glow-green: 0 0 10px rgba(57, 255, 20, 0.4);
+      --glow-red: 0 0 10px rgba(255, 7, 58, 0.4);
+      --glow-gold: 0 0 15px rgba(249, 200, 14, 0.5);
+      --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
+
+      --heat-width: 140px;
+      --heat-height: 95px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--void);
+      color: var(--chrome);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .synthwave-grid {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 200px;
+      background:
+        linear-gradient(180deg, transparent 0%, var(--void) 100%),
+        repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255, 42, 109, 0.08) 60px, rgba(255, 42, 109, 0.08) 62px),
+        repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255, 42, 109, 0.08) 60px, rgba(255, 42, 109, 0.08) 62px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(136, 136, 136, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+    .logo span { color: var(--neon-pink); }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--neon-cyan);
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: var(--steel);
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    /* ========================================
+       BRACKET CONTAINER
+       ======================================== */
+    .bracket-container {
+      background: var(--night);
+      border-radius: 12px;
+      padding: 25px;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    /* ========================================
+       QUALI SECTION
+       ======================================== */
+    .quali-section {
+      margin-bottom: 35px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid var(--quali-blue);
+    }
+
+    .quali-header {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      color: var(--quali-blue);
+      text-align: center;
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+    }
+
+    .quali-heats {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .flow-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin: 18px 0 0 0;
+      font-size: 11px;
+      color: var(--steel);
+    }
+
+    .flow-indicator span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .flow-indicator .arrow { font-size: 14px; }
+    .flow-indicator .wb-arrow { color: var(--winner-green); }
+    .flow-indicator .lb-arrow { color: var(--loser-red); }
+
+    /* ========================================
+       MAIN BRACKET LAYOUT
+       ======================================== */
+    .bracket-layout {
+      display: flex;
+      gap: 80px;
+      justify-content: center;
+    }
+
+    .bracket-column-header {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-align: center;
+      padding: 8px 20px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      width: 660px;
+    }
+
+    .bracket-column.wb .bracket-column-header {
+      color: var(--winner-green);
+      border: 2px solid var(--winner-green);
+      box-shadow: var(--glow-green);
+      background: rgba(57, 255, 20, 0.08);
+    }
+
+    .bracket-column.lb .bracket-column-header {
+      color: var(--loser-red);
+      border: 2px solid var(--loser-red);
+      box-shadow: var(--glow-red);
+      background: rgba(255, 7, 58, 0.08);
+    }
+
+    .bracket-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ========================================
+       HEAT BOX
+       ======================================== */
+    .heat-box {
+      background: var(--night-light);
+      border: 2px solid var(--winner-green);
+      border-radius: 8px;
+      padding: 6px 8px;
+      width: var(--heat-width);
+      box-shadow: var(--glow-green);
+      position: relative;
+      z-index: 2;
+    }
+
+    .heat-box.lb {
+      border-color: var(--loser-red);
+      box-shadow: var(--glow-red);
+    }
+
+    .heat-box.quali {
+      border-color: var(--quali-blue);
+      box-shadow: var(--glow-blue);
+    }
+
+    .heat-box.gf {
+      border: 3px solid var(--gold);
+      box-shadow: var(--glow-gold);
+      width: 180px;
+      padding: 10px 12px;
+    }
+
+    .heat-header {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 10px;
+      color: var(--chrome);
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 1px;
+    }
+
+    .heat-status {
+      font-size: 7px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--winner-green);
+      color: var(--void);
+      font-weight: 600;
+    }
+
+    .heat-box.lb .heat-status { background: var(--loser-red); }
+    .heat-box.quali .heat-status { background: var(--quali-blue); }
+    .heat-box.gf .heat-status { background: var(--gold); }
+
+    /* ========================================
+       PILOT ROW
+       ======================================== */
+    .pilot-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      margin: 1px 0;
+    }
+
+    .pilot-row.top {
+      background: var(--bg-winner);
+      border-left: 2px solid var(--winner-green);
+    }
+
+    .pilot-row.bottom {
+      background: var(--bg-loser);
+      border-left: 2px solid var(--loser-red);
+    }
+
+    .pilot-row.champ {
+      background: rgba(249, 200, 14, 0.2);
+      border-left: 2px solid var(--gold);
+    }
+
+    .pilot-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--night);
+      border: 1px solid var(--steel);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 6px;
+      color: var(--steel);
+      flex-shrink: 0;
+    }
+
+    .pilot-name {
+      font-size: 9px;
+      color: var(--chrome);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pilot-tag {
+      font-size: 6px;
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+
+    .pilot-tag.wb { background: var(--winner-green); color: var(--void); }
+    .pilot-tag.lb { background: var(--loser-red); color: var(--void); }
+
+    .rank-badge {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 9px;
+      color: var(--void);
+      flex-shrink: 0;
+    }
+
+    .rank-badge.r1 { background: var(--gold); }
+    .rank-badge.r2 { background: #c0c0c0; }
+    .rank-badge.r3 { background: #cd7f32; }
+    .rank-badge.r4 { background: var(--neon-cyan); }
+
+    /* ========================================
+       SVG CONNECTOR LINES
+       ======================================== */
+    .svg-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .line {
+      fill: none;
+      stroke-width: 2px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .line.wb {
+      stroke: var(--winner-green);
+      filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.6));
+    }
+
+    .line.lb {
+      stroke: var(--loser-red);
+      filter: drop-shadow(0 0 4px rgba(255, 7, 58, 0.6));
+    }
+
+    .line.gf {
+      stroke: var(--gold);
+      stroke-width: 3px;
+      filter: drop-shadow(0 0 6px rgba(249, 200, 14, 0.7));
+    }
+
+    /* ========================================
+       GRAND FINALE SECTION
+       ======================================== */
+    .grand-finale-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+      padding-top: 10px;
+      position: relative;
+    }
+
+    .gf-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 4px;
+      color: var(--gold);
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(249, 200, 14, 0.5);
+    }
+
+    /* ========================================
+       LEGEND
+       ======================================== */
+    .legend {
+      display: flex;
+      gap: 20px;
+      padding: 10px 14px;
+      background: var(--night);
+      border-radius: 8px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+      font-size: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--steel);
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 2px;
+    }
+    .legend-line.blue { background: var(--quali-blue); }
+    .legend-line.green { background: var(--winner-green); }
+    .legend-line.red { background: var(--loser-red); }
+    .legend-line.gold { background: var(--gold); }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    .legend-color.winner { background: var(--bg-winner); border: 1px solid var(--winner-green); }
+    .legend-color.loser { background: var(--bg-loser); border: 1px solid var(--loser-red); }
+
+    .info-text {
+      font-size: 11px;
+      color: var(--steel);
+      text-align: center;
+      margin-top: 12px;
+      font-style: italic;
+    }
+
+    /* Round Labels */
+    .round-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--steel);
+      text-align: center;
+      position: absolute;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="synthwave-grid"></div>
+
+  <header class="header">
+    <div class="logo">FPV RACING <span>HEATS</span></div>
+    <span style="color: var(--steel); font-size: 12px;">Epic 12 Mockup - 32 Piloten</span>
+  </header>
+
+  <h1>KLASSISCHER TURNIERBAUM - 32 PILOTEN</h1>
+  <p class="subtitle">Quali → Winner Bracket (Platz 1+2) + Loser Bracket (Platz 3+4) → Grand Finale</p>
+
+  <div class="bracket-container">
+
+    <!-- ========================================
+         QUALIFIKATION
+         ======================================== -->
+    <div class="quali-section">
+      <div class="quali-header">★ QUALIFIKATION ★</div>
+      <div class="quali-heats">
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H1 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">AH</div><span class="pilot-name">Anna Huber</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H2 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">SK</div><span class="pilot-name">Sarah Klein</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">DM</div><span class="pilot-name">David Müller</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">JH</div><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H3 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">NW</div><span class="pilot-name">Nina Wolf</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H4 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krüger</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">ES</div><span class="pilot-name">Emma Schulz</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">MR</div><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H5 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">LB</div><span class="pilot-name">Laura Berger</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H6 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">SH</div><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim König</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">JF</div><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H7 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Günther</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">VL</div><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r4">4</span></div>
+        </div>
+        <div class="heat-box quali">
+          <div class="heat-header">QUALI H8 <span class="heat-status">✓</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><div class="pilot-avatar">AP</div><span class="pilot-name">Amelie Peters</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><div class="pilot-avatar">CW</div><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
+        </div>
+      </div>
+      <div class="flow-indicator">
+        <span><span class="arrow wb-arrow">↓</span> Platz 1+2 → Winner Bracket</span>
+        <span><span class="arrow lb-arrow">↓</span> Platz 3+4 → Loser Bracket</span>
+      </div>
+    </div>
+
+    <!-- ========================================
+         MAIN BRACKET (WB | LB) with SVG Lines
+         ======================================== -->
+    <div class="bracket-layout" style="position: relative;">
+
+      <!-- ========================================
+           WINNER BRACKET
+           ======================================== -->
+      <div class="bracket-column wb">
+        <div class="bracket-column-header">WINNER BRACKET</div>
+        
+        <!-- Container mit relativer Positionierung für SVG -->
+        <div style="position: relative; width: 660px; height: 420px;">
+          
+          <!-- SVG Lines - Linien von Mitte unten jedes Heats → 20px runter → horizontal zusammen → runter zur Mitte oben nächster Heat -->
+          <svg class="svg-lines" viewBox="0 0 660 420" preserveAspectRatio="xMidYMid meet">
+            <!-- 
+              Heat-Positionen (Mitte):
+              R1 (space-between, 4x 140px Heats über 660px):
+                H1: 0-140, Mitte=70
+                H2: 173-313, Mitte=243  
+                H3: 347-487, Mitte=417
+                H4: 520-660, Mitte=590
+                Unterkante y=95
+              
+              R2 (je 310px Container, zentriert):
+                H5: links, Mitte=155
+                H6: rechts, Mitte=505
+                Oberkante y=160, Unterkante y=255
+              
+              Finale (zentriert):
+                Mitte=330
+                Oberkante y=305
+            -->
+            
+            <!-- H1 + H2 → H5: von Mitte unten (y=95) → 20px runter → horizontal → runter zu H5 oben (y=160) -->
+            <path class="line wb" d="M 70 95 L 70 115 L 155 115 L 155 160" />
+            <path class="line wb" d="M 243 95 L 243 115 L 155 115" />
+            
+            <!-- H3 + H4 → H6 -->
+            <path class="line wb" d="M 417 95 L 417 115 L 505 115 L 505 160" />
+            <path class="line wb" d="M 590 95 L 590 115 L 505 115" />
+            
+            <!-- H5 + H6 → WB Finale: von Mitte unten (y=255) → 20px runter → horizontal → runter zu Finale oben (y=305) -->
+            <path class="line wb" d="M 155 255 L 155 275 L 330 275 L 330 305" />
+            <path class="line wb" d="M 505 255 L 505 275 L 330 275" />
+            
+            <!-- WB Finale → Grand Finale (wird im übergeordneten SVG gezeichnet) -->
+          </svg>
+
+          <!-- Round Labels - im Freiraum zwischen den Runden -->
+          <div class="round-label" style="top: -25px;">WB RUNDE 1</div>
+          <div class="round-label" style="top: 127px;">WB RUNDE 2 (HALBFINALE)</div>
+          <div class="round-label" style="top: 277px;">WB FINALE</div>
+
+          <!-- RUNDE 1: 4 Heats -->
+          <div style="position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between;">
+            <div class="heat-box">
+              <div class="heat-header">WB H1 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">SK</div><span class="pilot-name">Sarah Klein</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box">
+              <div class="heat-header">WB H2 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krüger</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">ES</div><span class="pilot-name">Emma Schulz</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box">
+              <div class="heat-header">WB H3 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">SH</div><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box">
+              <div class="heat-header">WB H4 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Günther</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">AP</div><span class="pilot-name">Amelie Peters</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+
+          <!-- RUNDE 2: 2 Heats - zentriert unter ihren Eltern -->
+          <div style="position: absolute; top: 160px; left: 0; width: 310px; display: flex; justify-content: center;">
+            <div class="heat-box">
+              <div class="heat-header">WB H5 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krüger</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+          <div style="position: absolute; top: 160px; right: 0; width: 310px; display: flex; justify-content: center;">
+            <div class="heat-box">
+              <div class="heat-header">WB H6 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+
+          <!-- WB FINALE: 1 Heat - zentriert -->
+          <div style="position: absolute; top: 305px; left: 50%; transform: translateX(-50%);">
+            <div class="heat-box">
+              <div class="heat-header">WB FINALE <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           LOSER BRACKET
+           ======================================== -->
+      <div class="bracket-column lb">
+        <div class="bracket-column-header">LOSER BRACKET</div>
+        
+        <div style="position: relative; width: 660px; height: 420px;">
+          
+          <!-- SVG Lines - identisch zum WB, nur mit roter Farbe -->
+          <svg class="svg-lines" viewBox="0 0 660 420" preserveAspectRatio="xMidYMid meet">
+            <!-- 
+              Heat-Positionen identisch zum WB:
+              R1: H1=70, H2=243, H3=417, H4=590 (Mitte), Unterkante y=95
+              R2: H5=155, H6=505 (Mitte), Oberkante y=160, Unterkante y=255
+              Finale: Mitte=330, Oberkante y=305
+            -->
+            
+            <!-- H1 + H2 → H5 -->
+            <path class="line lb" d="M 70 95 L 70 115 L 155 115 L 155 160" />
+            <path class="line lb" d="M 243 95 L 243 115 L 155 115" />
+            
+            <!-- H3 + H4 → H6 -->
+            <path class="line lb" d="M 417 95 L 417 115 L 505 115 L 505 160" />
+            <path class="line lb" d="M 590 95 L 590 115 L 505 115" />
+            
+            <!-- H5 + H6 → LB Finale -->
+            <path class="line lb" d="M 155 255 L 155 275 L 330 275 L 330 305" />
+            <path class="line lb" d="M 505 255 L 505 275 L 330 275" />
+            
+            <!-- LB Finale → Grand Finale (wird im übergeordneten SVG gezeichnet) -->
+          </svg>
+
+          <!-- Round Labels - im Freiraum zwischen den Runden -->
+          <div class="round-label" style="top: -25px;">LB RUNDE 1</div>
+          <div class="round-label" style="top: 127px;">LB RUNDE 2</div>
+          <div class="round-label" style="top: 277px;">LB FINALE</div>
+
+          <!-- LB RUNDE 1: 4 Heats -->
+          <div style="position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between;">
+            <div class="heat-box lb">
+              <div class="heat-header">LB H1 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">DM</div><span class="pilot-name">David Müller</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">AH</div><span class="pilot-name">Anna Huber</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">JH</div><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box lb">
+              <div class="heat-header">LB H2 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">NW</div><span class="pilot-name">Nina Wolf</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">MR</div><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box lb">
+              <div class="heat-header">LB H3 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim König</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">LB</div><span class="pilot-name">Laura Berger</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">JF</div><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
+            </div>
+            <div class="heat-box lb">
+              <div class="heat-header">LB H4 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">VL</div><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">CW</div><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+
+          <!-- LB RUNDE 2: 2 Heats -->
+          <div style="position: absolute; top: 160px; left: 0; width: 310px; display: flex; justify-content: center;">
+            <div class="heat-box lb">
+              <div class="heat-header">LB H5 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">DM</div><span class="pilot-name">David Müller</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+          <div style="position: absolute; top: 160px; right: 0; width: 310px; display: flex; justify-content: center;">
+            <div class="heat-box lb">
+              <div class="heat-header">LB H6 <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim König</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+
+          <!-- LB FINALE: 1 Heat -->
+          <div style="position: absolute; top: 305px; left: 50%; transform: translateX(-50%);">
+            <div class="heat-box lb">
+              <div class="heat-header">LB FINALE <span class="heat-status">✓</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+              <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r2">2</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
+              <div class="pilot-row bottom"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r4">4</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================
+         GRAND FINALE - mit SVG Linien die von WB und LB kommen
+         ======================================== -->
+    <div class="grand-finale-section" style="position: relative;">
+      <!-- SVG für die Verbindungslinien von WB Finale und LB Finale -->
+      <svg style="position: absolute; top: -45px; left: 50%; transform: translateX(-50%); width: 1400px; height: 65px; pointer-events: none; z-index: 1;">
+        <!-- 
+          WB Finale ist links im Layout, LB Finale ist rechts
+          Beide Linien starten am unteren Rand der Finale-Boxen (Mitte) und führen zum Grand Finale
+          
+          Bei einem 1400px breiten SVG und 80px Gap zwischen den Spalten (je 660px):
+          - WB Finale Mitte: ca. 330px von links im WB Container = 330px im SVG
+          - LB Finale Mitte: 660 + 80 + 330 = 1070px im SVG
+          - Grand Finale Mitte: 700px (Mitte des SVGs)
+          
+          Einheitlicher vertikaler Abstand: ~20px runter, dann horizontal
+        -->
+        <!-- Linie vom WB Finale (links) nach unten, dann zur Mitte -->
+        <path d="M 330 0 L 330 20 L 700 20 L 700 65" 
+              style="stroke: #f9c80e; stroke-width: 3px; fill: none; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(249, 200, 14, 0.7));" />
+        <!-- Linie vom LB Finale (rechts) nach unten, dann zur Mitte -->
+        <path d="M 1070 0 L 1070 20 L 700 20" 
+              style="stroke: #f9c80e; stroke-width: 3px; fill: none; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(249, 200, 14, 0.7));" />
+      </svg>
+      
+      <div class="gf-label">★ GRAND FINALE ★</div>
+      <div class="heat-box gf">
+        <div class="heat-header">GRAND FINALE <span class="heat-status">LIVE</span></div>
+        <div class="pilot-row champ">
+          <div class="pilot-avatar" style="border-color: var(--winner-green);">MB</div>
+          <span class="pilot-name"><strong>Michael Bauer</strong></span>
+          <span class="pilot-tag wb">WB</span>
+        </div>
+        <div class="pilot-row">
+          <div class="pilot-avatar" style="border-color: var(--loser-red);">TW</div>
+          <span class="pilot-name"><strong>Thomas Weber</strong></span>
+          <span class="pilot-tag lb">LB</span>
+        </div>
+        <div class="pilot-row">
+          <div class="pilot-avatar">CH</div>
+          <span class="pilot-name">Chris Hartmann</span>
+          <span class="pilot-tag wb">WB</span>
+        </div>
+        <div class="pilot-row">
+          <div class="pilot-avatar">RZ</div>
+          <span class="pilot-name">Robert Zimmermann</span>
+          <span class="pilot-tag lb">LB</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================
+       LEGEND
+       ======================================== -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-line blue"></div>
+      Qualifikation
+    </div>
+    <div class="legend-item">
+      <div class="legend-line green"></div>
+      Winner Bracket
+    </div>
+    <div class="legend-item">
+      <div class="legend-line red"></div>
+      Loser Bracket
+    </div>
+    <div class="legend-item">
+      <div class="legend-line gold"></div>
+      → Grand Finale
+    </div>
+    <div class="legend-item">
+      <div class="legend-color winner"></div>
+      Platz 1+2 (weiter)
+    </div>
+    <div class="legend-item">
+      <div class="legend-color loser"></div>
+      Platz 3+4 (raus/LB)
+    </div>
+  </div>
+
+  <p class="info-text">
+    32 Piloten → Quali: 8 Heats | WB: 4→2→1 Heats | LB: 4→2→1 Heats | Grand Finale: Top 2 WB + Top 2 LB
+  </p>
+
+</body>
+</html>
