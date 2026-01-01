@@ -94,6 +94,9 @@ export function App() {
           >
             Turnier starten
           </button>
+          <p className="text-steel text-sm mt-2">
+            {pilots.length} Piloten bereit
+          </p>
         </div>
       )}
       
@@ -109,6 +112,13 @@ export function App() {
         <div className="bg-void px-8 py-3 text-center">
           <p className="text-loser-red text-sm">
             Maximal 60 Piloten erlaubt ({pilots.length}/60)
+          </p>
+        </div>
+      )}
+      {!tournamentStarted && pilots.length === 0 && (
+        <div className="bg-void px-8 py-3 text-center">
+          <p className="text-steel text-sm">
+            Noch keine Piloten registriert
           </p>
         </div>
       )}
@@ -247,6 +257,18 @@ export function App() {
               onHeatComplete={handleHeatComplete}
               onNewTournament={handleNewTournament}
             />
+            
+            {/* Turnier zurücksetzen Button - nur wenn Turnier läuft */}
+            {tournamentPhase !== 'setup' && tournamentPhase !== 'completed' && (
+              <div className="mt-8 pt-6 border-t border-steel/20 text-center">
+                <button
+                  onClick={() => setShowResetTournamentDialog(true)}
+                  className="bg-night border-2 border-loser-red text-loser-red px-5 py-3 min-h-[48px] rounded-lg text-beamer-body hover:bg-loser-red/10 transition-colors"
+                >
+                  Turnier zurücksetzen
+                </button>
+              </div>
+            )}
           </div>
         )
       )}
