@@ -261,7 +261,7 @@ export function BracketTree({
       </div>
 
       {/* Column 1: Pools */}
-      <div className="pools-column w-[140px] flex flex-col justify-start pt-8 gap-0">
+      <div className="pools-column w-[160px] shrink-0 flex flex-col justify-start pt-8 gap-0">
         <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
           POOLS
         </div>
@@ -275,7 +275,7 @@ export function BracketTree({
             variant="compact"
             maxDisplay={4}
             showCount={true}
-            className="w-[120px]"
+            className="w-[140px] min-w-0"
           />
         </div>
         
@@ -288,13 +288,13 @@ export function BracketTree({
             variant="compact"
             maxDisplay={4}
             showCount={true}
-            className="w-[120px]"
+            className="w-[140px] min-w-0"
           />
         </div>
       </div>
 
       {/* Column 2: WB/LB Heats (nach Quali) */}
-      <div className="heats-column w-[230px] flex flex-col justify-between pt-8">
+      <div className="heats-column w-[230px] shrink-0 flex flex-col justify-between pt-8">
         <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
           BRACKET HEATS
         </div>
@@ -319,8 +319,10 @@ export function BracketTree({
           )}
         </div>
 
-        {/* Bracket Spacer (AC3) */}
-        <div className="bracket-spacer h-8" />
+        {/* Bracket Spacer mit Trennlinie (AC3) */}
+        <div className="bracket-spacer h-12 flex items-center">
+          <div className="w-full border-t-2 border-dashed border-steel/30" />
+        </div>
 
         {/* LB heats (lower half) */}
         <div className="heat-group flex flex-col gap-4">
@@ -344,10 +346,10 @@ export function BracketTree({
       </div>
 
       {/* Column 3: Connector Space */}
-      <div className="connector-column w-12 relative" />
+      <div className="connector-column w-12 shrink-0 relative" />
 
       {/* Column 4: Finals (WB Finale + LB Finale) */}
-      <div className="finals-column w-[230px] flex flex-col justify-between py-12">
+      <div className="finals-column w-[230px] shrink-0 flex flex-col justify-between py-12">
         <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
           FINALE
         </div>
@@ -390,10 +392,10 @@ export function BracketTree({
       </div>
 
       {/* Column 5: Connector to Grand Finale */}
-      <div className="connector-column w-12 relative" />
+      <div className="connector-column w-12 shrink-0 relative" />
 
       {/* Column 6: Grand Finale */}
-      <div className="grand-finale-column w-[260px] flex items-center justify-center pl-5">
+      <div className="grand-finale-column w-[260px] shrink-0 flex items-center justify-center pl-5">
         <div className="relative">
           <div className="column-label font-display text-xs text-gold tracking-widest text-center mb-3">
             GRAND FINALE

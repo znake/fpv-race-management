@@ -74,7 +74,7 @@ export function PoolDisplay({
   return (
     <div
       className={cn(
-        'bg-night border-2 border-dashed rounded-xl p-4 min-w-[180px]',
+        'bg-night border-2 border-dashed rounded-xl p-3',
         borderClass,
         glowClass,
         className
