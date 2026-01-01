@@ -198,6 +198,202 @@ Das aktuelle Bracket-Layout mit getrennten Sections (WB/LB/Grand Finale) wird du
 
 ---
 
+### Epic 12: Klassisches Turnierbaum-System (Vertical Bracket Redesign)
+
+Das aktuelle Pool-basierte Bracket-System wird durch ein **klassisches Runden-basiertes Double-Elimination-System** ersetzt. Die Visualisierung wechselt von horizontal zu **vertikal (Top-Down)**, wobei Winner Bracket links und Loser Bracket rechts nebeneinander dargestellt werden.
+
+**Vision:** Ein klassischer Turnierbaum wie bei professionellen Esports-Events – Runde 1 oben mit allen Heats nebeneinander, dann Runde 2 mit halb so vielen Heats darunter, usw. bis zum Finale. Übersichtlicher bei vielen Piloten, weniger Scrollen nötig.
+
+**Mockup-Referenz:** [`design/bracket-tree-vertical-mockup.html`](design/bracket-tree-vertical-mockup.html) (32 Piloten Beispiel)
+
+#### Kernänderungen
+
+**1. Logik-Redesign (Runden-basiert statt Pool-basiert)**
+
+| Aktuell (Pool-basiert) | Neu (Runden-basiert) |
+|------------------------|----------------------|
+| Quali → Winners in Pool → Pool voll (4+) → Neuer WB Heat | Quali → Runde 1 Heats (alle gleichzeitig generiert) |
+| Heats werden DYNAMISCH generiert wenn Pool ≥4 | Heats werden PRO RUNDE generiert wenn vorherige Runde abgeschlossen |
+| Pool entscheidet wann nächster Heat kommt | Runden-Struktur definiert Turnierverlauf |
+| Pools sind primärer Mechanismus | Pools nur für Rest-Piloten (nicht durch 4 teilbar) |
+
+**2. Visualisierungs-Redesign (Vertikal statt Horizontal)**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│     WINNER BRACKET (links)      │    LOSER BRACKET (rechts) │
+├─────────────────────────────────┼───────────────────────────┤
+│ Pool (oben, nur wenn nötig)     │ Pool (oben, nur wenn nötig)│
+├─────────────────────────────────┼───────────────────────────┤
+│ RUNDE 1                         │ RUNDE 1                   │
+│ [H1] [H2] [H3] [H4]             │ [H1] [H2] [H3] [H4]       │
+│   ↓    ↓    ↓    ↓              │   ↓    ↓    ↓    ↓        │
+│ RUNDE 2                         │ RUNDE 2                   │
+│   [H5]   [H6]                   │   [H5]   [H6]             │
+│     ↓      ↓                    │     ↓      ↓              │
+│ SEMIFINALE                      │ SEMIFINALE                │
+│       [H7]                      │       [H7]                │
+│         ↓                       │         ↓                 │
+│            └──────────┬─────────┘                           │
+│                 GRAND FINALE                                 │
+│                    [GF]                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Akzeptanzkriterien (Epic-Level)
+
+1. **Runden-basierte Bracket-Struktur**
+   - WB und LB haben definierte Runden (Runde 1, 2, 3, ... Finale)
+   - Jede Runde hat eine feste Anzahl Heats basierend auf Pilotenzahl
+   - Runde N+1 wird erst generiert wenn Runde N abgeschlossen ist
+   - WB und LB laufen parallel mit gleicher Runden-Logik
+
+2. **4er-Heats als Standard (wichtig!)**
+   - **Idealfall:** Jeder Heat hat genau 4 Piloten
+   - **Fallback:** 3er-Heats wenn Pilotenzahl nicht durch 4 teilbar
+   - **Minimum:** 2er-Heats nur wenn absolut notwendig (z.B. Finale mit nur 2 Piloten)
+   - Die Logik muss IMMER versuchen, 4er-Heats zu maximieren
+   - Beispiel: Bei 14 Piloten → 3x 4er-Heat + 1x 2er-Heat (nicht 4x 3er-Heat + 1x 2er-Heat)
+
+3. **Progression zwischen Runden**
+   - WB: Platz 1+2 → nächste WB-Runde, Platz 3+4 → entsprechende LB-Runde
+   - LB: Platz 1+2 → nächste LB-Runde, Platz 3+4 → eliminiert
+   - Klare Zuordnung welcher Heat in welchen Folge-Heat führt
+
+4. **Pool als Fallback-Mechanismus**
+   - Pool wird NUR verwendet wenn Pilotenanzahl nicht durch 4 teilbar ist
+   - Rest-Piloten warten im Pool bis nächste Runde sie aufnehmen kann
+   - Pool ist sekundär, nicht primärer Mechanismus
+
+5. **Vertikales Layout (Top-Down)**
+   - Winner Bracket auf der linken Seite
+   - Loser Bracket auf der rechten Seite
+   - Runden fließen von oben nach unten
+   - Grand Finale am unteren Ende, mittig zwischen WB und LB
+
+6. **Bracket Headers (volle Breite)**
+   - "WINNER BRACKET" und "LOSER BRACKET" als breite Header über allen Heats
+   - Header-Breite entspricht der Breite aller Heats der ersten Runde (660px bei 4 Heats)
+   - Farbcodierter Rahmen und dezenter Hintergrund (grün für WB, rot für LB)
+   - Visuell deutliche Trennung der beiden Brackets
+
+7. **Round Labels (im Freiraum)**
+   - Runden-Bezeichnungen ("WB RUNDE 1", "WB RUNDE 2", "WB FINALE" etc.)
+   - Positioniert im **Freiraum zwischen den Runden**, nicht über den Heats
+   - Zentriert über der gesamten Bracket-Breite
+   - Dezente Schrift (hellgrau, letter-spacing)
+
+8. **SVG-Verbindungslinien (vertikal)**
+   - Linien starten aus der **Mitte unten** jedes Heats
+   - Einheitlicher vertikaler Abstand: ~20px nach unten, dann horizontal zusammenführen
+   - Grün für WB-Verbindungen (mit Glow-Effekt)
+   - Rot für LB-Verbindungen (mit Glow-Effekt)
+   - **Gold** für Verbindungen zum Grand Finale (dicker, 3px, mit starkem Glow)
+   - Linien verbinden zur **Mitte oben** des Ziel-Heats
+
+9. **Grand Finale Verbindung**
+   - Goldene Linien von WB-Finale und LB-Finale führen zum Grand Finale
+   - Beide Linien starten unten-mittig aus den Finale-Boxen
+   - Führen nach unten, dann horizontal zur Mitte, dann runter zum Grand Finale
+   - Visuelle Betonung als Höhepunkt des Turniers
+
+10. **Beamer-Optimierung**
+    - Weniger vertikales Scrollen bei vielen Piloten
+    - Horizontales Scrollen nur bei sehr vielen Runde-1-Heats
+    - Übersichtliche Darstellung des gesamten Turnierverlaufs
+    - Mindestbreite für lesbare Darstellung auf Beamer
+
+#### Betroffene Komponenten
+
+| Bereich | Dateien | Änderungsart |
+|---------|---------|--------------|
+| **Logik** | `bracket-structure-generator.ts` | Komplettes Rewrite |
+| **Logik** | `bracket-logic.ts` | Signifikante Änderungen |
+| **Logik** | `heat-completion.ts` | Anpassungen |
+| **Store** | `tournamentStore.ts` | Pool-Logik auf Runden umstellen |
+| **UI** | `BracketTree.tsx` | Komplettes Layout Rewrite |
+| **UI** | `SVGConnectorLines.tsx` | Vertikale Linien |
+| **Tests** | ~15-20 Test-Dateien | Anpassungen/Rewrites |
+
+#### Technische Hinweise (WICHTIG: Dynamische Generierung)
+
+Das Mockup (`bracket-tree-vertical-mockup.html`) zeigt ein **statisches Beispiel** mit 32 Piloten. Die **Implementierung muss vollständig dynamisch** sein:
+
+1. **Dynamische Bracket-Struktur**
+   - Anzahl der Runden wird aus Pilotenzahl berechnet (z.B. 8 Piloten → 2 Runden, 32 Piloten → 4 Runden)
+   - Anzahl der Heats pro Runde wird dynamisch ermittelt
+   - Funktioniert für **8-60 Piloten** (MVP-Bereich)
+
+2. **Dynamische SVG-Linien**
+   - Linien werden basierend auf **DOM-Positionen der Heat-Boxen** berechnet
+   - Keine hardcodierten Koordinaten wie im Mockup
+   - Neuberechnung bei Fenstergrößenänderung (Resize-Handler)
+   - Korrekte Verbindungen auch bei unterschiedlichen Rundenzahlen
+
+3. **Dynamische Layout-Berechnung**
+   - Heat-Box-Breiten und -Abstände passen sich der Anzahl an
+   - Container-Höhe wächst mit Rundenzahl
+   - Bracket-Header-Breite entspricht der Breite aller Runde-1-Heats
+
+4. **Dynamische Daten**
+   - Pilotennamen, Avatare, Rankings aus Store
+   - Heat-Status (abgeschlossen/offen) aus Store
+   - Platzierungen aus Store nach Heat-Abschluss
+
+5. **Skalierbarkeit**
+   - 8 Piloten: 2 Quali-Heats → 1 WB-Runde → Finale
+   - 16 Piloten: 4 Quali-Heats → 2 WB-Runden → Finale
+   - 32 Piloten: 8 Quali-Heats → 3 WB-Runden → Finale
+   - 60 Piloten: 15 Quali-Heats → 4 WB-Runden → Finale
+
+#### Mögliche User Stories (zur Verfeinerung mit SM)
+
+| ID | Titel | Priorität | Beschreibung |
+|----|-------|-----------|--------------|
+| US-12.1 | Runden-basierte Bracket-Struktur | HIGH | Logik für definierte Runden statt dynamischer Pools |
+| US-12.2 | Runden-Progression Winner Bracket | HIGH | Platz 1+2 → nächste WB-Runde, Platz 3+4 → LB |
+| US-12.3 | Runden-Progression Loser Bracket | HIGH | Platz 1+2 → nächste LB-Runde, Platz 3+4 → eliminiert |
+| US-12.4 | Pool als Fallback-Mechanismus | MEDIUM | Pool nur für Rest-Piloten wenn nicht durch 4 teilbar |
+| US-12.5 | Vertikales Layout Winner Bracket | HIGH | WB links, Runden von oben nach unten |
+| US-12.6 | Vertikales Layout Loser Bracket | HIGH | LB rechts, Runden von oben nach unten |
+| US-12.7 | Bracket Headers (volle Breite) | MEDIUM | "WINNER BRACKET"/"LOSER BRACKET" über alle Heats |
+| US-12.8 | Round Labels (im Freiraum) | LOW | Runden-Bezeichnungen zwischen den Heat-Reihen |
+| US-12.9 | SVG-Linien für vertikales Layout | MEDIUM | Linien aus Mitte-unten, ~20px runter, dann horizontal |
+| US-12.10 | Grand Finale Positionierung & Linien | MEDIUM | Grand Finale unten-mittig, goldene Verbindungslinien |
+| US-12.11 | Test-Migration | HIGH | Bestehende Tests an neue Logik anpassen |
+
+#### Geschätzter Aufwand
+
+| Bereich | Aufwand |
+|---------|---------|
+| Logik-Redesign (Runden-basiert) | 3-5 Tage |
+| Visualisierung (Vertikales Layout) | 2-3 Tage |
+| SVG-Verbindungslinien (vertikal) | 1-2 Tage |
+| Bracket Headers & Round Labels | 0.5-1 Tag |
+| Tests anpassen | 2-3 Tage |
+| Integration & Debug | 1-2 Tage |
+| **GESAMT** | **9-16 Tage** |
+
+#### Abhängigkeiten
+
+- **Epic 11 (Unified Bracket Tree)** kann parallel oder danach erfolgen – einige UI-Konzepte überschneiden sich
+- **Epic 9 (LB Pooling)** wird durch dieses Epic teilweise ersetzt (Pool wird sekundär)
+- **Epic 10 (Code-Konsolidierung)** sollte idealerweise vorher abgeschlossen sein
+
+#### Risiken
+
+| Risiko | Wahrscheinlichkeit | Mitigation |
+|--------|-------------------|------------|
+| Bestehende Tests brechen | Hoch | Inkrementelle Migration, Feature-Flag |
+| Komplexität unterschätzt | Mittel | Früher Prototyp der Logik |
+| Edge Cases bei ungeraden Pilotenzahlen | Mittel | Extensive Tests mit 7, 9, 11, 15 Piloten |
+
+**FRs covered:** FR14, FR15, FR17, FR18, FR20, FR21 – Redesign  
+**Stories:** US-12.1 bis US-12.11 (11 Stories geschätzt)  
+**MVP:** ⚠️ Should – Fundamentales UX/Logik-Upgrade
+
+---
+
 ## Epics-Übersicht
 
 | Epic | Beschreibung | FRs | MVP? | Stories |
@@ -213,6 +409,7 @@ Das aktuelle Bracket-Layout mit getrennten Sections (WB/LB/Grand Finale) wird du
 | **Epic 9** | Loser Bracket Pooling | CP-LB | ✅ Must | 3 |
 | **Epic 10** | Code-Konsolidierung (Refactoring) | Tech Debt | ⚠️ Should | 3 |
 | **Epic 11** | Unified Bracket Tree Visualisierung | FR20, FR27+ | ⚠️ Should | 7 |
+| **Epic 12** | Klassisches Turnierbaum-System (Vertical Bracket Redesign) | FR14-21 | ⚠️ Should | 11 |
 
 ## FR Coverage Map
 
@@ -266,3 +463,4 @@ Das aktuelle Bracket-Layout mit getrennten Sections (WB/LB/Grand Finale) wird du
 3. **Sprint 3:** Epic 5 (Finale) + Epic 6 (Navigation) + Epic 7 (Persistenz)
 4. **Sprint 4:** Epic 9 (Loser Bracket Pooling) – Critical Bug Fix
 5. **Sprint 5:** Epic 10 (Refactoring) + Epic 11 (Unified Bracket Tree) – UX Enhancement
+6. **Sprint 6:** Epic 12 (Klassisches Turnierbaum-System) – Fundamentales Redesign
