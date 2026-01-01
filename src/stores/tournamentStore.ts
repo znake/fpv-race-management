@@ -918,10 +918,19 @@ export const useTournamentStore = create<TournamentState>()(
       getTop4Pilots: () => {
         const { fullBracketStructure, pilots, heats } = get()
         
-        if (!fullBracketStructure?.grandFinale) return null
+        // Find the Grand Finale heat in heats[] - try multiple methods
+        let grandFinaleHeat = fullBracketStructure?.grandFinale 
+          ? heats.find(h => h.id === fullBracketStructure.grandFinale!.id)
+          : null
         
-        // Find the Grand Finale heat in heats[]
-        const grandFinaleHeat = heats.find(h => h.id === fullBracketStructure.grandFinale!.id)
+        // Fallback: Find by bracketType if not found by ID
+        if (!grandFinaleHeat) {
+          grandFinaleHeat = heats.find(h => 
+            h.bracketType === 'grand_finale' || 
+            h.bracketType === 'finale' ||
+            h.id.includes('grand-finale')
+          )
+        }
         
         if (!grandFinaleHeat?.results) return null
         
@@ -929,91 +938,43 @@ export const useTournamentStore = create<TournamentState>()(
         const place1Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 1)
         const place2Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 2)
         
-        // Get pilot IDs that are already placed (1st and 2nd)
+        // Get pilot IDs that are already placed (1st and 2nd from Grand Finale)
         const place1Id = place1Ranking?.pilotId
         const place2Id = place2Ranking?.pilotId
-        const alreadyPlaced = new Set([place1Id, place2Id].filter(Boolean))
         
         let place3Id: string | undefined
         let place4Id: string | undefined
         
-        // Find LB rounds
-        const lbRounds = fullBracketStructure.loserBracket.rounds
+        // Platz 3: WB Finale Verlierer (hat nur 1x verloren, kam nicht ins Grand Finale)
+        // Platz 4: LB Finale Verlierer (hat 2x verloren)
         
-        if (lbRounds.length > 0) {
-          // LB Finale (last LB round)
-          const lbFinaleRound = lbRounds[lbRounds.length - 1]
-          
-          // Find completed heats in LB Finale
-          for (const bracketHeat of lbFinaleRound.heats) {
-            const lbFinaleHeat = heats.find(h => h.id === bracketHeat.id)
-            if (lbFinaleHeat?.results) {
-              // Find losers (rank 2, 3, 4) who are not already placed
-              const losers = lbFinaleHeat.results.rankings
-                .filter(r => r.rank >= 2)
-                .sort((a, b) => a.rank - b.rank)
-              
-              for (const loser of losers) {
-                if (!alreadyPlaced.has(loser.pilotId)) {
-                  if (!place3Id) {
-                    place3Id = loser.pilotId
-                    alreadyPlaced.add(loser.pilotId)
-                  } else if (!place4Id) {
-                    place4Id = loser.pilotId
-                    alreadyPlaced.add(loser.pilotId)
-                    break
-                  }
-                }
-              }
-            }
+        // Find WB Finale directly in heats[] (dynamic heats have different IDs than bracket structure)
+        const wbFinaleHeat = heats.find(h => 
+          h.bracketType === 'winner' && 
+          h.isFinale === true && 
+          h.status === 'completed'
+        )
+        
+        if (wbFinaleHeat?.results) {
+          // Rang 2 im WB Finale = Verlierer (hat nur 1x verloren)
+          const wbFinaleLoser = wbFinaleHeat.results.rankings.find(r => r.rank === 2)
+          if (wbFinaleLoser && wbFinaleLoser.pilotId !== place1Id && wbFinaleLoser.pilotId !== place2Id) {
+            place3Id = wbFinaleLoser.pilotId
           }
-          
-          // If we still don't have place 4, look at LB Semifinale (second-to-last LB round)
-          if (!place4Id && lbRounds.length > 1) {
-            const lbSemiRound = lbRounds[lbRounds.length - 2]
-            
-            for (const bracketHeat of lbSemiRound.heats) {
-              const lbSemiHeat = heats.find(h => h.id === bracketHeat.id)
-              if (lbSemiHeat?.results) {
-                // Find losers who are not already placed
-                const losers = lbSemiHeat.results.rankings
-                  .filter(r => r.rank >= 2)
-                  .sort((a, b) => a.rank - b.rank)
-                
-                for (const loser of losers) {
-                  if (!alreadyPlaced.has(loser.pilotId)) {
-                    place4Id = loser.pilotId
-                    alreadyPlaced.add(loser.pilotId)
-                    break
-                  }
-                }
-              }
-              if (place4Id) break
-            }
-          }
-          
-          // Still no place 4? Look at earlier rounds
-          if (!place4Id && lbRounds.length > 2) {
-            for (let i = lbRounds.length - 3; i >= 0 && !place4Id; i--) {
-              const round = lbRounds[i]
-              for (const bracketHeat of round.heats) {
-                const heat = heats.find(h => h.id === bracketHeat.id)
-                if (heat?.results) {
-                  const losers = heat.results.rankings
-                    .filter(r => r.rank >= 2)
-                    .sort((a, b) => a.rank - b.rank)
-                  
-                  for (const loser of losers) {
-                    if (!alreadyPlaced.has(loser.pilotId)) {
-                      place4Id = loser.pilotId
-                      alreadyPlaced.add(loser.pilotId)
-                      break
-                    }
-                  }
-                }
-                if (place4Id) break
-              }
-            }
+        }
+        
+        // Find LB Finale directly in heats[]
+        const lbFinaleHeat = heats.find(h => 
+          h.bracketType === 'loser' && 
+          h.isFinale === true && 
+          h.status === 'completed'
+        )
+        
+        if (lbFinaleHeat?.results) {
+          // Rang 2 im LB Finale = Verlierer (hat 2x verloren)
+          const lbFinaleLoser = lbFinaleHeat.results.rankings.find(r => r.rank === 2)
+          if (lbFinaleLoser && lbFinaleLoser.pilotId !== place1Id && lbFinaleLoser.pilotId !== place2Id && lbFinaleLoser.pilotId !== place3Id) {
+            place4Id = lbFinaleLoser.pilotId
           }
         }
         
