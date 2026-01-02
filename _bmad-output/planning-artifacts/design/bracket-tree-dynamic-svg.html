@@ -255,6 +255,12 @@
       width: 100%;
     }
 
+    /* WB Runde 2: Heats zentriert unter ihren Eltern-Paaren */
+    .round-heats.wb-r2 {
+      /* Gap = 2 * Heat-Breite + 1 * Standard-Gap = 2*140 + 10 = 290px */
+      gap: 160px;
+    }
+
     /* Connector space between WB rounds */
     .connector-space {
       height: 40px;
@@ -365,12 +371,8 @@
       border-radius: 50%;
       background: var(--night);
       border: 1px solid var(--steel);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 6px;
-      color: var(--steel);
       flex-shrink: 0;
+      object-fit: cover;
     }
 
     .pilot-name {
@@ -420,6 +422,17 @@
       padding-top: 20px;
       position: relative;
       z-index: 2;
+    }
+    
+    /* Wird per JS dynamisch positioniert */
+    .grand-finale-section.positioned {
+      align-items: flex-start;
+    }
+    
+    .grand-finale-section .gf-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .gf-label {
@@ -495,6 +508,69 @@
       text-align: center;
       margin-top: 12px;
     }
+
+    /* ========================================
+       ZOOM CONTAINER
+       ======================================== */
+    .zoom-wrapper {
+      overflow: auto;
+      position: relative;
+      cursor: default;
+    }
+    
+    .zoom-wrapper.panning {
+      cursor: grab;
+    }
+    
+    .zoom-wrapper.panning:active,
+    .zoom-wrapper.dragging {
+      cursor: grabbing;
+    }
+    
+    .zoom-wrapper .bracket-container {
+      transform-origin: 0 0;
+    }
+    
+    .zoom-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--night);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 11px;
+      color: var(--neon-cyan);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
+    }
+    
+    .zoom-indicator button {
+      background: transparent;
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .zoom-indicator button:hover {
+      background: rgba(5, 217, 232, 0.2);
+    }
+    
+    .zoom-hint {
+      font-size: 9px;
+      color: var(--steel);
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
@@ -514,6 +590,7 @@
     <br><strong>Gesamt:</strong> 32 Heats | Jeder Pilot fliegt mindestens 2x | LB-Piloten werden nach jeder Runde neu gemischt (Pool-System)
   </div>
 
+  <div class="zoom-wrapper" id="zoom-wrapper">
   <div class="bracket-container" id="bracket-container">
     <!-- SVG Layer fuer Verbindungslinien -->
     <svg id="connector-svg"></svg>
@@ -526,59 +603,59 @@
       <div class="heats-row">
         <div class="heat-box quali" id="quali-h1">
           <div class="heat-header">QUALI H1 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">AH</div><span class="pilot-name">Anna Huber</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=1" alt="MB"><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=4" alt="AH"><span class="pilot-name">Anna Huber</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h2">
           <div class="heat-header">QUALI H2 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">SK</div><span class="pilot-name">Sarah Klein</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">DM</div><span class="pilot-name">David Mueller</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">JH</div><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=6" alt="SK"><span class="pilot-name">Sarah Klein</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=7" alt="DM"><span class="pilot-name">David Mueller</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=8" alt="JH"><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h3">
           <div class="heat-header">QUALI H3 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">NW</div><span class="pilot-name">Nina Wolf</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=10" alt="LW"><span class="pilot-name">Lena Wagner</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=11" alt="SB"><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=12" alt="NW"><span class="pilot-name">Nina Wolf</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h4">
           <div class="heat-header">QUALI H4 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krueger</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">ES</div><span class="pilot-name">Emma Schulz</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">MR</div><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=13" alt="FK"><span class="pilot-name">Felix Krueger</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=14" alt="ES"><span class="pilot-name">Emma Schulz</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=15" alt="JL"><span class="pilot-name">Jan Lang</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=16" alt="MR"><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h5">
           <div class="heat-header">QUALI H5 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">LB</div><span class="pilot-name">Laura Berger</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=17" alt="CH"><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=18" alt="KM"><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=19" alt="RZ"><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=20" alt="LB"><span class="pilot-name">Laura Berger</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h6">
           <div class="heat-header">QUALI H6 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">SH</div><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim Koenig</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">JF</div><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=21" alt="AW"><span class="pilot-name">Alex Werner</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=22" alt="SH"><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=23" alt="TK"><span class="pilot-name">Tim Koenig</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=24" alt="JF"><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h7">
           <div class="heat-header">QUALI H7 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">VL</div><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=26" alt="HG"><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=27" alt="BK"><span class="pilot-name">Ben Keller</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=28" alt="VL"><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r4">4</span></div>
         </div>
         <div class="heat-box quali" id="quali-h8">
           <div class="heat-header">QUALI H8 <span class="heat-status">4x</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r1">1</span></div>
-          <div class="pilot-row top"><div class="pilot-avatar">AP</div><span class="pilot-name">Amelie Peters</span><span class="rank-badge r2">2</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r3">3</span></div>
-          <div class="pilot-row bottom"><div class="pilot-avatar">CW</div><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=29" alt="LF"><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r1">1</span></div>
+          <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=30" alt="AP"><span class="pilot-name">Amelie Peters</span><span class="rank-badge r2">2</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=31" alt="MS"><span class="pilot-name">Max Sommer</span><span class="rank-badge r3">3</span></div>
+          <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=32" alt="CW"><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
         </div>
       </div>
       <div class="flow-indicator">
@@ -605,31 +682,31 @@
             <div class="round-heats">
               <div class="heat-box" id="wb-r1-h1">
                 <div class="heat-header">WB H1 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">SK</div><span class="pilot-name">Sarah Klein</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=1" alt="MB"><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=6" alt="SK"><span class="pilot-name">Sarah Klein</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box" id="wb-r1-h2">
                 <div class="heat-header">WB H2 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krueger</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">ES</div><span class="pilot-name">Emma Schulz</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=13" alt="FK"><span class="pilot-name">Felix Krueger</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=10" alt="LW"><span class="pilot-name">Lena Wagner</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=14" alt="ES"><span class="pilot-name">Emma Schulz</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box" id="wb-r1-h3">
                 <div class="heat-header">WB H3 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">SH</div><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=17" alt="CH"><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=21" alt="AW"><span class="pilot-name">Alex Werner</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=18" alt="KM"><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=22" alt="SH"><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box" id="wb-r1-h4">
                 <div class="heat-header">WB H4 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">AP</div><span class="pilot-name">Amelie Peters</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=29" alt="LF"><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=26" alt="HG"><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=30" alt="AP"><span class="pilot-name">Amelie Peters</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -639,20 +716,20 @@
           <!-- WB RUNDE 2: 2 Heats -->
           <div class="round-section">
             <div class="round-label">RUNDE 2 (8 Piloten)</div>
-            <div class="round-heats">
+            <div class="round-heats wb-r2">
               <div class="heat-box" id="wb-r2-h1">
                 <div class="heat-header">WB H5 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krueger</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=1" alt="MB"><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=13" alt="FK"><span class="pilot-name">Felix Krueger</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box" id="wb-r2-h2">
                 <div class="heat-header">WB H6 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=17" alt="CH"><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=21" alt="AW"><span class="pilot-name">Alex Werner</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=29" alt="LF"><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -665,10 +742,10 @@
             <div class="round-heats">
               <div class="heat-box" id="wb-finale">
                 <div class="heat-header">WB FINALE <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MB</div><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">CH</div><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=1" alt="MB"><span class="pilot-name">Michael Bauer</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=17" alt="CH"><span class="pilot-name">Chris Hartmann</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -688,45 +765,45 @@
             <div class="round-heats">
               <div class="heat-box lb">
                 <div class="heat-header">LB H1 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">DM</div><span class="pilot-name">David Mueller</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">AH</div><span class="pilot-name">Anna Huber</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">JH</div><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=7" alt="DM"><span class="pilot-name">David Mueller</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=4" alt="AH"><span class="pilot-name">Anna Huber</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=8" alt="JH"><span class="pilot-name">Julia Hoffmann</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H2 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">NW</div><span class="pilot-name">Nina Wolf</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">MR</div><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=11" alt="SB"><span class="pilot-name">Stefan Braun</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=15" alt="JL"><span class="pilot-name">Jan Lang</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=12" alt="NW"><span class="pilot-name">Nina Wolf</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=16" alt="MR"><span class="pilot-name">Marie Richter</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H3 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim Koenig</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LB</div><span class="pilot-name">Laura Berger</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">JF</div><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=19" alt="RZ"><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=23" alt="TK"><span class="pilot-name">Tim Koenig</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=20" alt="LB"><span class="pilot-name">Laura Berger</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=24" alt="JF"><span class="pilot-name">Jana Frank</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H4 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">VL</div><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">CW</div><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=27" alt="BK"><span class="pilot-name">Ben Keller</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=31" alt="MS"><span class="pilot-name">Max Sommer</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=28" alt="VL"><span class="pilot-name">Vanessa Lorenz</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=32" alt="CW"><span class="pilot-name">Clara Winter</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H5 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">SK</div><span class="pilot-name">Sarah Klein</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">ES</div><span class="pilot-name">Emma Schulz</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=10" alt="LW"><span class="pilot-name">Lena Wagner</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=6" alt="SK"><span class="pilot-name">Sarah Klein</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=14" alt="ES"><span class="pilot-name">Emma Schulz</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H6 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">SH</div><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">AP</div><span class="pilot-name">Amelie Peters</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=18" alt="KM"><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=26" alt="HG"><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=22" alt="SH"><span class="pilot-name">Sophie Hofmann</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=30" alt="AP"><span class="pilot-name">Amelie Peters</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -741,31 +818,31 @@
             <div class="round-heats">
               <div class="heat-box lb">
                 <div class="heat-header">LB H7 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">DM</div><span class="pilot-name">David Mueller</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">JL</div><span class="pilot-name">Jan Lang</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=11" alt="SB"><span class="pilot-name">Stefan Braun</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=7" alt="DM"><span class="pilot-name">David Mueller</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=15" alt="JL"><span class="pilot-name">Jan Lang</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H8 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">TK</div><span class="pilot-name">Tim Koenig</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">MS</div><span class="pilot-name">Max Sommer</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=19" alt="RZ"><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=27" alt="BK"><span class="pilot-name">Ben Keller</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=23" alt="TK"><span class="pilot-name">Tim Koenig</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=31" alt="MS"><span class="pilot-name">Max Sommer</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H9 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LW</div><span class="pilot-name">Lena Wagner</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">HG</div><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=18" alt="KM"><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=10" alt="LW"><span class="pilot-name">Lena Wagner</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=26" alt="HG"><span class="pilot-name">Hannah Guenther</span><span class="rank-badge r4">4</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H10 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">FK</div><span class="pilot-name">Felix Krueger</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LF</div><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=21" alt="AW"><span class="pilot-name">Alex Werner</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=13" alt="FK"><span class="pilot-name">Felix Krueger</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=29" alt="LF"><span class="pilot-name">Lukas Fuchs</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -780,22 +857,22 @@
             <div class="round-heats">
               <div class="heat-box lb three-pilot">
                 <div class="heat-header">LB H11 <span class="heat-status">3x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">SB</div><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=19" alt="RZ"><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=11" alt="SB"><span class="pilot-name">Stefan Braun</span><span class="rank-badge r3">3</span></div>
               </div>
               <div class="heat-box lb three-pilot">
                 <div class="heat-header">LB H12 <span class="heat-status">3x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">KM</div><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=18" alt="KM"><span class="pilot-name">Kathrin Meier</span><span class="rank-badge r3">3</span></div>
               </div>
               <div class="heat-box lb">
                 <div class="heat-header">LB H13 <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">BK</div><span class="pilot-name">Ben Keller</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">AW</div><span class="pilot-name">Alex Werner</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=27" alt="BK"><span class="pilot-name">Ben Keller</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=21" alt="AW"><span class="pilot-name">Alex Werner</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -810,15 +887,15 @@
             <div class="round-heats">
               <div class="heat-box lb three-pilot">
                 <div class="heat-header">LB H14 <span class="heat-status">3x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">RZ</div><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=19" alt="RZ"><span class="pilot-name">Robert Zimmermann</span><span class="rank-badge r3">3</span></div>
               </div>
               <div class="heat-box lb three-pilot">
                 <div class="heat-header">LB H15 <span class="heat-status">3x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">NS</div><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=25" alt="NS"><span class="pilot-name">Nico Schwarz</span><span class="rank-badge r3">3</span></div>
               </div>
             </div>
           </div>
@@ -833,10 +910,10 @@
             <div class="round-heats">
               <div class="heat-box lb" id="lb-finale">
                 <div class="heat-header">LB FINALE <span class="heat-status">4x</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">TW</div><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
-                <div class="pilot-row top"><div class="pilot-avatar">MK</div><span class="pilot-name">Martin Koch</span><span class="rank-badge r2">2</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">LS</div><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r3">3</span></div>
-                <div class="pilot-row bottom"><div class="pilot-avatar">PF</div><span class="pilot-name">Peter Fischer</span><span class="rank-badge r4">4</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW"><span class="pilot-name">Thomas Weber</span><span class="rank-badge r1">1</span></div>
+                <div class="pilot-row top"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK"><span class="pilot-name">Martin Koch</span><span class="rank-badge r2">2</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=2" alt="LS"><span class="pilot-name">Lisa Schmidt</span><span class="rank-badge r3">3</span></div>
+                <div class="pilot-row bottom"><img class="pilot-avatar" src="https://i.pravatar.cc/150?img=5" alt="PF"><span class="pilot-name">Peter Fischer</span><span class="rank-badge r4">4</span></div>
               </div>
             </div>
           </div>
@@ -857,28 +934,37 @@
       <div class="heat-box gf" id="grand-finale">
         <div class="heat-header">GRAND FINALE <span class="heat-status">LIVE</span></div>
         <div class="pilot-row champ">
-          <div class="pilot-avatar" style="border-color: var(--winner-green);">MB</div>
+          <img class="pilot-avatar" src="https://i.pravatar.cc/150?img=1" alt="MB" style="border-color: var(--winner-green);">
           <span class="pilot-name"><strong>Michael Bauer</strong></span>
           <span class="pilot-tag wb">WB</span>
         </div>
         <div class="pilot-row">
-          <div class="pilot-avatar" style="border-color: var(--winner-green);">CH</div>
+          <img class="pilot-avatar" src="https://i.pravatar.cc/150?img=17" alt="CH" style="border-color: var(--winner-green);">
           <span class="pilot-name"><strong>Chris Hartmann</strong></span>
           <span class="pilot-tag wb">WB</span>
         </div>
         <div class="pilot-row">
-          <div class="pilot-avatar" style="border-color: var(--loser-red);">TW</div>
+          <img class="pilot-avatar" src="https://i.pravatar.cc/150?img=3" alt="TW" style="border-color: var(--loser-red);">
           <span class="pilot-name"><strong>Thomas Weber</strong></span>
           <span class="pilot-tag lb">LB</span>
         </div>
         <div class="pilot-row">
-          <div class="pilot-avatar" style="border-color: var(--loser-red);">MK</div>
+          <img class="pilot-avatar" src="https://i.pravatar.cc/150?img=9" alt="MK" style="border-color: var(--loser-red);">
           <span class="pilot-name"><strong>Martin Koch</strong></span>
           <span class="pilot-tag lb">LB</span>
         </div>
       </div>
     </div>
 
+  </div>
+  </div><!-- /zoom-wrapper -->
+
+  <!-- Zoom Indicator -->
+  <div class="zoom-indicator">
+    <button id="zoom-out">−</button>
+    <span id="zoom-level">100%</span>
+    <button id="zoom-in">+</button>
+    <span class="zoom-hint">⌘+Scroll | Space+Drag</span>
   </div>
 
   <!-- ========================================
@@ -930,6 +1016,9 @@
      * ConnectorManager - Dynamische SVG Verbindungslinien
      * Nur fuer Winner Bracket und Grand Finale (LB ist Pool-basiert)
      */
+    // Globale Referenz zum viewState für ConnectorManager
+    let currentScale = 1;
+    
     class ConnectorManager {
       constructor(containerId, svgId) {
         this.container = document.getElementById(containerId);
@@ -952,16 +1041,19 @@
       getRelativePosition(element) {
         const containerRect = this.container.getBoundingClientRect();
         const elementRect = element.getBoundingClientRect();
+        const scale = currentScale || 1;
         
+        // Kompensiere Scale: getBoundingClientRect liefert skalierte Werte,
+        // aber SVG wird auch skaliert, also durch Scale teilen
         return {
-          left: elementRect.left - containerRect.left,
-          right: elementRect.right - containerRect.left,
-          top: elementRect.top - containerRect.top,
-          bottom: elementRect.bottom - containerRect.top,
-          centerX: elementRect.left - containerRect.left + elementRect.width / 2,
-          centerY: elementRect.top - containerRect.top + elementRect.height / 2,
-          width: elementRect.width,
-          height: elementRect.height
+          left: (elementRect.left - containerRect.left) / scale,
+          right: (elementRect.right - containerRect.left) / scale,
+          top: (elementRect.top - containerRect.top) / scale,
+          bottom: (elementRect.bottom - containerRect.top) / scale,
+          centerX: (elementRect.left - containerRect.left + elementRect.width / 2) / scale,
+          centerY: (elementRect.top - containerRect.top + elementRect.height / 2) / scale,
+          width: elementRect.width / scale,
+          height: elementRect.height / scale
         };
       }
 
@@ -1012,13 +1104,6 @@
         finalPath.setAttribute('stroke-linejoin', 'round');
         this.applyStyle(finalPath, type);
         group.appendChild(finalPath);
-        
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', avgX);
-        circle.setAttribute('cy', midY);
-        circle.setAttribute('r', '4');
-        this.applyCircleStyle(circle, type);
-        group.appendChild(circle);
         
         return group;
       }
@@ -1112,14 +1197,6 @@
         this.applyStyle(pathDown, 'gf');
         group.appendChild(pathDown);
         
-        // Treffpunkt-Kreis
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', meetX);
-        circle.setAttribute('cy', meetY);
-        circle.setAttribute('r', '5');
-        this.applyCircleStyle(circle, 'gf');
-        group.appendChild(circle);
-        
         return group;
       }
 
@@ -1127,8 +1204,10 @@
         this.svg.innerHTML = '';
         
         const containerRect = this.container.getBoundingClientRect();
-        this.svg.setAttribute('width', containerRect.width);
-        this.svg.setAttribute('height', containerRect.height);
+        const scale = currentScale || 1;
+        // SVG-Größe im untransformierten Koordinatensystem
+        this.svg.setAttribute('width', containerRect.width / scale);
+        this.svg.setAttribute('height', containerRect.height / scale);
         
         this.connections.forEach(conn => {
           if (conn.isGrandFinale) {
@@ -1194,8 +1273,204 @@
     // === GRAND FINALE Verbindung (beide treffen sich auf gleicher Hoehe) ===
     connectors.addGrandFinaleConnection('wb-finale', 'lb-finale', 'grand-finale');
 
-    // Initial zeichnen
-    setTimeout(() => connectors.redraw(), 100);
+    // === Grand Finale mittig zwischen WB-Finale und LB-Finale positionieren ===
+    function positionGrandFinale() {
+      const wbFinale = document.getElementById('wb-finale');
+      const lbFinale = document.getElementById('lb-finale');
+      const gfSection = document.querySelector('.grand-finale-section');
+      const gfBox = document.getElementById('grand-finale');
+      
+      if (wbFinale && lbFinale && gfSection && gfBox) {
+        const wbRect = wbFinale.getBoundingClientRect();
+        const lbRect = lbFinale.getBoundingClientRect();
+        const containerRect = document.getElementById('bracket-container').getBoundingClientRect();
+        
+        // Mittelpunkt zwischen WB-Finale und LB-Finale
+        const wbCenter = wbRect.left + wbRect.width / 2 - containerRect.left;
+        const lbCenter = lbRect.left + lbRect.width / 2 - containerRect.left;
+        const midpoint = (wbCenter + lbCenter) / 2;
+        
+        // Grand Finale Box-Breite (180px laut CSS)
+        const gfWidth = 180;
+        
+        // Setze margin-left so dass GF-Box zentriert auf midpoint liegt
+        gfSection.style.alignItems = 'flex-start';
+        gfSection.style.paddingLeft = (midpoint - gfWidth / 2) + 'px';
+      }
+    }
+    
+    // Initial positionieren, dann zeichnen
+    setTimeout(() => {
+      positionGrandFinale();
+      connectors.redraw();
+    }, 100);
+    
+    window.addEventListener('resize', () => {
+      setTimeout(() => {
+        positionGrandFinale();
+        connectors.redraw();
+      }, 60);
+    });
+
+    // ========================================
+    // PAN & ZOOM FUNKTIONALITÄT
+    // - Cmd/Ctrl + Scroll = Zoom zur Mausposition
+    // - Leertaste + Drag = Pan
+    // ========================================
+    
+    const zoomWrapper = document.getElementById('zoom-wrapper');
+    const bracketContainer = document.getElementById('bracket-container');
+    const zoomLevelDisplay = document.getElementById('zoom-level');
+    const zoomInBtn = document.getElementById('zoom-in');
+    const zoomOutBtn = document.getElementById('zoom-out');
+    
+    const viewState = {
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+      minScale: 0.25,
+      maxScale: 3,
+      step: 0.15,
+      isPanning: false,
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      startTranslateX: 0,
+      startTranslateY: 0
+    };
+    
+    function applyTransform() {
+      bracketContainer.style.transform = 
+        `translate(${viewState.translateX}px, ${viewState.translateY}px) scale(${viewState.scale})`;
+      zoomLevelDisplay.textContent = Math.round(viewState.scale * 100) + '%';
+      // Update globale Referenz für ConnectorManager
+      currentScale = viewState.scale;
+    }
+    
+    function zoomAtPoint(newScale, clientX, clientY) {
+      // Clamp scale
+      newScale = Math.max(viewState.minScale, Math.min(viewState.maxScale, newScale));
+      if (newScale === viewState.scale) return;
+      
+      // Mausposition relativ zum Wrapper
+      const wrapperRect = zoomWrapper.getBoundingClientRect();
+      const mouseX = clientX - wrapperRect.left + zoomWrapper.scrollLeft;
+      const mouseY = clientY - wrapperRect.top + zoomWrapper.scrollTop;
+      
+      // Position im Content-Koordinatensystem (vor Scale)
+      const contentX = (mouseX - viewState.translateX) / viewState.scale;
+      const contentY = (mouseY - viewState.translateY) / viewState.scale;
+      
+      // Neue Translation berechnen, damit der Punkt unter der Maus bleibt
+      viewState.translateX = mouseX - contentX * newScale;
+      viewState.translateY = mouseY - contentY * newScale;
+      viewState.scale = newScale;
+      
+      applyTransform();
+      
+      // SVG-Linien nach Zoom neu zeichnen
+      clearTimeout(viewState.redrawTimeout);
+      viewState.redrawTimeout = setTimeout(() => {
+        positionGrandFinale();
+        connectors.redraw();
+      }, 150);
+    }
+    
+    // Cmd/Ctrl + Scroll zum Zoomen an Mausposition
+    zoomWrapper.addEventListener('wheel', (e) => {
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault();
+        
+        const delta = e.deltaY > 0 ? -viewState.step : viewState.step;
+        const newScale = viewState.scale + delta;
+        
+        zoomAtPoint(newScale, e.clientX, e.clientY);
+      }
+    }, { passive: false });
+    
+    // Leertaste für Pan-Modus
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target === document.body) {
+        // PreventDefault UND stopImmediatePropagation - agresives Abfangen
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        if (!viewState.isPanning) {
+          viewState.isPanning = true;
+          zoomWrapper.classList.add('panning');
+        }
+      }
+    }, true); // Use capture phase
+    
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        viewState.isPanning = false;
+        viewState.isDragging = false;
+        zoomWrapper.classList.remove('panning', 'dragging');
+      }
+    });
+    
+    // Mouse Drag für Panning
+    zoomWrapper.addEventListener('mousedown', (e) => {
+      if (viewState.isPanning) {
+        e.preventDefault();
+        viewState.isDragging = true;
+        viewState.startX = e.clientX;
+        viewState.startY = e.clientY;
+        viewState.startTranslateX = viewState.translateX;
+        viewState.startTranslateY = viewState.translateY;
+        zoomWrapper.classList.add('dragging');
+      }
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (viewState.isDragging) {
+        const dx = e.clientX - viewState.startX;
+        const dy = e.clientY - viewState.startY;
+        viewState.translateX = viewState.startTranslateX + dx;
+        viewState.translateY = viewState.startTranslateY + dy;
+        applyTransform();
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (viewState.isDragging) {
+        viewState.isDragging = false;
+        zoomWrapper.classList.remove('dragging');
+        
+        // SVG-Linien nach Pan neu zeichnen
+        setTimeout(() => {
+          positionGrandFinale();
+          connectors.redraw();
+        }, 50);
+      }
+    });
+    
+    // Zoom Buttons (zoomen zur Mitte des sichtbaren Bereichs)
+    function zoomToCenter(delta) {
+      const wrapperRect = zoomWrapper.getBoundingClientRect();
+      const centerX = wrapperRect.width / 2;
+      const centerY = wrapperRect.height / 2;
+      zoomAtPoint(viewState.scale + delta, wrapperRect.left + centerX, wrapperRect.top + centerY);
+    }
+    
+    zoomInBtn.addEventListener('click', () => zoomToCenter(viewState.step));
+    zoomOutBtn.addEventListener('click', () => zoomToCenter(-viewState.step));
+    
+    // Doppelklick zum Reset
+    zoomWrapper.addEventListener('dblclick', (e) => {
+      if (e.metaKey || e.ctrlKey) {
+        viewState.scale = 1;
+        viewState.translateX = 0;
+        viewState.translateY = 0;
+        applyTransform();
+        setTimeout(() => {
+          positionGrandFinale();
+          connectors.redraw();
+        }, 50);
+      }
+    });
   </script>
 
 </body>
