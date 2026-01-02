@@ -8,9 +8,37 @@ status: draft
 
 # FPV Racing Heats - Turnier-Ablauf & Spielregeln
 
-## Das Grundprinzip
+## 1. Das Grundprinzip
 
 Das Turnier-Format basiert auf dem **Double-Elimination-Prinzip**: Jeder Pilot hat zwei Leben und damit zwei Chancen, das Turnier zu überstehen.
+
+### Die Lebens-Regel
+
+| Leben | Status | Bedeutung |
+|-------|--------|-----------|
+| Leben 1 | Aktiv | Du bist im Winner Bracket, keine Niederlage |
+| Leben 2 | Aktiv | Du bist im Loser Bracket, eine Niederlage kassiert |
+| Kein Leben | Eliminiert | Zwei Niederlagen → Turnier vorbei |
+
+**Merksatz:** "Erst im Loser Bracket fliegst du raus!"
+
+### Die Goldenen Regeln
+
+| # | Regel | Beschreibung |
+|---|-------|--------------|
+| 1 | **Quali entscheidet** | Platz 1+2 = WB, Platz 3+4 = LB |
+| 2 | **WB = 1. Chance** | 1. Niederlage → LB |
+| 3 | **LB = 2. Chance** | 2. Niederlage → Rausfliegen |
+| 4 | **Nur 1× rausfliegen** | Wer raus ist, kommt nicht wieder |
+| 5 | **Grand Finale = Best of the Best** | 4 Piloten kämpfen um Platz 1-4 |
+
+### Das Ziel
+
+Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust bedeutet nicht das Turnieraus – erst die zweite Niederlage eliminiert einen Piloten endgültig.
+
+---
+
+## 2. Die Turnier-Phasen
 
 ### Qualifikation
 
@@ -41,25 +69,65 @@ Im Loser Bracket sammeln sich alle Piloten, die bereits einmal verloren haben. H
 
 Weil nach jeder Winner-Bracket-Runde die Verlierer (Platz 3-4) ins Loser Bracket hinzustoßen. Das bedeutet: Das Loser Bracket wächst mit jeder Runde an und hat daher mehr Phasen als das Winner Bracket.
 
-### Das Ziel
+### Grand Finale
 
-Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust bedeutet nicht das Turnieraus – erst die zweite Niederlage eliminiert einen Piloten endgültig.
+Im Grand Finale treffen die besten 4 Piloten aufeinander:
+- 2 Piloten aus dem Winner Bracket (nie verloren)
+- 2 Piloten aus dem Loser Bracket (1× verloren)
+
+| Ergebnis | Ziel |
+|----------|------|
+| Platz 1 | → SIEGER |
+| Platz 2 | → 2. PLATZ |
+| Platz 3 | → 3. PLATZ |
+| Platz 4 | → 4. PLATZ |
+
+### Grand Finale Rematch-Regel
+
+#### Das Problem
+
+Im Grand Finale treffen 2 Piloten aus dem Winner Bracket (nie verloren) auf 2 Piloten aus dem Loser Bracket (1× verloren). Ohne Rematch-Regel könnte ein LB-Pilot das Turnier gewinnen, obwohl ein WB-Pilot nie eine zweite Chance bekommen hat – das widerspricht dem Double-Elimination-Prinzip.
+
+#### Die Lösung: Automatisches Rematch
+
+Nach dem Grand Finale Heat wird automatisch ein **1v1-Rematch** gespielt, wenn die Bedingungen erfüllt sind:
+
+| Grand Finale Platz | Wenn Pilot aus LB | Rematch gegen |
+|--------------------|-------------------|---------------|
+| Platz 1 | ✓ | Platz 3 (wenn aus WB) |
+| Platz 2 | ✓ | Platz 4 (wenn aus WB) |
+| Platz 3 | – | Kein Rematch |
+| Platz 4 | – | Kein Rematch |
+
+#### Ablauf nach dem Grand Finale Heat
+
+```
+1. Prüfe Platz 1:
+   └─ Ist LB-Pilot UND Platz 3 ist WB-Pilot?
+      → JA: Rematch 1v1 zwischen Platz 1 und Platz 3
+      → NEIN: Kein Rematch für Platz 1
+
+2. Prüfe Platz 2:
+   └─ Ist LB-Pilot UND Platz 4 ist WB-Pilot?
+      → JA: Rematch 1v1 zwischen Platz 2 und Platz 4
+      → NEIN: Kein Rematch für Platz 2
+
+3. Rematch-Ergebnis:
+   └─ Gewinner bekommt den höheren Platz
+   └─ Verlierer bekommt den niedrigeren Platz
+```
+
+#### Warum diese Regel fair ist
+
+- **WB-Piloten** haben sich durch das ganze Turnier ohne Niederlage gekämpft – sie verdienen ihre zweite Chance
+- **LB-Piloten** müssen im Rematch beweisen, dass ihr Finale-Ergebnis kein Zufall war
+- Die Regel gilt nur für **direkte Nachbarn** (1↔3, 2↔4) – wer deutlich schlechter fliegt, löst kein Rematch aus
 
 ---
 
-## Die Lebens-Regel
+## 3. Beispiel-Ablauf (32 Piloten)
 
-| Leben | Status | Bedeutung |
-|-------|--------|-----------|
-| Leben 1 | Aktiv | Du bist im Winner Bracket, keine Niederlage |
-| Leben 2 | Aktiv | Du bist im Loser Bracket, eine Niederlage kassiert |
-| Kein Leben | Eliminiert | Zwei Niederlagen → Turnier vorbei |
-
-**Merksatz:** "Erst im Loser Bracket fliegst du raus!"
-
-## Der Ablauf (32 Piloten Beispiel)
-
-### 1. Qualifikation
+### 3.1 Qualifikation
 
 **8 Heats × 4 Piloten = 32 Piloten**
 
@@ -76,7 +144,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 2. Winner Bracket Runde 1
+### 3.2 Winner Bracket Runde 1
 
 **4 Heats × 4 Piloten = 16 Piloten**
 
@@ -93,7 +161,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 3. Loser Bracket Runde 1
+### 3.3 Loser Bracket Runde 1
 
 **6 Heats × 4 Piloten = 24 Piloten**
 
@@ -114,7 +182,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 4. Winner Bracket Runde 2
+### 3.4 Winner Bracket Runde 2
 
 **2 Heats × 4 Piloten = 8 Piloten**
 
@@ -131,7 +199,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 5. Loser Bracket Runde 2
+### 3.5 Loser Bracket Runde 2
 
 **4 Heats × 4 Piloten = 16 Piloten**
 
@@ -152,7 +220,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 6. Winner Bracket Finale
+### 3.6 Winner Bracket Finale
 
 **1 Heat × 4 Piloten = 4 Piloten**
 
@@ -169,7 +237,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 7. Loser Bracket Runde 3
+### 3.7 Loser Bracket Runde 3
 
 **10 Piloten = 2× Dreier-Heats + 1× Vierer-Heat**
 
@@ -196,7 +264,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 8. Loser Bracket Runde 4
+### 3.8 Loser Bracket Runde 4
 
 **6 Piloten = 2× Dreier-Heats**
 
@@ -220,7 +288,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-### 9. Loser Bracket Finale
+### 3.9 Loser Bracket Finale
 
 **4 Piloten = 1× Vierer-Heat**
 
@@ -237,12 +305,12 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 ```markdown
 4 Piloten
 ├─ 2 Piloten → GRAND FINALE
-└─ 2 Piloten → PLATZ 3 & 4
+└─ 2 Piloten → PLATZ 5 & 6
 ```
 
 ---
 
-### 10. Grand Finale
+### 3.10 Grand Finale
 
 **1 Heat × 4 Piloten = 4 Piloten**
 
@@ -259,7 +327,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-## Zusammenfassung: Heat-Übersicht
+### Heat-Übersicht (32 Piloten)
 
 | Phase | Heats | Pilot-Eintritte | Elimination |
 |-------|-------|-----------------|-------------|
@@ -275,9 +343,7 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 | Grand Finale | 1 | 4 | 4 |
 | **GESAMT** | **32** | **32** | **28** |
 
----
-
-## Verteilung der Pilot:innen
+### Verteilung der Pilot:innen
 
 | Bracket | Heats | Anteil |
 |---------|-------|--------|
@@ -288,19 +354,9 @@ Jeder Pilot soll **mindestens zweimal fliegen** können. Ein einmaliger Verlust 
 
 ---
 
-## Die Goldenen Regeln
+## 4. Pilot-Beispiele
 
-| # | Regel | Beschreibung |
-|---|-------|--------------|
-| 1 | **Quali entscheidet** | Platz 1+2 = WB, Platz 3+4 = LB |
-| 2 | **WB = 1. Chance** | 1. Niederlage → LB |
-| 3 | **LB = 2. Chance** | 2. Niederlage → Rausfliegen |
-| 4 | **Nur 1× rausfliegen** | Wer raus ist, kommt nicht wieder |
-| 5 | **Grand Finale = Best of the Best** | 4 Piloten kämpfen um Platz 1-4 |
-
----
-
-## Beispiel 1: Lisa Schmidts Turnier-Reise (früh raus)
+### Beispiel 1: Lisa Schmidts Turnier-Reise (früh raus)
 
 | Phase | Ergebnis | Konsequenz |
 |-------|----------|------------|
@@ -312,7 +368,7 @@ Lisa ist raus, aber hatte ihre 2. Chance!
 
 ---
 
-## Beispiel 2: Max Müllers langer Weg (spät raus)
+### Beispiel 2: Max Müllers langer Weg (spät raus)
 
 | Phase | Ergebnis | Konsequenz |
 |-------|----------|------------|
@@ -327,7 +383,7 @@ Max hat lange gekämpft – 6 Heats geflogen und erst in LB R4 verloren!
 
 ---
 
-## Beispiel 3: Sarah Fischers Comeback-Story (Turniersieg aus dem LB!)
+### Beispiel 3: Sarah Fischers Comeback-Story (Turniersieg aus dem LB!)
 
 | Phase | Ergebnis | Konsequenz |
 |-------|----------|------------|
@@ -337,27 +393,121 @@ Max hat lange gekämpft – 6 Heats geflogen und erst in LB R4 verloren!
 | LB R3 | Platz 1 | → LB RUNDE 4 (überlebt!) |
 | LB R4 | Platz 1 | → LB FINALE (überlebt!) |
 | LB Finale | Platz 1 | → GRAND FINALE (geschafft!) |
-| Grand Finale | Platz 1 | → **TURNIERSIEG!** 🏆 |
+| Grand Finale | Platz 1 | → **TURNIERSIEG!** |
 
 Sarah hat in der Quali als Letzte abgeschnitten, aber sich durch das komplette Loser Bracket gekämpft und am Ende das Turnier gewonnen – eine echte Underdog-Story! Sie hat insgesamt **7 Heats** geflogen, mehr als jeder andere Pilot.
 
 ---
 
-## Beispiel 4: Tom Bergers direkter Weg (Vizemeister ohne Niederlage)
+### Beispiel 4: Tom Bergers Revanche (Rematch zum Vizemeister!)
 
 | Phase | Ergebnis | Konsequenz |
 |-------|----------|------------|
-| Quali | Platz 1 | → WINNER BRACKET (1. Leben intakt) |
-| WB R1 | Platz 1 | → WB RUNDE 2 (weiter im WB!) |
-| WB R2 | Platz 2 | → WB FINALE (weiter im WB!) |
-| WB Finale | Platz 1 | → GRAND FINALE (direkt qualifiziert!) |
-| Grand Finale | Platz 2 | → **2. PLATZ** 🥈 |
+| Quali | Platz 1 | → WINNER BRACKET |
+| WB R1 | Platz 1 | → WB RUNDE 2 |
+| WB R2 | Platz 2 | → WB FINALE |
+| WB Finale | Platz 2 | → GRAND FINALE |
+| Grand Finale | Platz 4 | → Rematch gegen Platz 2 (Sarah ist LB) |
+| Rematch | Sieg vs Sarah | → **2. PLATZ** |
 
-Tom ist den kürzesten Weg durchs Turnier gegangen – nur **5 Heats** geflogen und nie ins Loser Bracket gefallen. Trotzdem hat er im Grand Finale gegen Sarah (die aus dem LB kam) knapp verloren. Das zeigt: Im Finale zählt nur der eine Heat!
+**Grand Finale Ergebnis:**
+
+| Platz | Pilot | Herkunft |
+|-------|-------|----------|
+| 1 | Lisa | WB |
+| 2 | Sarah | LB |
+| 3 | Max | LB |
+| 4 | Tom | WB |
+
+**Rematch-Prüfung:**
+- Platz 1 (Lisa): WB-Pilot → Kein Rematch
+- Platz 2 (Sarah): LB-Pilot + Platz 4 (Tom) ist WB → **Rematch!**
+
+**Rematch: Tom vs Sarah**
+
+| Rematch | Ergebnis | Konsequenz |
+|---------|----------|------------|
+| Tom vs Sarah | Tom gewinnt! | Tom → **Platz 2**, Sarah → Platz 4 |
+
+**Finale Platzierung nach Rematch:**
+
+| Platz | Pilot | Herkunft |
+|-------|-------|----------|
+| 1 | Lisa | WB |
+| 2 | Tom | WB |
+| 3 | Max | LB |
+| 4 | Sarah | LB |
+
+Tom hatte im Grand Finale Heat einen schlechten Tag und landete auf Platz 4. Aber dank der Rematch-Regel bekam er als WB-Pilot seine verdiente zweite Chance – und nutzte sie! Er kämpfte sich vom letzten Platz auf den **Vizemeister-Titel**.
+
+Das zeigt: Im Double Elimination bekommt jeder seine zwei Chancen – auch im Finale!
 
 ---
 
-## Besonderheiten
+## 5. Rematch-Szenarien (Referenz)
+
+### Szenario A: WB dominiert → Kein Rematch
+
+| Platz | Pilot | Herkunft | Rematch? |
+|-------|-------|----------|----------|
+| 1 | Tom | WB | Ist WB-Pilot |
+| 2 | Lisa | WB | Ist WB-Pilot |
+| 3 | Sarah | LB | – |
+| 4 | Max | LB | – |
+
+**Ergebnis:** Turnier vorbei. Tom ist Sieger.
+
+---
+
+### Szenario B: LB gewinnt, WB auf Platz 3 → 1 Rematch
+
+| Platz | Pilot | Herkunft | Rematch? |
+|-------|-------|----------|----------|
+| 1 | Sarah | LB | Platz 3 ist WB → Rematch |
+| 2 | Tom | WB | Kein Rematch |
+| 3 | Lisa | WB | Rematch gegen Platz 1 |
+| 4 | Max | LB | – |
+
+**Automatisches Rematch:** Sarah vs Lisa (1v1 für Platz 1 & 3)
+
+| Rematch-Ergebnis | Finale Platzierung |
+|------------------|-------------------|
+| Lisa gewinnt | Lisa → **Platz 1**, Sarah → Platz 3 |
+| Sarah gewinnt | Sarah bleibt **Platz 1**, Lisa bleibt Platz 3 |
+
+---
+
+### Szenario C: Beide LB-Piloten auf 1+2 → 2 Rematches
+
+| Platz | Pilot | Herkunft | Rematch? |
+|-------|-------|----------|----------|
+| 1 | Sarah | LB | Platz 3 ist WB → Rematch |
+| 2 | Max | LB | Platz 4 ist WB → Rematch |
+| 3 | Tom | WB | Rematch gegen Platz 1 |
+| 4 | Lisa | WB | Rematch gegen Platz 2 |
+
+**2 automatische Rematches:**
+1. Sarah vs Tom (für Platz 1 & 3)
+2. Max vs Lisa (für Platz 2 & 4)
+
+---
+
+### Szenario D: LB gewinnt, aber Platz 3 auch LB → Kein Rematch
+
+| Platz | Pilot | Herkunft | Rematch? |
+|-------|-------|----------|----------|
+| 1 | Sarah | LB | Prüfe Platz 3... |
+| 2 | Tom | WB | Ist WB-Pilot |
+| 3 | Max | LB | Ist LB-Pilot |
+| 4 | Lisa | WB | – |
+
+**Kein Rematch für Platz 1!** Sarah bleibt Turniersiegerin.
+
+*Warum?* Lisa (WB) ist auf Platz 4 – sie war zu weit hinten. Die WB-"Versicherung" gilt nur für den direkten Nachbarn.
+
+---
+
+## 6. Besonderheiten
 
 ### Ungerade Pilotenzahlen
 
