@@ -102,6 +102,41 @@
     z-index: 0;
   }
 
+  /* Qualification Section (Story 14.2) */
+  .quali-section {
+    margin-bottom: 35px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--quali-blue);
+    position: relative;
+    z-index: 2;
+  }
+
+  .section-header.quali {
+    color: var(--quali-blue);
+    text-shadow: 0 0 10px var(--quali-blue);
+  }
+
+  .heats-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .flow-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin: 18px 0 0 0;
+    font-size: 11px;
+    color: var(--steel);
+  }
+
+  .flow-indicator .arrow { font-size: 14px; }
+  .flow-indicator .wb-arrow { color: var(--winner-green); }
+  .flow-indicator .lb-arrow { color: var(--loser-red); }
+
   /* Tabs Container */
   .tabs {
     display: flex;
@@ -592,6 +627,10 @@
   /* AC3: Grand Finale hat goldenes Checkmark */
   .heat-status.gf {
     background: var(--gold);
+  }
+
+  .heat-status.quali {
+    background: var(--neon-cyan);
   }
 
   /* ========================================

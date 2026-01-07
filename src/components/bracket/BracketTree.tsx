@@ -12,6 +12,8 @@ import { PoolDisplay } from './PoolDisplay'
 import { SVGConnectorLines } from './SVGConnectorLines'
 import { BracketLegend } from './BracketLegend'
 
+import { QualiSection } from './sections/QualiSection'
+
 interface BracketTreeProps {
   pilots: Pilot[]
   tournamentPhase: TournamentPhase
@@ -225,29 +227,13 @@ export function BracketTree({
 
   // Render Qualification Section (separate, horizontal)
   const renderQualificationSection = () => {
-    if (qualiHeats.length === 0) return null
-    
     return (
-      <div className="qualification-section mb-8">
-        <div className="font-display text-lg text-neon-cyan tracking-widest mb-4">
-          QUALIFIKATION
-        </div>
-        <p className="text-steel text-sm mb-4">
-          Platz 1+2 → Winner Bracket | Platz 3+4 → Loser Bracket
-        </p>
-        <div className="flex flex-wrap gap-4">
-          {qualiHeats.map((heat) => (
-            <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
-              <BracketHeatBox
-                heat={heat}
-                pilots={pilots}
-                bracketType="qualification"
-                onClick={() => handleHeatClick(heat.id)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      <QualiSection
+        qualiHeats={qualiHeats}
+        pilots={pilots}
+        onHeatClick={handleHeatClick}
+        registerHeatRef={registerHeatRef}
+      />
     )
   }
 

@@ -228,6 +228,13 @@ function BracketVariant({
     // Active status overrides bracket type
     if (status === 'active') return 'border-neon-cyan shadow-glow-cyan'
     
+    // Qualification bracket = cyan
+    if (bracketType === 'qualification') {
+      return status === 'completed' || status === 'pending'
+        ? 'border-neon-cyan shadow-glow-cyan'
+        : 'border-neon-cyan/50 border-dashed'
+    }
+
     // Grand Finale always gold
     if (bracketType === 'finale') {
       return 'border-gold shadow-glow-gold'
@@ -254,6 +261,7 @@ function BracketVariant({
   const getStatusIndicatorClass = () => {
     if (bracketType === 'finale') return 'heat-status gf'
     if (bracketType === 'loser') return 'heat-status lb'
+    if (bracketType === 'qualification') return 'heat-status quali'
     return 'heat-status' // Default: winner (green)
   }
 
