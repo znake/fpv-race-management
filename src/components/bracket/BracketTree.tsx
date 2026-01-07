@@ -52,8 +52,17 @@ export function BracketTree({
   const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const loserPool = useTournamentStore(state => state.loserPool)
-  const winnerPool = useTournamentStore(state => state.winnerPool)
   const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
+  const winnerPilots = useTournamentStore(state => state.winnerPilots)
+  
+  // Story 13-6: winnerPool wird dynamisch berechnet statt persistiert
+  // Verfügbare WB-Piloten = winnerPilots MINUS Piloten in pending/active WB-Heats
+  const pilotsInPendingWBHeats = new Set(
+    heats
+      .filter(h => h.bracketType === 'winner' && (h.status === 'pending' || h.status === 'active'))
+      .flatMap(h => h.pilotIds)
+  )
+  const winnerPool = winnerPilots.filter(p => !pilotsInPendingWBHeats.has(p))
 
   // Story 10-2: Check if WB has pending/active heats using Store method
   // Note: hasActiveWBHeats wird in späteren Stories (z.B. für LB-Steuerung) verwendet

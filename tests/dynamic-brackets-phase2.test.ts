@@ -49,7 +49,7 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
       expect(result.current.isQualificationComplete).toBe(true)
     })
 
-    it('sollte alle Gewinner (Platz 1+2) in WB Pool sammeln und WB-Heats generieren', () => {
+    it('sollte alle Gewinner (Platz 1+2) in winnerPilots sammeln und WB-Heats generieren', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       act(() => {
@@ -71,10 +71,9 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         })
       })
 
-      // AC 2, AC 3: Gewinner werden zu WB Pool gesammelt und sofort zu WB-Heats verarbeitet
-      // Pool sollte 0 sein wenn genau 4 Gewinner vorhanden waren (= 1 WB Heat generiert)
-      // Mit 8 Piloten: 2 Quali-Heats × 2 Gewinner = 4 Gewinner → 1 WB Heat → Pool leer
-      expect(result.current.winnerPool.length).toBe(0)
+      // Story 13-6: winnerPool wird dynamisch berechnet, nicht mehr als State
+      // Nach Quali sollten 4 Gewinner in winnerPilots sein (2 pro Heat × 2 Heats)
+      expect(result.current.winnerPilots.length).toBe(4)
       
       // Es sollte mind. 1 WB-Heat generiert worden sein
       const { heats: updatedHeats } = useTournamentStore.getState()
@@ -82,7 +81,7 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
       expect(wbHeats.length).toBeGreaterThan(0)
     })
 
-    it('sollte WB Heat erstellen wenn Pool >= 4 Piloten hat', () => {
+    it('sollte WB Heat erstellen wenn genug Gewinner vorhanden sind (>= 4)', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       act(() => {
@@ -104,169 +103,22 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         })
       })
 
-      // AC 2, AC 3: Nach Quali-Abschluss werden WB-Heats dynamisch aus Pool generiert
+      // AC 2, AC 3: Nach Quali-Abschluss werden WB-Heats dynamisch aus winnerPilots generiert
       const { heats: updatedHeats } = useTournamentStore.getState()
       
       // WB-Heats sollten jetzt im heats-Array sein (dynamisch generiert)
       const wbHeats = updatedHeats.filter(h => h.bracketType === 'winner')
       
       expect(wbHeats.length).toBeGreaterThan(0)
-      // winnerPool sollte leer sein (alle Gewinner wurden zu WB-Heats verarbeitet)
-      expect(result.current.winnerPool.length).toBe(0)
     })
   })
 
-  describe('Task 9: generateWBHeat() aus Pool (FIFO)', () => {
-    it('sollte WB Heat aus Pool erstellen wenn Pool >= 4 Piloten hat', () => {
-      const { result } = renderHook(() => useTournamentStore())
+  // Story 13-6: Task 9 und Task 10 wurden entfernt
+  // generateWBHeatFromPool, canGenerateWBFinale, generateWBFinale existieren nicht mehr
+  // WB-Heats werden jetzt automatisch in submitHeatResults() generiert
 
-      // Setup: Add 4 pilots to winner pool
-      act(() => {
-        result.current.addToWinnerPool(['p1', 'p2', 'p3', 'p4'])
-      })
-
-      expect(result.current.winnerPool.length).toBe(4)
-
-      // Generate WB heat
-      let wbHeat: Heat | null = null
-      act(() => {
-        wbHeat = result.current.generateWBHeatFromPool()
-      })
-
-      // Should have created a heat
-      expect(wbHeat).not.toBeNull()
-      expect(wbHeat!.bracketType).toBe('winner')
-      expect(wbHeat!.pilotIds).toEqual(['p1', 'p2', 'p3', 'p4'])
-
-      // Pool should be empty
-      expect(result.current.winnerPool.length).toBe(0)
-    })
-
-    it('sollte FIFO verwenden - erste Piloten zuerst', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Add 6 pilots to winner pool
-      act(() => {
-        result.current.addToWinnerPool(['p1', 'p2', 'p3', 'p4', 'p5', 'p6'])
-      })
-
-      expect(result.current.winnerPool.length).toBe(6)
-
-      // Generate WB heat
-      let wbHeat: Heat | null = null
-      act(() => {
-        wbHeat = result.current.generateWBHeatFromPool()
-      })
-
-      // Should take first 4 pilots (FIFO)
-      expect(wbHeat!.pilotIds).toEqual(['p1', 'p2', 'p3', 'p4'])
-
-      // Remaining pilots should be p5, p6
-      expect(result.current.winnerPool).toEqual(['p5', 'p6'])
-    })
-
-    it('sollte null zurückgeben wenn Pool < 4 Piloten hat', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Add only 3 pilots to winner pool
-      act(() => {
-        result.current.addToWinnerPool(['p1', 'p2', 'p3'])
-      })
-
-      // Try to generate WB heat
-      let wbHeat: Heat | null = null
-      act(() => {
-        wbHeat = result.current.generateWBHeatFromPool()
-      })
-
-      // Should return null
-      expect(wbHeat).toBeNull()
-
-      // Pool should remain unchanged
-      expect(result.current.winnerPool).toEqual(['p1', 'p2', 'p3'])
-    })
-  })
-
-  describe('Task 10: WB Finale Erkennung & Generierung', () => {
-    it('sollte WB Finale erkennen wenn Pool nur 2 Piloten hat', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Simulate qualification complete and add 2 pilots to winner pool
-      act(() => {
-        // Manually set isQualificationComplete for unit test
-        useTournamentStore.setState({ isQualificationComplete: true })
-        result.current.addToWinnerPool(['p1', 'p2'])
-      })
-
-      expect(result.current.winnerPool.length).toBe(2)
-      expect(result.current.isQualificationComplete).toBe(true)
-
-      // generateWBHeatFromPool should return null (not enough for regular heat)
-      let regularHeat: Heat | null = null
-      act(() => {
-        regularHeat = result.current.generateWBHeatFromPool()
-      })
-
-      expect(regularHeat).toBeNull()
-
-      // canGenerateWBFinale should return true
-      expect(result.current.canGenerateWBFinale()).toBe(true)
-    })
-
-    it('sollte WB Finale Heat generieren mit 2 Piloten', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Simulate qualification complete and add 2 pilots to winner pool
-      act(() => {
-        useTournamentStore.setState({ isQualificationComplete: true })
-        result.current.addToWinnerPool(['p1', 'p2'])
-      })
-
-      // Generate WB finale
-      let wbFinale: Heat | null = null
-      act(() => {
-        wbFinale = result.current.generateWBFinale()
-      })
-
-      expect(wbFinale).not.toBeNull()
-      expect(wbFinale!.bracketType).toBe('winner')
-      expect(wbFinale!.isFinale).toBe(true)
-      expect(wbFinale!.pilotIds).toEqual(['p1', 'p2'])
-
-      // Pool should be empty
-      expect(result.current.winnerPool.length).toBe(0)
-    })
-
-    it('sollte kein WB Finale generieren wenn Pool >= 4 Piloten hat', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Simulate qualification complete and add 4 pilots
-      act(() => {
-        useTournamentStore.setState({ isQualificationComplete: true })
-        result.current.addToWinnerPool(['p1', 'p2', 'p3', 'p4'])
-      })
-
-      // canGenerateWBFinale should return false (should generate regular heat instead)
-      expect(result.current.canGenerateWBFinale()).toBe(false)
-    })
-
-    it('sollte kein WB Finale generieren wenn Qualification nicht abgeschlossen', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      // Setup: Add 2 pilots but qualification NOT complete
-      act(() => {
-        result.current.addToWinnerPool(['p1', 'p2'])
-      })
-
-      expect(result.current.isQualificationComplete).toBe(false)
-
-      // canGenerateWBFinale should return false
-      expect(result.current.canGenerateWBFinale()).toBe(false)
-    })
-  })
-
-  describe('Task 8: Nach WB-Heat Abschluss Pool füllen', () => {
-    it('sollte Gewinner (Platz 1+2) zu WB Pool hinzufügen oder zu neuem WB-Heat verarbeiten', () => {
+  describe('Task 8: Nach WB-Heat Abschluss', () => {
+    it('sollte Gewinner (Platz 1+2) in winnerPilots behalten', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Setup: Pool ist leer, nur 1 WB-Heat
@@ -294,11 +146,9 @@ describe('Dynamic Brackets - Phase 2: Dynamische WB-Heat Generierung', () => {
         result.current.submitHeatResults('wb-heat-1', rankings)
       })
 
-      // AC 2, AC 3: Gewinner werden zu Pool hinzugefügt
-      // Da nur 2 Gewinner (< 4), sollten sie im Pool bleiben (kein neuer WB-Heat generiert)
-      expect(result.current.winnerPool).toContain('p1')
-      expect(result.current.winnerPool).toContain('p2')
-      expect(result.current.winnerPool.length).toBe(2)
+      // AC 2, AC 3: Gewinner werden zu winnerPilots hinzugefügt
+      expect(result.current.winnerPilots).toContain('p1')
+      expect(result.current.winnerPilots).toContain('p2')
     })
 
     it('sollte Verlierer (Platz 3+4) zu Loser Pool hinzufügen', () => {

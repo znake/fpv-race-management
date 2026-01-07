@@ -30,7 +30,6 @@ export function resetTournamentStore(): void {
 
     // Pools
     loserPool: [],
-    winnerPool: [],
     grandFinalePool: [],
 
     // Completion Flags

@@ -50,7 +50,6 @@ export interface WinnerBracketSectionProps {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
-  winnerPool: string[]
   onHeatClick: (heatId: string) => void
 }
 

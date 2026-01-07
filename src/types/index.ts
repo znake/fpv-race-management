@@ -21,6 +21,7 @@ export type {
   Heat,
   Top4Pilots,
   TournamentStateData,
+  PilotBracketState,
 } from './tournament';
 
 // Bracket Types (re-export commonly used)

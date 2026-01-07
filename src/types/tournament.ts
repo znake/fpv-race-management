@@ -30,6 +30,27 @@ export interface Heat {
   isFinale?: boolean
   roundName?: string
   results?: HeatResults
+  /** Story 13-1: Runden-Nummer innerhalb des Brackets (1 = erste Runde nach Quali) */
+  roundNumber?: number
+  /** Story 13-4 Task 1.1: Markiert ob dieser Heat ein Rematch ist */
+  isRematch?: boolean
+  /** Story 13-4 Task 1.2: Die beiden Piloten-IDs die im Rematch gegeneinander antreten */
+  rematchBetween?: [string, string]
+  /** Story 13-4 Task 1.3: Um welchen Platz wird im Rematch gekämpft (1 oder 2) */
+  rematchForPlace?: 1 | 2
+}
+
+/**
+ * Story 13-1: Pilot-Status im Bracket-System
+ * Trackt in welchem Bracket ein Pilot ist und welche Runde er erreicht hat
+ */
+export interface PilotBracketState {
+  /** Aktuelles Bracket des Piloten */
+  bracket: 'winner' | 'loser' | 'eliminated' | 'grand_finale'
+  /** Höchste erreichte Runde in diesem Bracket (1-basiert) */
+  roundReached: number
+  /** Story 13-3: Herkunft des Piloten im Grand Finale (WB oder LB) */
+  bracketOrigin?: 'wb' | 'lb'
 }
 
 /**
@@ -55,7 +76,6 @@ export interface TournamentStateData {
   loserPilots: string[]
   eliminatedPilots: string[]
   loserPool: string[]
-  winnerPool: string[]
   grandFinalePool: string[]
   isQualificationComplete: boolean
   isWBFinaleComplete: boolean

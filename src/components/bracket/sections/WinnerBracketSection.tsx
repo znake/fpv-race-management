@@ -6,14 +6,20 @@ import type { WinnerBracketSectionProps } from '../types'
 /**
  * Winner Bracket Section - tree structure from left to right
  * Task 4: Includes WB Pool Visualization (AC 2)
+ * 
+ * Story 13-6: winnerPool wird jetzt dynamisch berechnet statt als Prop übergeben
  */
 export function WinnerBracketSection({
   fullBracket,
   pilots,
   heats,
-  winnerPool,
   onHeatClick
 }: WinnerBracketSectionProps) {
+  // Story 13-6: winnerPool wird nicht mehr als Prop übergeben
+  // Der Pool wird jetzt im BracketTree.tsx dynamisch berechnet und dort angezeigt
+  // Diese Komponente zeigt nur noch die WB-Heats an
+  const winnerPool: string[] = [] // Pool-Display wurde nach BracketTree verschoben
+
   // Show section if there are WB rounds OR if there are pilots in the pool
   const hasWBRounds = fullBracket.winnerBracket.rounds.length > 0
   const hasWBPool = winnerPool.length > 0

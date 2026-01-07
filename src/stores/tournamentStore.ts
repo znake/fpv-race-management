@@ -28,7 +28,6 @@ export const INITIAL_TOURNAMENT_STATE = {
   loserPilots: [] as string[],
   eliminatedPilots: [] as string[],
   loserPool: [] as string[],
-  winnerPool: [] as string[],
   grandFinalePool: [] as string[],
   isQualificationComplete: false,
   isWBFinaleComplete: false,
@@ -72,7 +71,6 @@ interface TournamentState {
   currentHeatIndex: number
 
   // Story 4-2: NEU für Dynamisches Bracket
-  winnerPool: string[]        // Gewinner für nächsten WB-Heat (FIFO)
   grandFinalePool: string[]   // WB-Finale-Gewinner + LB-Finale-Gewinner
 
   // Status-Flags (Story 4-2)
@@ -126,12 +124,7 @@ interface TournamentState {
   removeFromLoserPool: (pilotIds: string[]) => void
   eliminatePilots: (pilotIds: string[]) => void
 
-  // Story 4-2: Winner Pool Actions
-  addToWinnerPool: (pilotIds: string[]) => void
-  removeFromWinnerPool: (count: number) => void
-  generateWBHeatFromPool: () => Heat | null
-  canGenerateWBFinale: () => boolean
-  generateWBFinale: () => Heat | null
+
 
   // NEW: Full bracket structure with 3 sections (Story 4.3 REDESIGN)
   fullBracketStructure: FullBracketStructure | null
@@ -489,31 +482,13 @@ export const useTournamentStore = create<TournamentState>()(
         })
       },
 
-      // Story 4-2: Winner Pool Actions
-      addToWinnerPool: (pilotIds) => {
-        const { winnerPool } = get()
-        const newPool = addToPool(winnerPool, pilotIds)
-        if (newPool !== winnerPool) {
-          set({ winnerPool: newPool })
-        }
-      },
-
-      removeFromWinnerPool: (count) => {
-        const { winnerPool } = get()
-        // FIFO: Entferne die ersten N Piloten
-        const toRemove = winnerPool.slice(0, count)
-        const remaining = winnerPool.slice(count)
-        set({ winnerPool: remaining })
-        return toRemove
-      },
-
       // =======================================================================
       // REFACTORED: 100% Dynamic Pool-Based Heat Generation (2025-12-27)
       // =======================================================================
       // 
       // ARCHITEKTUR:
       // - Quali-Heats: Statisch bei Turnierstart generiert
-      // - WB-Heats: Dynamisch aus winnerPool (wenn >= 4 Piloten, oder 2-3 für Finale)
+      // - WB-Heats: Dynamisch aus winnerPilots berechnet (wenn >= 4 Piloten, oder 2-3 für Finale)
       // - LB-Heats: Dynamisch aus loserPool (wenn >= 4 Piloten, oder 2-3 für Finale)
       // - Grand Finale: Automatisch wenn WB+LB Finale abgeschlossen
       //
@@ -521,7 +496,7 @@ export const useTournamentStore = create<TournamentState>()(
       // fullBracketStructure wird NUR noch für Visualisierung verwendet.
       // =======================================================================
       submitHeatResults: (heatId, rankings) => {
-        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool, winnerPool } = get()
+        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool } = get()
         
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
@@ -569,8 +544,18 @@ export const useTournamentStore = create<TournamentState>()(
         const newWinnerPilots = new Set(winnerPilots)
         const newLoserPilots = new Set(loserPilots)
         const newEliminatedPilots = new Set(eliminatedPilots)
-        let newWinnerPool = new Set(winnerPool)
         let newLoserPool = new Set(loserPool)
+        
+        // Story 13-6: winnerPool wird dynamisch berechnet statt persistiert
+        // Verfügbare WB-Piloten = winnerPilots MINUS Piloten in pending/active WB-Heats
+        const pilotsInPendingWBHeats = new Set(
+          updatedHeats
+            .filter(h => h.bracketType === 'winner' && (h.status === 'pending' || h.status === 'active'))
+            .flatMap(h => h.pilotIds)
+        )
+        let newWinnerPool = new Set(
+          Array.from(newWinnerPilots).filter(p => !pilotsInPendingWBHeats.has(p))
+        )
         
         // Handle re-submission: remove old assignments
         if (heat.results) {
@@ -803,10 +788,10 @@ export const useTournamentStore = create<TournamentState>()(
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
           loserPool: Array.from(newLoserPool),
-          winnerPool: Array.from(newWinnerPool),
           isQualificationComplete: newIsQualificationComplete,
           lastCompletedBracketType: completedBracketType
           // NOTE: fullBracketStructure wird NICHT mehr aktualisiert - nur für Visualisierung
+          // NOTE: winnerPool wird nicht mehr persistiert - wird dynamisch aus winnerPilots berechnet
         })
       },
 
@@ -824,7 +809,7 @@ export const useTournamentStore = create<TournamentState>()(
       // Story 4.2: Reopen completed heat for editing
       // Task 17-18: Edit-Mode with Pool Rollback
       reopenHeat: (heatId) => {
-        const { heats, fullBracketStructure, winnerPilots, loserPilots, eliminatedPilots, winnerPool, loserPool } = get()
+        const { heats, fullBracketStructure, winnerPilots, loserPilots, eliminatedPilots, loserPool } = get()
         
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
@@ -855,8 +840,8 @@ export const useTournamentStore = create<TournamentState>()(
         const newLoserPilots = new Set(loserPilots)
         const newEliminatedPilots = new Set(eliminatedPilots)
         
-        // Task 18: ROLLBACK Pools - Remove pilots from pools that came from this heat
-        const newWinnerPool = new Set(winnerPool)
+        // Task 18: ROLLBACK loserPool - Remove pilots from pools that came from this heat
+        // NOTE: winnerPool wird nicht mehr persistiert - wird dynamisch aus winnerPilots berechnet
         const newLoserPool = new Set(loserPool)
         
         // Remove all pilots from this heat from bracket tracking AND pools
@@ -867,8 +852,7 @@ export const useTournamentStore = create<TournamentState>()(
             newLoserPilots.delete(ranking.pilotId)
             newEliminatedPilots.delete(ranking.pilotId)
             
-            // Remove from pools
-            newWinnerPool.delete(ranking.pilotId)
+            // Remove from loser pool
             newLoserPool.delete(ranking.pilotId)
           }
         }
@@ -886,7 +870,6 @@ export const useTournamentStore = create<TournamentState>()(
           winnerPilots: Array.from(newWinnerPilots),
           loserPilots: Array.from(newLoserPilots),
           eliminatedPilots: Array.from(newEliminatedPilots),
-          winnerPool: Array.from(newWinnerPool),
           loserPool: Array.from(newLoserPool),
           fullBracketStructure: updatedBracketStructure
         })
@@ -1233,80 +1216,8 @@ export const useTournamentStore = create<TournamentState>()(
         }
       },
 
-      // Story 4-2 Task 9: Generate WB heat from winner pool (FIFO)
-      // Takes the first 4 pilots from winnerPool and creates a new WB heat
-      generateWBHeatFromPool: () => {
-        const { heats, winnerPool } = get()
-
-        // Check if pool has >= 4 pilots (minimum for a heat)
-        if (winnerPool.length >= 4) {
-          // FIFO: Take first 4 pilots from pool
-          const pilotsForWBHeat = winnerPool.slice(0, 4)
-          
-          // Create new WB heat
-          const wbHeat: Heat = {
-            id: `wb-heat-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-            heatNumber: heats.length + 1,
-            pilotIds: pilotsForWBHeat,
-            status: 'pending',
-            bracketType: 'winner'
-          }
-          
-          // Remove pilots from pool (FIFO: remove first 4)
-          const remainingPool = winnerPool.slice(4)
-          
-          // Update state
-          set({ 
-            heats: [...heats, wbHeat],
-            winnerPool: remainingPool
-          })
-          
-          return wbHeat
-        }
-        return null
-      },
-
-      // Story 4-2 Task 10: Check if WB Finale can be generated
-      // WB Finale when pool has exactly 2-3 pilots (not enough for regular 4er heat)
-      canGenerateWBFinale: () => {
-        const { winnerPool, isQualificationComplete } = get()
-        // WB Finale only after qualification is complete
-        // And when we have 2-3 pilots (not enough for regular heat, but enough for finale)
-        return isQualificationComplete && 
-               winnerPool.length >= 2 && 
-               winnerPool.length < 4
-      },
-
-      // Story 4-2 Task 10: Generate WB Finale heat
-      generateWBFinale: () => {
-        const { heats, winnerPool, canGenerateWBFinale } = get()
-
-        if (!canGenerateWBFinale()) {
-          return null
-        }
-
-        // Take all remaining pilots from pool (2-3 pilots)
-        const pilotsForFinale = [...winnerPool]
-        
-        // Create WB Finale heat
-        const wbFinale: Heat = {
-          id: `wb-finale-${Date.now()}`,
-          heatNumber: heats.length + 1,
-          pilotIds: pilotsForFinale,
-          status: 'pending',
-          bracketType: 'winner',
-          isFinale: true,
-          roundName: 'WB Finale'
-        }
-        
-        // Clear the winner pool
-        set({ 
-          heats: [...heats, wbFinale],
-          winnerPool: []
-        })
-        
-        return wbFinale
-      },
+      // NOTE: Story 13-6 - generateWBHeatFromPool, canGenerateWBFinale, generateWBFinale wurden entfernt
+      // WB-Heats werden jetzt automatisch in submitHeatResults() generiert basierend auf winnerPilots
     }),
     {
       name: 'tournament-storage',

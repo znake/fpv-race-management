@@ -9,29 +9,8 @@ describe('Dynamic Brackets - Phase 1: Store Erweiterung', () => {
     resetAll()
   })
 
-  describe('Task 1: winnerPool State', () => {
-    it('sollte winnerPool als leeres Array initialisieren', () => {
-      const { result } = renderHook(() => useTournamentStore())
-      expect(result.current.winnerPool).toEqual([])
-    })
-
-    it('sollte winnerPool über resetTournament leeren', () => {
-      const { result } = renderHook(() => useTournamentStore())
-
-      act(() => {
-        // Simulieren dass piloten im Pool sind (indem wir die state manipulieren)
-        result.current.winnerPool.push('pilot-1', 'pilot-2')
-      })
-
-      expect(result.current.winnerPool.length).toBeGreaterThan(0)
-
-      act(() => {
-        result.current.resetTournament()
-      })
-
-      expect(result.current.winnerPool).toEqual([])
-    })
-  })
+  // Story 13-6: Task 1 (winnerPool State) wurde entfernt
+  // winnerPool wird jetzt dynamisch aus winnerPilots berechnet, nicht mehr als State persistiert
 
   describe('Task 2: loserPool State (bereits vorhanden)', () => {
     it('sollte loserPool als leeres Array initialisieren', () => {
@@ -115,54 +94,8 @@ describe('Dynamic Brackets - Phase 1: Store Erweiterung', () => {
   })
 
   describe('Task 6: Pool Actions', () => {
-    describe('addToWinnerPool', () => {
-      it('sollte Piloten am Ende des winnerPool anfügen (FIFO)', () => {
-        const { result } = renderHook(() => useTournamentStore())
-
-        act(() => {
-          result.current.addToWinnerPool(['pilot-1', 'pilot-2'])
-          result.current.addToWinnerPool(['pilot-3'])
-        })
-
-        expect(result.current.winnerPool).toEqual(['pilot-1', 'pilot-2', 'pilot-3'])
-      })
-
-      it('sollte keine Duplikate hinzufügen', () => {
-        const { result } = renderHook(() => useTournamentStore())
-
-        act(() => {
-          result.current.addToWinnerPool(['pilot-1'])
-          result.current.addToWinnerPool(['pilot-1', 'pilot-2'])
-        })
-
-        expect(result.current.winnerPool).toEqual(['pilot-1', 'pilot-2'])
-      })
-    })
-
-    describe('removeFromWinnerPool', () => {
-      it('sollte die ersten N Piloten aus dem Pool nehmen (FIFO)', () => {
-        const { result } = renderHook(() => useTournamentStore())
-
-        act(() => {
-          result.current.addToWinnerPool(['pilot-1', 'pilot-2', 'pilot-3', 'pilot-4', 'pilot-5'])
-          result.current.removeFromWinnerPool(2)
-        })
-
-        expect(result.current.winnerPool).toEqual(['pilot-3', 'pilot-4', 'pilot-5'])
-      })
-
-      it('sollte keine Fehler werfen wenn Pool kleiner als count', () => {
-        const { result } = renderHook(() => useTournamentStore())
-
-        act(() => {
-          result.current.addToWinnerPool(['pilot-1', 'pilot-2'])
-          // Versuche mehr zu entfernen als vorhanden
-          result.current.removeFromWinnerPool(5)
-        })
-
-        expect(result.current.winnerPool).toEqual([])
-      })
-    })
+    // Story 13-6: addToWinnerPool und removeFromWinnerPool wurden entfernt
+    // winnerPool wird jetzt dynamisch aus winnerPilots berechnet
 
     describe('eliminatePilots', () => {
       it('sollte Piloten zu eliminatedPilots hinzufügen', () => {
