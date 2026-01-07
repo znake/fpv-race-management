@@ -141,14 +141,14 @@ development_status:
   # Source: Epic-Definition in epics.md
   # Zusammenhängender visueller Turnierbaum mit SVG-Linien
   # Abhängigkeit: Epic 9 (LB Pooling) - abgeschlossen
-epic-11: done
-   11-1-unified-layout-container: done
-   11-2-svg-verbindungslinien: done
-   11-3-platzierungs-farbcodierung: done
-   11-4-heat-status-indikatoren: done
-   11-5-pool-visualisierung: done
-   11-6-grand-finale-tags: done
-   11-7-legende: done
+  epic-11: done
+  11-1-unified-layout-container: done
+  11-2-svg-verbindungslinien: done
+  11-3-platzierungs-farbcodierung: done
+  11-4-heat-status-indikatoren: done
+  11-5-pool-visualisierung: done
+  11-6-grand-finale-tags: done
+  11-7-legende: done
   epic-11-retrospective: optional
 
   # =============================================================================
@@ -191,3 +191,34 @@ epic-11: done
   3-5-id-generierung: done
 
   epic-refactoring-retrospective: optional
+
+  # =============================================================================
+  # Epic 13 - Runden-basiertes Bracket Redesign
+  # =============================================================================
+  # Status: DONE - Alle Stories implementiert inkl. Code-Cleanup
+  # Abgeschlossen: 2026-01-07
+  epic-13: done
+  13-1-runden-basierte-wb-progression: done
+  13-2-lb-pooling-runden-synchronisation: done
+  13-3-grand-finale-4-piloten: done
+  13-4-grand-finale-rematch-regel: done
+  13-5-wb-vor-lb-reihenfolge: done
+  13-6-migration-ohne-toten-code: done  # winnerPool und Pool-basierte WB-Funktionen entfernt
+  epic-13-retrospective: optional
+
+  # =============================================================================
+  # Epic 14 - Visuelle Bracket Integration
+  # =============================================================================
+  # Status: Noch nicht gestartet - wartet auf Epic 13
+  epic-14: backlog
+  14-1-synthwave-bracket-container: drafted
+  14-2-qualifikations-section: drafted
+  14-3-winner-bracket-layout: drafted
+  14-4-loser-bracket-layout: drafted
+  14-5-heat-box-design: drafted
+  14-6-svg-connector-lines: drafted
+  14-7-grand-finale-section: drafted
+  14-8-zoom-pan: drafted
+  14-9-legende-mockup-design: drafted
+  14-10-dynamische-skalierung: drafted
+  epic-14-retrospective: optional
