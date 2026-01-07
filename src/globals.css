@@ -24,11 +24,15 @@
     --loser-red: #ff073a;
     --chrome: #e0e0e0;
     --steel: #888888;
+    --quali-blue: #00bfff;
     
     /* Glow Effects */
     --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
     --glow-cyan: 0 0 20px rgba(5, 217, 232, 0.5);
-    --glow-gold: 0 0 20px rgba(249, 200, 14, 0.5);
+    --glow-gold: 0 0 15px rgba(249, 200, 14, 0.5);
+    --glow-green: 0 0 10px rgba(57, 255, 20, 0.4);
+    --glow-red: 0 0 10px rgba(255, 7, 58, 0.4);
+    --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
     
     /* Legacy shadcn variables */
     --background: 240 10% 3.9%;
@@ -77,22 +81,22 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 300px;
+    height: 200px;
     background: 
       linear-gradient(180deg, transparent 0%, var(--void) 100%),
       repeating-linear-gradient(
         90deg,
         transparent,
         transparent 60px,
-        rgba(255, 42, 109, 0.1) 60px,
-        rgba(255, 42, 109, 0.1) 62px
+        rgba(255, 42, 109, 0.08) 60px,
+        rgba(255, 42, 109, 0.08) 62px
       ),
       repeating-linear-gradient(
         0deg,
         transparent,
         transparent 60px,
-        rgba(255, 42, 109, 0.1) 60px,
-        rgba(255, 42, 109, 0.1) 62px
+        rgba(255, 42, 109, 0.08) 60px,
+        rgba(255, 42, 109, 0.08) 62px
       );
     pointer-events: none;
     z-index: 0;
@@ -270,12 +274,16 @@
   /* AC4: Horizontales Scrolling bei Bedarf */
   /* AC5: Mindesthöhe 600px für Beamer */
   .bracket-container {
-    @apply relative min-h-[600px];
     background: var(--night);
-    border-radius: 16px;
-    padding: 30px;
+    border-radius: 12px;
+    padding: 25px;
     position: relative;
-    overflow-x: auto;
+    overflow: visible;
+    min-height: 600px;
+    /* Dynamische Breite (AC4) */
+    width: fit-content;
+    min-width: 600px;
+    max-width: 2500px;
   }
 
   /* Story 11-1: Unified Bracket Tree Layout */

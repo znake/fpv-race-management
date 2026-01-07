@@ -129,8 +129,8 @@ export function BracketTree({
   // Empty state: No pilots - Beamer-optimiert
   if (pilots.length === 0) {
     return (
-      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
-        <p className="font-ui text-beamer-body text-steel">Keine Piloten für Bracket verfügbar</p>
+      <div className="bracket-container">
+        <p className="font-ui text-beamer-body text-steel text-center">Keine Piloten für Bracket verfügbar</p>
       </div>
     )
   }
@@ -138,9 +138,9 @@ export function BracketTree({
   // Empty state: No heats generated yet - Beamer-optimiert
   if (heats.length === 0) {
     return (
-      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
-        <p className="font-ui text-beamer-body text-steel">Noch keine Heats generiert</p>
-        <p className="font-ui text-steel/60 text-beamer-caption mt-2">
+      <div className="bracket-container">
+        <p className="font-ui text-beamer-body text-steel text-center">Noch keine Heats generiert</p>
+        <p className="font-ui text-steel/60 text-beamer-caption mt-2 text-center">
           Starte ein Turnier um das Bracket zu sehen
         </p>
       </div>
@@ -150,8 +150,8 @@ export function BracketTree({
   // No full bracket structure yet (legacy state) - Beamer-optimiert
   if (!fullBracketStructure) {
     return (
-      <div className="bracket-container bg-night rounded-2xl p-8 text-center min-h-[600px] overflow-x-auto">
-        <p className="font-ui text-beamer-body text-steel">Bracket-Struktur wird generiert...</p>
+      <div className="bracket-container">
+        <p className="font-ui text-beamer-body text-steel text-center">Bracket-Struktur wird generiert...</p>
       </div>
     )
   }
@@ -254,6 +254,9 @@ export function BracketTree({
   // Render the WB/LB bracket tree (without qualification)
   const renderBracketTree = () => (
     <div ref={bracketContainerRef} className="bracket-tree flex items-stretch gap-0 min-w-[900px] relative">
+      {/* SVG Overlay für Verbindungslinien */}
+      <svg id="connector-svg" className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-visible" />
+      
       {/* Story 11-2: SVG Connector Lines Layer */}
       <SVGConnectorLines
         heats={heats}
@@ -442,7 +445,7 @@ export function BracketTree({
   // Tournament Completed State - Show Victory Ceremony
   if (tournamentPhase === 'completed' && top4 && onNewTournament) {
     return (
-      <div className="bracket-container bg-night rounded-2xl p-8 relative overflow-x-auto min-h-[600px]">
+      <div className="bracket-container">
         {/* Victory Ceremony */}
         <VictoryCeremony
           top4={top4}
@@ -476,7 +479,7 @@ export function BracketTree({
   }
 
   return (
-    <div className="bracket-container bg-night rounded-2xl p-8 relative overflow-x-auto min-h-[600px]">
+    <div className="bracket-container">
       {/* 1. ACTIVE HEAT Section - when tournament is running OR in finale phase */}
       {(tournamentPhase === 'running' || tournamentPhase === 'finale') && activeHeat && (
         <div ref={activeHeatRef} className="mb-8">

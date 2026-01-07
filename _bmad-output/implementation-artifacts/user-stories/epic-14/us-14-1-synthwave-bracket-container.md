@@ -146,20 +146,29 @@ Die aktuelle `BracketTree.tsx` verwendet bereits Tailwind-Klassen. Diese müssen
 ---
 
 ## Status
-Status: ready-for-dev
+Status: completed
 
 ## Tasks/Subtasks
-- [ ] Implement AC1: Container-Styling
-- [ ] Implement AC2: SVG-Overlay Layer
-- [ ] Implement AC3: Synthwave Grid-Hintergrund
-- [ ] Implement AC4: Dynamische Container-Breite
-- [ ] Implement AC5: CSS-Variablen Definition
-- [ ] Implement AC6: Glow-Effekte Variablen
+- [x] Implement AC1: Container-Styling
+- [x] Implement AC2: SVG-Overlay Layer
+- [x] Implement AC3: Synthwave Grid-Hintergrund
+- [x] Implement AC4: Dynamische Container-Breite
+- [x] Implement AC5: CSS-Variablen Definition
+- [x] Implement AC6: Glow-Effekte Variablen
 
 ## Dev Agent Record
 ### Implementation Plan
+1. CSS-Variablen in globals.css definieren.
+2. Synthwave-Grid in globals.css anpassen.
+3. BracketTree.tsx: Container-Klassen bereinigen und SVG-Layer hinzufügen.
+4. globals.css: .bracket-container Styling zentralisieren.
+
 ### Debug Log
+- Tests bestanden. SVG-Layer korrekt positioniert.
+- Dynamische Breite via fit-content und min/max-width umgesetzt.
+
 ### Completion Notes
+Alle ACs erfüllt. Das Design folgt nun strikt dem Synthwave-Mockup.
 
 ## File List
 ## Change Log
