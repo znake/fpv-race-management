@@ -1,53 +1,47 @@
-# Dokumentationsstruktur
+# FPV Racing Heats - Projekt-Dokumentation
 
-Dieses Verzeichnis enthält alle Projektdokumentationen für FPV Racing Heats.
+Dieses Verzeichnis enthält die **lebenden Haupt-Dokumente** für das FPV Racing Heats Projekt. Dies ist der "Source of Truth" für alle Projekt-Dokumentationen.
 
-## Ordnerstruktur
-
-```
-docs/
-├── analysis/           # Ursprüngliche Analysen & Brainstorming
-├── design/             # UX-Design Spezifikationen
-├── sample-data/        # Test- und Beispieldaten (CSV)
-├── sprints/            # Sprint-bezogene Artefakte
-│   ├── bug-fixes/          # Bug-Fix Dokumentation
-│   ├── change-proposals/   # Sprint Change Proposals
-│   ├── completion-reports/ # Abschlussberichte (Epics, Course Corrections)
-│   ├── user-stories/       # User Stories nach Epics sortiert
-│   │   ├── epic-1/             # Pilotenverwaltung
-│   │   ├── epic-2/             # Synthwave Design
-│   │   ├── epic-3/             # Turnierstart & Heat-Aufteilung
-│   │   ├── epic-4/             # Heat-Durchführung & Bracket
-│   │   ├── epic-5/             # Finale & Siegerehrung
-│   │   ├── epic-6/             # Beamer-Optimierung & UI
-│   │   └── epic-7/             # Reset-Funktionen
-│   └── validation-reports/ # Validation Reports
-└── [Kern-Dokumente]    # PRD, Epics, Architecture, etc.
-```
-
-## Kern-Dokumente (Hauptordner)
+## Kern-Dokumente
 
 | Datei | Beschreibung |
 |-------|--------------|
-| `prd.md` | Product Requirements Document |
-| `epics.md` | Epic-Übersicht und Priorisierung |
-| `architecture.md` | Technische Architektur |
-| `project-context.md` | Projektkontext für AI-Assistenten |
-| `bmm-workflow-status.yaml` | BMM Workflow Status |
+| `prd.md` | Product Requirements Document - Alle Feature-Anforderungen |
+| `architecture.md` | Technische Architektur - Stack, Patterns, Komponenten |
+| `README.md` | Diese Übersicht |
 
-## Sprint-Artefakte
+## Projekt-Artefakte
 
-### User Stories (`sprints/user-stories/`)
-Alle User Stories sind nach Epics gruppiert. Namenskonvention: `{epic}-{story}-beschreibung.md`
+Alle weiteren Artefakte (Epics, User Stories, Reports, etc.) befinden sich in `_bmad-output/`:
 
-### Change Proposals (`sprints/change-proposals/`)
-Dokumentation von Scope-Änderungen und Sprint-Anpassungen.
+```
+_bmad-output/
+├── planning-artifacts/          # Planungs-Dokumente
+│   ├── epics.md                 # Alle Epics (1-14) mit Stories
+│   ├── analysis/                # Analysen & Spielregeln
+│   │   ├── tournament-rules.md  # Double-Elimination Regeln
+│   │   ├── product-brief.md
+│   │   └── brainstorming-session.md
+│   └── design/                  # Design-Dokumentation
+│       ├── ux-design-specification.md
+│       └── bracket-tree-vertical-dynamisch.md
+│
+└── implementation-artifacts/    # Implementierungs-Artefakte
+    ├── user-stories/            # User Stories nach Epics
+    │   ├── epic-1/ ... epic-14/
+    ├── change-proposals/        # Scope-Änderungen
+    ├── bug-fixes/               # Bug-Fix Dokumentation
+    ├── validation-reports/      # QA-Berichte
+    └── completion-reports/      # Abschlussberichte
+```
 
-### Validation Reports (`sprints/validation-reports/`)
-QA-Berichte und Validierungsergebnisse.
+## Schnell-Links
 
-### Completion Reports (`sprints/completion-reports/`)
-Abschlussberichte für Epics und Course Corrections.
+- **Anforderungen:** [`prd.md`](prd.md)
+- **Architektur:** [`architecture.md`](architecture.md)
+- **Epics & Stories:** [`_bmad-output/planning-artifacts/epics.md`](../_bmad-output/planning-artifacts/epics.md)
+- **Spielregeln:** [`_bmad-output/planning-artifacts/analysis/tournament-rules.md`](../_bmad-output/planning-artifacts/analysis/tournament-rules.md)
 
-### Bug Fixes (`sprints/bug-fixes/`)
-Dokumentation von Bug-Fixes und deren Lösungen.
+---
+
+*Zuletzt aktualisiert: 2026-01-07*
