@@ -8,6 +8,7 @@ import { VictoryCeremony } from '../victory-ceremony'
 // Import heat box components
 import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
 import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
+import { GrandFinaleSection } from './sections/GrandFinaleSection'
 import { PoolDisplay } from './PoolDisplay'
 import { SVGConnectorLines } from './SVGConnectorLines'
 import { BracketLegend } from './BracketLegend'
@@ -77,6 +78,10 @@ export function BracketTree({
   // Story 11-2: Refs for SVG connector lines
   const bracketContainerRef = useRef<HTMLDivElement>(null)
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
+
+  // US-14.7: Refs for WB and LB Finals for dynamic positioning
+  const wbFinaleRef = useRef<HTMLDivElement | null>(null)
+  const lbFinaleRef = useRef<HTMLDivElement | null>(null)
   
   // Callback to register heat refs
   const registerHeatRef = useCallback((heatId: string, element: HTMLDivElement | null) => {
@@ -332,7 +337,10 @@ export function BracketTree({
         {/* WB Finale (upper) */}
         <div className="mb-8">
           {wbFinale ? (
-            <div ref={(el) => registerHeatRef(wbFinale.id, el)}>
+            <div ref={(el) => {
+              registerHeatRef(wbFinale.id, el)
+              wbFinaleRef.current = el
+            }}>
               <BracketHeatBox
                 heat={wbFinale}
                 pilots={pilots}
@@ -350,7 +358,10 @@ export function BracketTree({
         {/* LB Finale (lower) */}
         <div>
           {lbFinale ? (
-            <div ref={(el) => registerHeatRef(lbFinale.id, el)}>
+            <div ref={(el) => {
+              registerHeatRef(lbFinale.id, el)
+              lbFinaleRef.current = el
+            }}>
               <BracketHeatBox
                 heat={lbFinale}
                 pilots={pilots}
@@ -462,7 +473,16 @@ export function BracketTree({
       {/* 3. WB/LB BRACKET TREE */}
       {renderBracketTree()}
 
-      {/* 3. BRACKET LEGEND (Story 11-7) */}
+      {/* 4. GRAND FINALE SECTION (US-14.7) */}
+      <GrandFinaleSection
+        grandFinaleHeat={grandFinale || null}
+        pilots={pilots}
+        heats={heats}
+        wbFinaleRef={wbFinaleRef}
+        lbFinaleRef={lbFinaleRef}
+      />
+
+      {/* 5. BRACKET LEGEND (Story 11-7) */}
       <BracketLegend />
 
       {/* Heat Detail Modal */}

@@ -1,68 +1,92 @@
-import { EmptyBracketHeatBox } from '../heat-boxes/EmptyBracketHeatBox'
+import { useRef, useEffect, useCallback } from 'react'
 import { GrandFinaleHeatBox } from './GrandFinaleHeatBox'
-import { PoolDisplay } from '../PoolDisplay'
 import type { GrandFinaleSectionProps } from '../types'
 
 /**
- * Grand Finale Section - centered between Winner and Loser
- * Story 4.3 Task 9 & 10: Shows Grand Finale Pool and Heat
+ * US-14.7: Grand Finale Section - visueller Höhepunkt
+ * 
+ * AC1: Section unterhalb WB+LB, mittig positioniert
+ * AC2: GF-Sources Labels (WB TOP 2 / LB TOP 2)
+ * AC3: GF-Label "GRAND FINALE" (Bebas Neue 18px, gold, text-shadow)
+ * AC7: Dynamische Positionierung (JavaScript Mittelpunkt-Berechnung)
  */
 export function GrandFinaleSection({
-  fullBracket,
+  grandFinaleHeat,
   pilots,
   heats,
-  grandFinalePool
+  wbFinaleRef,
+  lbFinaleRef
 }: GrandFinaleSectionProps) {
-  // Find actual Grand Finale heat from heats array (dynamically created)
-  // WICHTIG: Nur grand_finale oder finale bracketType matchen, NICHT isFinale
-  // da WB Finale und LB Finale auch isFinale=true haben
-  const grandFinaleHeat = heats.find(h =>
-    h.bracketType === 'grand_finale' ||
-    h.bracketType === 'finale'
-  )
+  const sectionRef = useRef<HTMLDivElement>(null)
 
-  // Show section if there's a GF heat OR pilots in GF pool OR bracket structure has GF
-  const hasGFContent = grandFinaleHeat || grandFinalePool.length > 0 || fullBracket.grandFinale
+  /**
+   * AC7: Dynamische Mittelpunkt-Berechnung zwischen WB-Finale und LB-Finale
+   * Wird bei Initial-Load und Resize aufgerufen
+   */
+  const positionGrandFinale = useCallback(() => {
+    const wbFinale = wbFinaleRef.current
+    const lbFinale = lbFinaleRef.current
+    const gfSection = sectionRef.current
 
-  if (!hasGFContent) return null
+    if (!wbFinale || !lbFinale || !gfSection) return
 
-  // Show filled heat box if we have a Grand Finale heat with pilots
-  const hasPilots = grandFinaleHeat && grandFinaleHeat.pilotIds.length > 0
+    const wbRect = wbFinale.getBoundingClientRect()
+    const lbRect = lbFinale.getBoundingClientRect()
+    const containerRect = document.getElementById('bracket-container')?.getBoundingClientRect()
+
+    if (!containerRect) return
+
+    // Mittelpunkt zwischen WB-Finale und LB-Finale
+    const wbCenter = wbRect.left + wbRect.width / 2 - containerRect.left
+    const lbCenter = lbRect.left + lbRect.width / 2 - containerRect.left
+    const midpoint = (wbCenter + lbCenter) / 2
+
+    // GF-Box Breite (180px gemäß AC4)
+    const gfWidth = 180
+
+    // Padding-Left setzen für zentrierte Positionierung
+    gfSection.style.paddingLeft = `${Math.max(0, midpoint - gfWidth / 2)}px`
+  }, [wbFinaleRef, lbFinaleRef])
+
+  // AC7: Position bei Initial-Load und Resize berechnen
+  useEffect(() => {
+    positionGrandFinale()
+    window.addEventListener('resize', positionGrandFinale)
+    return () => window.removeEventListener('resize', positionGrandFinale)
+  }, [positionGrandFinale])
+
+  // Nichts rendern wenn kein Grand Finale Heat
+  if (!grandFinaleHeat) return null
 
   return (
-    <section
-      className="grand-finale-section bg-void border-4 border-gold rounded-2xl p-8 mb-6 shadow-glow-gold finale-glow"
+    <div
+      ref={sectionRef}
+      className="grand-finale-section positioned"
       data-testid="grand-finale-section"
     >
-      <h2 className="font-display text-beamer-display text-gold text-center mb-6">
-        GRAND FINALE
-      </h2>
+      <div className="gf-content">
+        {/* AC2: GF-Sources Labels */}
+        <div className="gf-sources" data-testid="gf-sources">
+          <div className="gf-source wb" data-testid="gf-source-wb">
+            WB TOP 2
+          </div>
+          <div className="gf-source lb" data-testid="gf-source-lb">
+            LB TOP 2
+          </div>
+        </div>
 
-      <div className="flex justify-center items-start gap-8 overflow-x-auto">
-        {/* GF Pool Visualization (Task 9) */}
-        {grandFinalePool.length > 0 && !hasPilots && (
-          <PoolDisplay
-            title="GF POOL"
-            pilotIds={grandFinalePool}
-            pilots={pilots}
-            variant="grandFinale"
-          />
-        )}
+        {/* AC3: GF-Label "GRAND FINALE" */}
+        <div className="gf-label" data-testid="gf-label">
+          GRAND FINALE
+        </div>
 
-        {/* Grand Finale Heat (Task 10) */}
-        {hasPilots && grandFinaleHeat ? (
-          <GrandFinaleHeatBox
-            heat={grandFinaleHeat}
-            pilots={pilots}
-            heats={heats}
-          />
-        ) : !grandFinalePool.length && fullBracket.grandFinale ? (
-          <EmptyBracketHeatBox
-            bracketHeat={fullBracket.grandFinale}
-            bracketType="finale"
-          />
-        ) : null}
+        {/* AC4, AC5, AC6, AC8: GrandFinaleHeatBox */}
+        <GrandFinaleHeatBox
+          heat={grandFinaleHeat}
+          pilots={pilots}
+          heats={heats}
+        />
       </div>
-    </section>
+    </div>
   )
 }

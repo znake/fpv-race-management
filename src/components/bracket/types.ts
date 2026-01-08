@@ -1,3 +1,4 @@
+import type React from 'react'
 import type { Heat, Pilot } from '../../types'
 import type { FullBracketStructure, BracketHeat, BracketType } from '../../lib/bracket-structure-generator'
 
@@ -73,11 +74,21 @@ export interface LoserBracketSectionProps {
   columnWidth?: number // Optional, calculated from structure if not provided
 }
 
-export interface GrandFinaleSectionProps {
+// US-14.7: Legacy GrandFinaleSectionProps for backwards compatibility
+export interface GrandFinaleSectionPropsLegacy {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
   grandFinalePool: string[]
+}
+
+// US-14.7: New GrandFinaleSectionProps with dynamic positioning
+export interface GrandFinaleSectionProps {
+  grandFinaleHeat: Heat | null
+  pilots: Pilot[]
+  heats: Heat[] // For bracketOrigin lookup
+  wbFinaleRef: React.RefObject<HTMLDivElement>
+  lbFinaleRef: React.RefObject<HTMLDivElement>
 }
 
 export interface DynamicLBHeatsSectionProps {

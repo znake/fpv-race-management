@@ -890,8 +890,68 @@
   }
 
   /* ========================================
-     BRACKET LEGEND (Story 11-7)
-     ======================================== */
+      US-14.7: GRAND FINALE SECTION
+      ======================================== */
+  /* AC1: Section unterhalb WB+LB, mittig positioniert */
+  .grand-finale-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .grand-finale-section.positioned {
+    align-items: flex-start;
+  }
+
+  .gf-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* AC2: GF-Sources Labels */
+  .gf-sources {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 60px;
+    margin-bottom: 15px;
+  }
+
+  .gf-source {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 9px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .gf-source.wb {
+    color: var(--winner-green);
+  }
+
+  .gf-source.lb {
+    color: var(--loser-red);
+  }
+
+  /* AC3: GF-Label "GRAND FINALE" */
+  .gf-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(249, 200, 14, 0.5);
+  }
+
+  /* ========================================
+      BRACKET LEGEND (Story 11-7)
+      ======================================== */
   /* AC3: Legende am unteren Rand mit margin-top */
   .legend {
     display: flex;
