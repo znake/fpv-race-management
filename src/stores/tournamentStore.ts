@@ -570,13 +570,17 @@ export const useTournamentStore = create<TournamentState>()(
         }
 
         // Story 13-4: Handle Rematch completion
+        let newRematchHeats = [...rematchHeats]
         let newGrandFinaleRematchPending = grandFinaleRematchPending
         if (isRematch) {
+          // Update the rematch in the rematchHeats array
+          const rematchIndex = newRematchHeats.findIndex(r => r.id === heatId)
+          if (rematchIndex !== -1) {
+            newRematchHeats[rematchIndex] = updatedHeats[heatIndex]
+          }
+
           // Check if all rematches are completed
-          const allRematchesCompleted = rematchHeats.every(r => {
-            const heatInArray = updatedHeats.find(h => h.id === r.id)
-            return heatInArray?.status === 'completed'
-          })
+          const allRematchesCompleted = newRematchHeats.every(r => r.status === 'completed')
           if (allRematchesCompleted) {
             newGrandFinaleRematchPending = false
           }
@@ -832,7 +836,8 @@ export const useTournamentStore = create<TournamentState>()(
           loserPool: Array.from(newLoserPool),
           isQualificationComplete: newIsQualificationComplete,
           lastCompletedBracketType: completedBracketType,
-          grandFinaleRematchPending: newGrandFinaleRematchPending
+          grandFinaleRematchPending: newGrandFinaleRematchPending,
+          rematchHeats: newRematchHeats
           // NOTE: fullBracketStructure wird NICHT mehr aktualisiert - nur für Visualisierung
           // NOTE: winnerPool wird nicht mehr persistiert - wird dynamisch aus winnerPilots berechnet
         })
