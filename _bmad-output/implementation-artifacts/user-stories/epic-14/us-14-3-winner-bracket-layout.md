@@ -21,49 +21,49 @@
 ## Akzeptanzkriterien
 
 ### AC1: Bracket-Column Container
-- [ ] Feste Breite berechnet aus: (Heats in R1) × Heat-Width + (Heats-1) × Gap
-- [ ] Für 32 Piloten: 4 Heats × 140px + 3 × 10px = 590px
-- [ ] Flex-Direction: column
-- [ ] Align-Items: center
+- [x] Feste Breite berechnet aus: (Heats in R1) × Heat-Width + (Heats-1) × Gap
+- [x] Für 32 Piloten: 4 Heats × 140px + 3 × 10px = 590px
+- [x] Flex-Direction: column
+- [x] Align-Items: center
 
 ### AC2: Column-Header
-- [ ] Text "WINNER BRACKET"
-- [ ] Font: Bebas Neue, 14px
-- [ ] Letter-Spacing: 3px
-- [ ] Grüner Border: 2px solid `--winner-green`
-- [ ] Box-Shadow: `--glow-green`
-- [ ] Hintergrund: rgba(57, 255, 20, 0.08)
-- [ ] Border-Radius: 6px
-- [ ] Padding: 8px 20px
-- [ ] Margin-Bottom: 20px
+- [x] Text "WINNER BRACKET"
+- [x] Font: Bebas Neue, 14px
+- [x] Letter-Spacing: 3px
+- [x] Grüner Border: 2px solid `--winner-green`
+- [x] Box-Shadow: `--glow-green`
+- [x] Hintergrund: rgba(57, 255, 20, 0.08)
+- [x] Border-Radius: 6px
+- [x] Padding: 8px 20px
+- [x] Margin-Bottom: 20px
 
 ### AC3: Round-Sections
-- [ ] Jede Runde hat eigene Section
-- [ ] Round-Label zeigt: "RUNDE N (X Piloten)" in `--steel`
-- [ ] Font: Bebas Neue, 10px
-- [ ] Letter-Spacing: 2px
-- [ ] Margin-Bottom: 10px
-- [ ] Text-Align: center
+- [x] Jede Runde hat eigene Section
+- [x] Round-Label zeigt: "RUNDE N (X Piloten)" in `--steel`
+- [x] Font: Bebas Neue, 10px
+- [x] Letter-Spacing: 2px
+- [x] Margin-Bottom: 10px
+- [x] Text-Align: center
 
 ### AC4: Heats-Layout pro Runde
-- [ ] Heats einer Runde horizontal nebeneinander
-- [ ] Standard-Gap: 10px
-- [ ] Flex-Wrap: nowrap
-- [ ] Justify-Content: center
+- [x] Heats einer Runde horizontal nebeneinander
+- [x] Standard-Gap: 10px
+- [x] Flex-Wrap: nowrap
+- [x] Justify-Content: center
 
 ### AC5: Runde 2+ Positionierung
-- [ ] R2-Heats zentriert unter Eltern-Paaren
-- [ ] Größerer Gap für R2: 160px (2×140px Heat-Width + 1×Gap - 2×Heat-Width)
-- [ ] Berechnung: Gap = 2 × Heat-Width + Standard-Gap = 290px - aktuelle Heat-Width
+- [x] R2-Heats zentriert unter Eltern-Paaren
+- [x] Größerer Gap für R2: 160px (2×140px Heat-Width + 1×Gap - 2×Heat-Width)
+- [x] Berechnung: Gap = 2 × Heat-Width + Standard-Gap = 290px - aktuelle Heat-Width
 
 ### AC6: Connector-Space
-- [ ] 40px Höhe zwischen Runden für SVG-Linien
-- [ ] Position: relative für Linien-Referenz
+- [x] 40px Höhe zwischen Runden für SVG-Linien
+- [x] Position: relative für Linien-Referenz
 
 ### AC7: WB-spezifisches Heat-Styling
-- [ ] Grüner Border: 2px solid `--winner-green`
-- [ ] Box-Shadow: `--glow-green`
-- [ ] Status-Badge: Grüner Hintergrund
+- [x] Grüner Border: 2px solid `--winner-green`
+- [x] Box-Shadow: `--glow-green`
+- [x] Status-Badge: Grüner Hintergrund
 
 ---
 
@@ -250,13 +250,30 @@ Die aktuelle `WinnerBracketSection.tsx` verwendet ein anderes Layout:
 
 ## Definition of Done
 
-- [ ] Alle Akzeptanzkriterien erfüllt
-- [ ] WinnerBracketSection komplett überarbeitet
-- [ ] Vertikales Runden-Layout implementiert
-- [ ] Grünes Header-Styling nach Mockup
-- [ ] Round-Labels zeigen korrekte Piloten-Zahlen
-- [ ] Connector-Spaces für SVG-Linien vorhanden
-- [ ] Dynamische Breiten-Berechnung funktioniert
-- [ ] Tests mit 8, 16, 32 Piloten erfolgreich
+- [x] Alle Akzeptanzkriterien erfüllt
+- [x] WinnerBracketSection komplett überarbeitet
+- [x] Vertikales Runden-Layout implementiert
+- [x] Grünes Header-Styling nach Mockup
+- [x] Round-Labels zeigen korrekte Piloten-Zahlen
+- [x] Connector-Spaces für SVG-Linien vorhanden
+- [x] Dynamische Breiten-Berechnung funktioniert
+- [x] Tests mit 8, 16, 32 Piloten erfolgreich
 - [ ] Visueller Vergleich mit Mockup erfolgreich
 - [ ] Code Review durchgeführt
+
+---
+
+## Implementation Notes (2026-01-08)
+
+### Geänderte Dateien
+| Datei | Beschreibung |
+|-------|--------------|
+| `src/components/bracket/sections/WinnerBracketSection.tsx` | Komplett neu implementiert mit vertikalem Layout |
+| `src/components/bracket/BracketTree.tsx` | Bug-Fix: doppelte Variablendeklaration entfernt |
+| `src/globals.css` | Neue CSS-Klassen für bracket-column-header, round-section, round-label, round-heats, connector-space |
+| `src/lib/bracket-layout-calculator.ts` | calculateColumnWidth() und calculateRoundGap() Funktionen |
+| `tests/us-14-3.test.tsx` | 25 Unit-Tests für alle ACs |
+
+### Commit
+- Hash: `945deee`
+- Message: `feat(US-14.3): implement Winner Bracket vertical layout`
