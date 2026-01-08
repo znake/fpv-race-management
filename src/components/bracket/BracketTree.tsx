@@ -4,6 +4,11 @@ import type { Pilot, Heat, TournamentPhase } from '../../types'
 import { HeatDetailModal } from '../heat-detail-modal'
 import { ActiveHeatView } from '../active-heat-view'
 import { VictoryCeremony } from '../victory-ceremony'
+import { cn } from '../../lib/utils'
+
+// US-14.8: Zoom & Pan
+import { useZoomPan } from '../../hooks/useZoomPan'
+import { ZoomIndicator } from './ZoomIndicator'
 
 // Import heat box components
 import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
@@ -52,17 +57,29 @@ export function BracketTree({
   onHeatComplete,
   onNewTournament
 }: BracketTreeProps) {
-  const heats = useTournamentStore(state => state.heats)
+  const heats = useTournamentStore(state => state.heats || [])
   const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const loserPool = useTournamentStore(state => state.loserPool)
   const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
   const winnerPilots = useTournamentStore(state => state.winnerPilots)
-  
+
+  // US-14.8: Zoom & Pan Hook
+  const {
+    state: zoomState,
+    containerRef: zoomContainerRef,
+    wrapperRef: zoomWrapperRef,
+    isPanning,
+    isDragging,
+    zoomIn,
+    zoomOut,
+    reset
+  } = useZoomPan()
+
   // Story 13-6: winnerPool wird dynamisch berechnet statt persistiert
   // Verfügbare WB-Piloten = winnerPilots MINUS Piloten in pending/active WB-Heats
   const pilotsInPendingWBHeats = new Set(
-    heats
+    (heats || [])
       .filter(h => h.bracketType === 'winner' && (h.status === 'pending' || h.status === 'active'))
       .flatMap(h => h.pilotIds)
   )
@@ -74,9 +91,8 @@ export function BracketTree({
 
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)
-  
-  // Story 11-2: Refs for SVG connector lines
-  const bracketContainerRef = useRef<HTMLDivElement>(null)
+
+  // Story 11-2: Refs for SVG connector lines (now replaced by zoomContainerRef)
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
 
   // US-14.7: Refs for WB and LB Finals for dynamic positioning
@@ -240,16 +256,39 @@ export function BracketTree({
 
   // Render the WB/LB bracket tree (without qualification)
   const renderBracketTree = () => (
-    <div ref={bracketContainerRef} className="bracket-tree flex items-stretch gap-0 min-w-[900px] relative">
-      {/* SVG Overlay für Verbindungslinien */}
-      <svg id="connector-svg" className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-visible" />
-      
-      {/* Story 11-2: SVG Connector Lines Layer */}
-      <SVGConnectorLines
-        heats={heats}
-        containerRef={bracketContainerRef}
-        heatRefs={heatRefsMap.current}
-      />
+    <div
+      ref={zoomWrapperRef}
+      className={cn(
+        'zoom-wrapper',
+        isPanning && 'panning',
+        isDragging && 'dragging'
+      )}
+      onDoubleClick={(e) => {
+        // AC7: Reset on Double Click + Ctrl/Cmd
+        if (e.ctrlKey || e.metaKey) {
+          reset()
+        }
+      }}
+    >
+      <div
+        ref={zoomContainerRef}
+        className="bracket-tree flex items-stretch gap-0 min-w-[900px] relative"
+        style={{
+          transform: `translate(${zoomState.translateX}px, ${zoomState.translateY}px) scale(${zoomState.scale})`,
+          transformOrigin: '0 0'
+        }}
+      >
+        {/* SVG Overlay für Verbindungslinien */}
+        <svg id="connector-svg" className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-visible" />
+
+        {/* Story 11-2: SVG Connector Lines Layer */}
+        {/* US-14.8: Scale prop für Zoom-Kompensation */}
+        <SVGConnectorLines
+          heats={heats}
+          containerRef={zoomContainerRef}
+          heatRefs={heatRefsMap.current}
+          scale={zoomState.scale}
+        />
       
       {/* Bracket Labels am linken Rand */}
       <div className="bracket-label wb font-display text-sm text-winner-green tracking-widest absolute -left-8 top-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
@@ -414,6 +453,7 @@ export function BracketTree({
         </div>
       </div>
     </div>
+    </div>
   )
 
   // Tournament Completed State - Show Victory Ceremony
@@ -484,6 +524,13 @@ export function BracketTree({
 
       {/* 5. BRACKET LEGEND (Story 11-7) */}
       <BracketLegend />
+
+      {/* US-14.8: Zoom Indicator */}
+      <ZoomIndicator
+        scale={zoomState.scale}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+      />
 
       {/* Heat Detail Modal */}
       {selectedHeatData && (

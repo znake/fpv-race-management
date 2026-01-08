@@ -1006,6 +1006,76 @@
     background: rgba(255, 7, 58, 0.25);
     border: 2px solid var(--loser-red);
   }
+
+  /* ========================================
+      US-14.8: ZOOM & PAN
+      ======================================== */
+  /* AC1: Zoom-Wrapper Container */
+  .zoom-wrapper {
+    overflow: auto;
+    position: relative;
+    cursor: default;
+  }
+
+  /* AC3: Pan-Mode Cursor */
+  .zoom-wrapper.panning {
+    cursor: grab;
+  }
+
+  .zoom-wrapper.panning:active,
+  .zoom-wrapper.dragging {
+    cursor: grabbing;
+  }
+
+  /* AC4 + AC5 + AC6: Zoom-Indicator Fixed (bottom-right) */
+  .zoom-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--night);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    color: var(--neon-cyan);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
+  }
+
+  /* AC6: Zoom-Button Styling */
+  .zoom-indicator button {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+
+  .zoom-indicator button:hover {
+    background: rgba(5, 217, 232, 0.2);
+  }
+
+  .zoom-level {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .zoom-hint {
+    font-size: 9px;
+    color: var(--steel);
+    margin-left: 5px;
+  }
 }
 
 /* Reduced Motion Preferences */

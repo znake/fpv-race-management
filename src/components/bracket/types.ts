@@ -104,3 +104,10 @@ export interface GrandFinaleHeatBoxProps {
   pilots: Pilot[]
   heats?: Heat[]  // Story 11-6: Needed for bracket origin tags
 }
+
+// US-14.8: Zoom Indicator Props
+export interface ZoomIndicatorProps {
+  scale: number
+  onZoomIn: () => void
+  onZoomOut: () => void
+}

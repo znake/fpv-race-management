@@ -278,13 +278,13 @@ export class ConnectorManager {
   }
 
   /**
-   * AC8: Debounced Redraw (50ms)
+   * AC8: Debounced Redraw (US-14.8: 150ms for zoom/pan performance)
    */
   debouncedRedraw(): void {
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout)
     }
-    this.resizeTimeout = setTimeout(() => this.redraw(), 50)
+    this.resizeTimeout = setTimeout(() => this.redraw(), 150)
   }
 
   /**
