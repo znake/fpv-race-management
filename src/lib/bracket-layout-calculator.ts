@@ -1,12 +1,15 @@
 /**
  * US-14.10: Layout Calculator for dynamic bracket widths
+ * US-14.4: Added LB-specific calculations and 3-pilot heat support
  */
 
 export const BRACKET_CONSTANTS = {
   HEAT_WIDTH: 140,
+  HEAT_WIDTH_3: 120, // US-14.4 AC6: Width for 3-pilot heats
   GAP: 10,
   GAP_R2_FACTOR: 2, // Faktor für Runde 2+
   CONNECTOR_HEIGHT: 40,
+  POOL_INDICATOR_HEIGHT: 30, // US-14.4 AC4: Height for pool indicators
 }
 
 /**
@@ -35,4 +38,22 @@ export function calculateRoundGap(roundIndex: number): number {
   return (Math.pow(2, roundIndex) * BRACKET_CONSTANTS.HEAT_WIDTH) + 
          ((Math.pow(2, roundIndex) - 1) * BRACKET_CONSTANTS.GAP) - 
          BRACKET_CONSTANTS.HEAT_WIDTH
+}
+
+/**
+ * US-14.4: Calculates the width of the Loser Bracket column
+ * Uses same formula as WB but with LB-specific heats count
+ * AC1: (max Heats in einer Runde) × Heat-Width + (Heats-1) × Gap
+ */
+export function calculateLBColumnWidth(maxHeatsInRound: number): number {
+  if (maxHeatsInRound <= 0) return 600 // Minimum width
+  return maxHeatsInRound * BRACKET_CONSTANTS.HEAT_WIDTH + (maxHeatsInRound - 1) * BRACKET_CONSTANTS.GAP
+}
+
+/**
+ * US-14.4 AC6: Calculate heat width based on pilot count
+ * 3-pilot heats use 120px, 4-pilot heats use 140px
+ */
+export function calculateHeatWidth(pilotCount: number): number {
+  return pilotCount === 3 ? BRACKET_CONSTANTS.HEAT_WIDTH_3 : BRACKET_CONSTANTS.HEAT_WIDTH
 }

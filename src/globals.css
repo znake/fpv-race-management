@@ -355,6 +355,54 @@
     width: 100%;
   }
 
+  /* US-14.4 AC2: Loser Bracket Column Header */
+  .bracket-column.lb .bracket-column-header {
+    color: var(--loser-red);
+    border: 2px solid var(--loser-red);
+    box-shadow: var(--glow-red);
+    background: rgba(255, 7, 58, 0.08);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-align: center;
+    padding: 8px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  /* US-14.4 AC4: Pool-Indicator between rounds */
+  .pool-indicator {
+    font-size: 9px;
+    color: var(--steel);
+    text-align: center;
+    padding: 8px 0;
+    margin: 5px 0;
+  }
+
+  /* US-14.4 AC4: Pool-Indicator arrows (red) */
+  .pool-indicator .arrow {
+    color: var(--loser-red);
+    font-size: 11px;
+  }
+
+  /* US-14.4 AC6: 3-Pilot Heat Box */
+  .heat-box.three-pilot,
+  [data-three-pilot="true"] .heat-box {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  /* US-14.4 AC7: LB Heat Box Red Styling */
+  .bracket-column.lb .heat-box {
+    border-color: var(--loser-red);
+    box-shadow: var(--glow-red);
+  }
+
+  .bracket-column.lb .heat-status {
+    background: var(--loser-red);
+  }
+
   /* US-14.3 AC3: Round Sections */
   .round-section {
     display: flex;

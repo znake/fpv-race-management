@@ -53,13 +53,24 @@ export interface WinnerBracketSectionProps {
   onHeatClick: (heatId: string) => void
 }
 
-export interface LoserBracketSectionProps {
+// US-14.4: Old LoserBracketSectionProps kept for backwards compatibility
+export interface LoserBracketSectionPropsLegacy {
   fullBracket: FullBracketStructure
   pilots: Pilot[]
   heats: Heat[]
   loserPool: string[]
   hasActiveWBHeats: boolean
   onHeatClick: (heatId: string) => void
+}
+
+// US-14.4: New LoserBracketSectionProps with structure-based approach
+export interface LoserBracketSectionProps {
+  structure: FullBracketStructure['loserBracket']
+  heats: Heat[]
+  pilots: Pilot[]
+  onHeatClick: (heatId: string) => void
+  registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
+  columnWidth?: number // Optional, calculated from structure if not provided
 }
 
 export interface GrandFinaleSectionProps {

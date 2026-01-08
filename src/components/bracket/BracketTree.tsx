@@ -207,7 +207,8 @@ export function BracketTree({
 
   // Collect data for rendering
   const qualiHeats = getQualiHeats()
-  const wbHeats = getWBHeats()
+  // Note: wbHeats not used directly - WinnerBracketSection handles WB heats
+  void getWBHeats() // Keep function available for future use
   const lbHeats = getLBHeats()
   const wbFinale = getWBFinale()
   const lbFinale = getLBFinale()
