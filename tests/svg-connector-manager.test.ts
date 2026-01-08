@@ -567,29 +567,29 @@ describe('US-14.6: ConnectorManager', () => {
       vi.useRealTimers()
     })
 
-    it('sollte debouncedRedraw mit 50ms Verzögerung aufrufen', () => {
+    it('sollte debouncedRedraw mit 150ms Verzögerung aufrufen', () => {
       const redrawSpy = vi.spyOn(manager, 'redraw')
-      
+
       manager.debouncedRedraw()
       expect(redrawSpy).not.toHaveBeenCalled()
-      
-      vi.advanceTimersByTime(30)
+
+      vi.advanceTimersByTime(100)
       expect(redrawSpy).not.toHaveBeenCalled()
-      
-      vi.advanceTimersByTime(30)
+
+      vi.advanceTimersByTime(60)
       expect(redrawSpy).toHaveBeenCalledTimes(1)
     })
 
     it('sollte mehrere debouncedRedraw Aufrufe zusammenfassen', () => {
       const redrawSpy = vi.spyOn(manager, 'redraw')
-      
+
       manager.debouncedRedraw()
-      vi.advanceTimersByTime(30)
+      vi.advanceTimersByTime(100)
       manager.debouncedRedraw()
-      vi.advanceTimersByTime(30)
+      vi.advanceTimersByTime(100)
       manager.debouncedRedraw()
-      vi.advanceTimersByTime(60)
-      
+      vi.advanceTimersByTime(160)
+
       expect(redrawSpy).toHaveBeenCalledTimes(1)
     })
   })
