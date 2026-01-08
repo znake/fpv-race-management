@@ -7,40 +7,32 @@ interface RankBadgeProps {
   className?: string;
 }
 
-const rankColors = {
-  1: 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-black', // Gold
-  2: 'bg-gradient-to-r from-gray-300 to-gray-500 text-black',     // Silber
-  3: 'bg-gradient-to-r from-amber-600 to-amber-800 text-white',   // Bronze
-  4: 'bg-gradient-to-r from-neon-pink to-purple-600 text-white',  // Pink
-};
-
-const rankGlow = {
-  1: 'shadow-[0_0_10px_rgba(250,204,21,0.5)]',
-  2: 'shadow-[0_0_10px_rgba(156,163,175,0.5)]',
-  3: 'shadow-[0_0_10px_rgba(217,119,6,0.5)]',
-  4: 'shadow-[0_0_10px_rgba(236,72,153,0.5)]',
-};
-
+/**
+ * US-14.5 AC11: Rank-Badge
+ * - 14px × 14px (sm), 18px (md), 24px (lg)
+ * - Border-radius: 50% (rund)
+ * - Font: Bebas Neue
+ * - Colors: Gold (#f9c80e), Silver (#c0c0c0), Bronze (#cd7f32), Cyan (#05d9e8)
+ */
 const sizeClasses = {
-  sm: 'w-5 h-5 text-xs',
-  md: 'w-7 h-7 text-sm',
-  lg: 'w-9 h-9 text-base',
+  sm: 'w-3.5 h-3.5 text-[9px]',  // 14px - mockup size
+  md: 'w-5 h-5 text-xs',         // 20px
+  lg: 'w-7 h-7 text-sm',         // 28px
 };
 
 export function RankBadge({
   rank,
-  size = 'md',
+  size = 'sm',
   animated = false,
   className,
 }: RankBadgeProps) {
   return (
     <div
       className={cn(
-        'rounded-full flex items-center justify-center font-bold',
+        'rank-badge',
+        `r${rank}`,
         sizeClasses[size],
-        rankColors[rank],
-        animated && rankGlow[rank],
-        animated && 'animate-pulse',
+        animated && 'rank-badge-animate',
         className
       )}
     >

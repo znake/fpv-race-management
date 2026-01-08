@@ -488,27 +488,160 @@
     padding-left: 20px;
   }
 
-  /* Heat Box Base (Story 11-1 AC5: min 200px Breite) */
+  /* ========================================
+     US-14.5: Heat-Box Design 1:1 Mockup
+     ======================================== */
+  /* Heat width CSS variables */
+  :root {
+    --heat-width: 140px;
+    --heat-width-3: 120px;
+    --bg-winner: rgba(57, 255, 20, 0.25);
+    --bg-loser: rgba(255, 7, 58, 0.25);
+  }
+
+  /* AC1: Standard Heat-Box Container */
   .heat-box {
     background: var(--night-light);
     border: 2px solid var(--winner-green);
-    border-radius: 10px;
-    padding: 10px 12px;
-    width: 210px;
-    min-width: 200px;
-    box-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+    border-radius: 8px;
+    padding: 6px 8px;
+    width: var(--heat-width);
+    box-shadow: var(--glow-green);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease;
   }
 
+  .heat-box:hover {
+    transform: scale(1.02);
+  }
+
+  /* AC1: Loser Bracket Heat Box */
   .heat-box.lb {
     border-color: var(--loser-red);
-    box-shadow: 0 0 12px rgba(255, 7, 58, 0.5);
+    box-shadow: var(--glow-red);
   }
 
+  /* AC1: Qualification Bracket Heat Box */
+  .heat-box.quali {
+    border-color: var(--quali-blue);
+    box-shadow: var(--glow-blue);
+  }
+
+  /* AC2: 3er-Heat Box (120px width) */
+  .heat-box.three-pilot {
+    width: var(--heat-width-3);
+  }
+
+  /* AC3: Grand Finale Box */
   .heat-box.gf {
     border: 3px solid var(--gold);
-    box-shadow: 0 0 20px rgba(249, 200, 14, 0.6);
-    width: 240px;
+    box-shadow: var(--glow-gold);
+    width: 180px;
+    padding: 10px 12px;
   }
+
+  /* AC4: Heat-Header */
+  .heat-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
+    color: var(--chrome);
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 1px;
+  }
+
+  /* AC5: Status-Badge */
+  .heat-status {
+    font-size: 7px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: var(--winner-green);
+    color: var(--void);
+    font-weight: 600;
+  }
+
+  .heat-box.lb .heat-status {
+    background: var(--loser-red);
+  }
+
+  .heat-box.quali .heat-status {
+    background: var(--quali-blue);
+  }
+
+  .heat-box.gf .heat-status {
+    background: var(--gold);
+  }
+
+  /* AC6: Pilot-Row Basis */
+  .pilot-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin: 1px 0;
+  }
+
+  /* AC7: Pilot-Row Weiterkommer (Platz 1+2) - Green */
+  .pilot-row.top {
+    background: var(--bg-winner);
+    border-left: 2px solid var(--winner-green);
+  }
+
+  /* AC8: Pilot-Row Eliminiert (Platz 3+4) - Red */
+  .pilot-row.bottom {
+    background: var(--bg-loser);
+    border-left: 2px solid var(--loser-red);
+  }
+
+  /* AC4: Champion im Grand Finale - Gold */
+  .pilot-row.champ {
+    background: rgba(249, 200, 14, 0.2);
+    border-left: 2px solid var(--gold);
+  }
+
+  /* AC9: Pilot-Avatar */
+  .pilot-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--night);
+    border: 1px solid var(--steel);
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+
+  /* AC10: Pilot-Name */
+  .pilot-name {
+    font-size: 9px;
+    color: var(--chrome);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* AC11: Rank-Badge */
+  .rank-badge {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 9px;
+    color: var(--void);
+    flex-shrink: 0;
+  }
+
+  .rank-badge.r1 { background: var(--gold); }
+  .rank-badge.r2 { background: #c0c0c0; }
+  .rank-badge.r3 { background: #cd7f32; }
+  .rank-badge.r4 { background: var(--neon-cyan); }
 
   /* Heat Groups (Story 11-1) */
   .heat-group {
