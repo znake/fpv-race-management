@@ -335,6 +335,56 @@
   .bracket-column {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* US-14.3 AC2: Winner Bracket Column Header */
+  .bracket-column.wb .bracket-column-header {
+    color: var(--winner-green);
+    border: 2px solid var(--winner-green);
+    box-shadow: var(--glow-green);
+    background: rgba(57, 255, 20, 0.08);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-align: center;
+    padding: 8px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  /* US-14.3 AC3: Round Sections */
+  .round-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  /* US-14.3 AC3: Round Label */
+  .round-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--steel);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  /* US-14.3 AC4: Heats Layout per Round */
+  .round-heats {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  /* US-14.3 AC6: Connector Space for SVG Lines */
+  .connector-space {
+    height: 40px;
     position: relative;
   }
 

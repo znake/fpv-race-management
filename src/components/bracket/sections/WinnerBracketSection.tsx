@@ -1,91 +1,130 @@
+import React from 'react'
 import { BracketHeatBox } from '../heat-boxes/BracketHeatBox'
-import { BracketRoundColumn } from '../layout/BracketRoundColumn'
-import { PoolDisplay } from '../PoolDisplay'
-import type { WinnerBracketSectionProps } from '../types'
+import { EmptyBracketHeatBox } from '../heat-boxes/EmptyBracketHeatBox'
+import { calculateColumnWidth, calculateRoundGap } from '../../../lib/bracket-layout-calculator'
+import type { Heat, Pilot, FullBracketStructure } from '../../../types'
+
+interface WinnerBracketSectionProps {
+  structure: FullBracketStructure['winnerBracket']
+  heats: Heat[]
+  pilots: Pilot[]
+  onHeatClick: (heatId: string) => void
+  registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
+}
 
 /**
- * Winner Bracket Section - tree structure from left to right
- * Task 4: Includes WB Pool Visualization (AC 2)
+ * US-14.3: Winner Bracket Layout
  * 
- * Story 13-6: winnerPool wird jetzt dynamisch berechnet statt als Prop übergeben
+ * Renders the Winner Bracket as a vertical column with rounds.
+ * Each round displays heats horizontally with connector spaces for SVG lines.
+ * 
+ * AC1: Bracket-column container with dynamic width
+ * AC2: Green "WINNER BRACKET" header
+ * AC3: Round sections with pilot count labels
+ * AC4: Horizontal heats per round
+ * AC5: Larger gaps for R2+ to center under parent pairs
+ * AC6: Connector spaces between rounds for SVG lines
+ * AC7: Green styling for winner bracket heats
  */
 export function WinnerBracketSection({
-  fullBracket,
-  pilots,
+  structure,
   heats,
-  onHeatClick
+  pilots,
+  onHeatClick,
+  registerHeatRef
 }: WinnerBracketSectionProps) {
-  // Story 13-6: winnerPool wird nicht mehr als Prop übergeben
-  // Der Pool wird jetzt im BracketTree.tsx dynamisch berechnet und dort angezeigt
-  // Diese Komponente zeigt nur noch die WB-Heats an
-  const winnerPool: string[] = [] // Pool-Display wurde nach BracketTree verschoben
+  // Return null for empty structure
+  if (!structure || structure.rounds.length === 0) return null
 
-  // Show section if there are WB rounds OR if there are pilots in the pool
-  const hasWBRounds = fullBracket.winnerBracket.rounds.length > 0
-  const hasWBPool = winnerPool.length > 0
+  // AC1: Calculate column width based on first round heats
+  const firstRoundHeats = structure.rounds[0].heats.length
+  const columnWidth = calculateColumnWidth(firstRoundHeats)
 
-  // Also check for dynamically generated WB heats
-  const dynamicWBHeats = heats.filter(h =>
-    h.bracketType === 'winner' &&
-    !fullBracket.winnerBracket.rounds.some(r => r.heats.some(bh => bh.id === h.id))
-  )
-  const hasDynamicWBHeats = dynamicWBHeats.length > 0
-
-  if (!hasWBRounds && !hasWBPool && !hasDynamicWBHeats) return null
+  /**
+   * Calculate pilot count for a round
+   * Each heat has 4 pilots (standard FPV racing format)
+   */
+  const getPilotCount = (heatCount: number): number => {
+    return heatCount * 4
+  }
 
   return (
-    <section className="winner-bracket-section bg-void/50 border-2 border-winner-green/30 rounded-2xl p-6 mb-6">
-      <h2 className="font-display text-beamer-heat text-winner-green mb-4">
-        WINNER BRACKET
-      </h2>
-      <div className="flex gap-8 overflow-x-auto pb-4 min-w-fit">
-        {/* WB Pool Visualization (Task 4, AC 2) */}
-        {hasWBPool && (
-          <div className="flex flex-col gap-4">
-            <h3 className="font-display text-beamer-body text-steel text-center mb-2">
-              WB Pool
-            </h3>
-            <PoolDisplay
-              title="WINNER POOL"
-              pilotIds={winnerPool}
-              pilots={pilots}
-              variant="standard"
-              maxDisplay={6}
-            />
-          </div>
-        )}
-
-        {/* Dynamic WB Heats */}
-        {hasDynamicWBHeats && (
-          <div className="flex flex-col gap-4">
-            <h3 className="font-display text-beamer-body text-steel text-center mb-2">
-              WB Heats
-            </h3>
-            <div className="space-y-3">
-              {dynamicWBHeats.map((heat) => (
-                <BracketHeatBox
-                  key={heat.id}
-                  heat={heat}
-                  pilots={pilots}
-                  bracketType="winner"
-                  onClick={() => onHeatClick(heat.id)}
+    <div 
+      className="bracket-column wb" 
+      style={{ width: `${columnWidth}px` }}
+      data-testid="winner-bracket-section"
+    >
+      {/* AC2: Column Header with green styling */}
+      <div className="bracket-column-header">WINNER BRACKET</div>
+      
+      <div className="bracket-tree" id="wb-tree">
+        {structure.rounds.map((round, idx) => {
+          // AC3: Calculate pilot count for this round
+          const pilotCount = getPilotCount(round.heats.length)
+          // Use 1-based round numbering for display (Round 1, 2, 3...)
+          const displayRoundNumber = idx + 1
+          
+          return (
+            <React.Fragment key={round.id}>
+              {/* AC3: Round Section with label */}
+              <div className="round-section">
+                <div className="round-label">
+                  RUNDE {displayRoundNumber} ({pilotCount} Piloten)
+                </div>
+                
+                {/* AC4: Heats layout - horizontal with dynamic gap */}
+                {/* AC5: Larger gap for R2+ to center under parent pairs */}
+                <div 
+                  className="round-heats" 
+                  style={{ gap: `${calculateRoundGap(idx)}px` }}
+                >
+                  {round.heats.map((bracketHeat) => {
+                    const heat = heats.find(h => h.id === bracketHeat.id)
+                    
+                    // AC7: Render empty placeholder if heat not found
+                    if (!heat) {
+                      return (
+                        <div 
+                          key={bracketHeat.id} 
+                          ref={(el) => registerHeatRef(bracketHeat.id, el)}
+                        >
+                          <EmptyBracketHeatBox
+                            bracketHeat={bracketHeat}
+                            bracketType="winner"
+                          />
+                        </div>
+                      )
+                    }
+                    
+                    // AC7: Render filled heat with winner bracket styling
+                    return (
+                      <div 
+                        key={heat.id} 
+                        ref={(el) => registerHeatRef(heat.id, el)}
+                      >
+                        <BracketHeatBox
+                          heat={heat}
+                          pilots={pilots}
+                          bracketType="winner"
+                          onClick={() => onHeatClick(heat.id)}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              
+              {/* AC6: Connector space between rounds for SVG lines */}
+              {idx < structure.rounds.length - 1 && (
+                <div 
+                  className="connector-space" 
+                  id={`wb-conn-r${displayRoundNumber}-r${displayRoundNumber + 1}`}
                 />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* WB Rounds from bracket structure */}
-        {fullBracket.winnerBracket.rounds.map((round) => (
-          <BracketRoundColumn
-            key={round.id}
-            round={round}
-            bracketType="winner"
-            pilots={pilots}
-            heats={heats}
-          />
-        ))}
+              )}
+            </React.Fragment>
+          )
+        })}
       </div>
-    </section>
+    </div>
   )
 }

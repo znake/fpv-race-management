@@ -13,6 +13,7 @@ import { SVGConnectorLines } from './SVGConnectorLines'
 import { BracketLegend } from './BracketLegend'
 
 import { QualiSection } from './sections/QualiSection'
+import { WinnerBracketSection } from './sections/WinnerBracketSection'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -212,17 +213,11 @@ export function BracketTree({
   const lbFinale = getLBFinale()
   const grandFinale = getGrandFinale()
 
-  // Get intermediate WB heats (between quali and WB finale)
-  const getIntermediateWBHeats = () => {
-    return wbHeats.filter(h => !h.isFinale)
-  }
-
   // Get intermediate LB heats (between quali losers and LB finale)
   const getIntermediateLBHeats = () => {
     return lbHeats.filter(h => !h.isFinale)
   }
 
-  const intermediateWBHeats = getIntermediateWBHeats()
   const intermediateLBHeats = getIntermediateLBHeats()
 
   // Render Qualification Section (separate, horizontal)
@@ -291,38 +286,19 @@ export function BracketTree({
         </div>
       </div>
 
-      {/* Column 2: WB/LB Heats (nach Quali) */}
-      <div className="heats-column w-[230px] shrink-0 flex flex-col justify-between pt-8">
-        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
-          BRACKET HEATS
-        </div>
+      <div className="heats-column shrink-0 flex flex-col justify-between pt-8">
+        <WinnerBracketSection
+          structure={fullBracketStructure.winnerBracket}
+          heats={heats}
+          pilots={pilots}
+          onHeatClick={handleHeatClick}
+          registerHeatRef={registerHeatRef}
+        />
         
-        {/* WB heats (upper half) */}
-        <div className="heat-group flex flex-col gap-4">
-          {intermediateWBHeats.length > 0 ? (
-            intermediateWBHeats.map((heat) => (
-              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
-                <BracketHeatBox
-                  heat={heat}
-                  pilots={pilots}
-                  bracketType="winner"
-                  onClick={() => handleHeatClick(heat.id)}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-xs text-center">WB Heats<br />warten auf Quali</span>
-            </div>
-          )}
-        </div>
-
-        {/* Bracket Spacer mit Trennlinie (AC3) */}
         <div className="bracket-spacer h-12 flex items-center">
           <div className="w-full border-t-2 border-dashed border-steel/30" />
         </div>
 
-        {/* LB heats (lower half) */}
         <div className="heat-group flex flex-col gap-4">
           {intermediateLBHeats.length > 0 ? (
             intermediateLBHeats.map((heat) => (
