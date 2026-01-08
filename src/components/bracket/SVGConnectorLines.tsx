@@ -1,18 +1,29 @@
-import { useState, useLayoutEffect, useCallback, RefObject } from 'react'
+import { useEffect, useRef, useCallback, RefObject } from 'react'
 import type { Heat } from '../../types'
+import { ConnectorManager } from '../../lib/svg-connector-manager'
 
 /**
- * Story 11-2: SVG Verbindungslinien
+ * US-14.6: SVG Connector Lines System
  * 
  * Farbcodierte SVG-Linien verbinden die Heats visuell:
  * - Grüne Linien: Winner Bracket Verbindungen
- * - Rote Linien: Loser Bracket Verbindungen
  * - Goldene Linien: Verbindungen zum Grand Finale (dicker)
  * 
- * Alle Linien haben Glow-Effekte für den Synthwave-Look.
+ * WICHTIG (AC10): LB hat KEINE Verbindungslinien (Pool-basiertes System)
+ * 
+ * Features:
+ * - AC1: ConnectorManager Klasse für zentrale Linien-Verwaltung
+ * - AC2: Linien-Styling (2px stroke, round caps)
+ * - AC3: Farbcodierung (WB grün, GF gold)
+ * - AC4: Pfad-Berechnung (vertikal → horizontal → vertikal)
+ * - AC5: Merge-Connections (2→1)
+ * - AC6: Grand Finale Connection (WB+LB → GF)
+ * - AC7: DOM-Position-Berechnung relativ zum Container
+ * - AC8: Dynamische Neuberechnung bei Resize
+ * - AC9: Scale-Kompensation bei Zoom
  */
 
-// TypeScript Interfaces (aus Story-Spezifikation)
+// Legacy Exports für Rückwärtskompatibilität
 export interface ConnectorLine {
   id: string
   sourceHeatId: string
@@ -20,40 +31,19 @@ export interface ConnectorLine {
   bracketType: 'wb' | 'lb' | 'gf'
 }
 
-interface LineCoordinates {
-  startX: number
-  startY: number
-  endX: number
-  endY: number
-}
-
-interface ComputedLine extends ConnectorLine, LineCoordinates {}
-
-interface SVGConnectorLinesProps {
-  heats: Heat[]
-  containerRef: RefObject<HTMLDivElement | null>
-  heatRefs: Map<string, HTMLDivElement | null>
-}
-
 /**
- * Utility: Berechnet die Verbindungen zwischen Heats basierend auf der Bracket-Struktur
- * 
- * AC1-3: WB-Linien grün, LB-Linien rot, GF-Linien gold
- * 
- * Verbindungslogik:
- * - WB Heats → WB Finale: Gewinner (Platz 1+2) gehen zum nächsten WB Heat
- * - WB/LB Finale → Grand Finale: Top 2 aus beiden Finals
- * - LB Heats → LB Finale: Gewinner gehen zum nächsten LB Heat
+ * Legacy-Funktion für Rückwärtskompatibilität
+ * AC10: Erstellt nur WB und GF Connections (keine LB-Linien)
  */
 export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
   const connections: ConnectorLine[] = []
   
   // Find finale heats
   const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
-  const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
   const grandFinale = heats.find(h => 
     h.bracketType === 'grand_finale' || h.bracketType === 'finale'
   )
+  const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
   
   // WB Heats (non-finale) → WB Finale
   const wbHeats = heats.filter(h => 
@@ -73,23 +63,8 @@ export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
     })
   }
   
-  // LB Heats (non-finale) → LB Finale
-  const lbHeats = heats.filter(h => 
-    (h.bracketType === 'loser' || h.id.startsWith('lb-heat-')) && 
-    !h.isFinale && 
-    h.status === 'completed'
-  )
-  
-  if (lbFinale) {
-    lbHeats.forEach((heat) => {
-      connections.push({
-        id: `lb-${heat.id}-to-finale`,
-        sourceHeatId: heat.id,
-        targetHeatId: lbFinale.id,
-        bracketType: 'lb'
-      })
-    })
-  }
+  // AC10: KEINE LB-Verbindungen mehr (Pool-System)
+  // LB Heats sind über den Pool verbunden, nicht über direkte Linien
   
   // WB Finale → Grand Finale (gold, AC3)
   if (wbFinale && grandFinale && wbFinale.status === 'completed') {
@@ -102,6 +77,7 @@ export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
   }
   
   // LB Finale → Grand Finale (gold, AC3)
+  // Diese Verbindung bleibt, da sie zum Grand Finale führt
   if (lbFinale && grandFinale && lbFinale.status === 'completed') {
     connections.push({
       id: 'lb-finale-to-gf',
@@ -114,157 +90,218 @@ export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
   return connections
 }
 
-/**
- * AC4: Berechnet die SVG-Koordinaten aus DOM-Positionen
- * 
- * Transformation: DOM → relative SVG Koordinaten
- * - startX/Y: rechter Rand der Quell-Heat-Box (vertikal zentriert)
- * - endX/Y: linker Rand der Ziel-Heat-Box (vertikal zentriert)
- */
-function calculateLineCoordinates(
-  connection: ConnectorLine,
-  containerRef: RefObject<HTMLDivElement | null>,
+interface SVGConnectorLinesProps {
+  heats: Heat[]
+  containerRef: RefObject<HTMLDivElement | null>
   heatRefs: Map<string, HTMLDivElement | null>
-): LineCoordinates | null {
-  const container = containerRef.current
-  const sourceEl = heatRefs.get(connection.sourceHeatId)
-  const targetEl = heatRefs.get(connection.targetHeatId)
-  
-  if (!container || !sourceEl || !targetEl) {
-    return null
-  }
-  
-  const containerRect = container.getBoundingClientRect()
-  const sourceRect = sourceEl.getBoundingClientRect()
-  const targetRect = targetEl.getBoundingClientRect()
-  
-  // Start: rechter Rand der Quell-Box, vertikal zentriert
-  const startX = sourceRect.right - containerRect.left
-  const startY = sourceRect.top + sourceRect.height / 2 - containerRect.top
-  
-  // End: linker Rand der Ziel-Box, vertikal zentriert
-  const endX = targetRect.left - containerRect.left
-  const endY = targetRect.top + targetRect.height / 2 - containerRect.top
-  
-  return { startX, startY, endX, endY }
+  /** AC9: Scale-Faktor für Zoom-Kompensation (default: 1) */
+  scale?: number
 }
 
 /**
- * AC5: Generiert einen L-förmigen SVG-Pfad
+ * AC5: Baut WB Merge-Connections auf
  * 
- * Pfad: horizontal → vertikal → horizontal
- * Verwendet die Mitte zwischen Start und End für den Knickpunkt
+ * Analysiert WB-Heats nach Runden und erstellt Merge-Connections:
+ * - WB R1 H1 + H2 → WB R2 H1 (2 Quellen → 1 Ziel)
  */
-function generateLShapedPath(coords: LineCoordinates): string {
-  const { startX, startY, endX, endY } = coords
+function buildWBConnections(heats: Heat[], manager: ConnectorManager): void {
+  // Gruppiere WB-Heats nach Runden
+  const wbHeats = heats.filter(h => h.bracketType === 'winner' && !h.isFinale)
+  const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
   
-  // Mittelpunkt für den horizontalen Knick (60% des Weges)
-  const midX = startX + (endX - startX) * 0.6
+  if (!wbFinale) return
   
-  // L-förmiger Pfad: M start → L horizontal → L vertikal → L end
-  return `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`
+  // Sortiere nach roundNumber
+  const heatsByRound = new Map<number, Heat[]>()
+  wbHeats.forEach(heat => {
+    const round = heat.roundNumber ?? 1
+    const heatsInRound = heatsByRound.get(round) || []
+    heatsInRound.push(heat)
+    heatsByRound.set(round, heatsInRound)
+  })
+  
+  // Finde die maximale Runde vor dem Finale
+  const rounds = Array.from(heatsByRound.keys()).sort((a, b) => a - b)
+  
+  // Verbinde Heats zwischen Runden
+  for (let i = 0; i < rounds.length; i++) {
+    const currentRound = rounds[i]
+    const nextRound = rounds[i + 1]
+    const heatsInCurrentRound = heatsByRound.get(currentRound) || []
+    
+    // Nur completed Heats verbinden
+    const completedHeats = heatsInCurrentRound.filter(h => h.status === 'completed')
+    
+    if (completedHeats.length === 0) continue
+    
+    // Zur nächsten Runde oder zum Finale
+    if (nextRound && heatsByRound.has(nextRound)) {
+      const heatsInNextRound = heatsByRound.get(nextRound) || []
+      
+      // Merge-Verbindung: 2 Heats → 1 Heat in nächster Runde
+      for (let j = 0; j < heatsInNextRound.length; j++) {
+        const targetHeat = heatsInNextRound[j]
+        const sourceHeats = completedHeats.slice(j * 2, j * 2 + 2)
+        
+        if (sourceHeats.length === 2) {
+          manager.addMergeConnection(
+            sourceHeats.map(h => h.id),
+            targetHeat.id,
+            'wb'
+          )
+        } else if (sourceHeats.length === 1) {
+          manager.addConnection(sourceHeats[0].id, targetHeat.id, 'wb')
+        }
+      }
+    } else {
+      // Letzte Runde → Finale
+      if (completedHeats.length >= 2) {
+        manager.addMergeConnection(
+          completedHeats.map(h => h.id),
+          wbFinale.id,
+          'wb'
+        )
+      } else if (completedHeats.length === 1) {
+        manager.addConnection(completedHeats[0].id, wbFinale.id, 'wb')
+      }
+    }
+  }
 }
 
 /**
- * Debounce Utility für Resize-Handler (AC4)
+ * AC6: Grand Finale Connection erstellen
+ * 
+ * Verbindet WB-Finale + LB-Finale → Grand Finale
  */
-function debounce<T extends (...args: unknown[]) => void>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null
+function buildGrandFinaleConnection(heats: Heat[], manager: ConnectorManager): void {
+  const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
+  const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
+  const grandFinale = heats.find(h => 
+    h.bracketType === 'grand_finale' || h.bracketType === 'finale'
+  )
   
-  return (...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-    timeoutId = setTimeout(() => {
-      func(...args)
-    }, wait)
+  if (!grandFinale) return
+  
+  // Beide Finales müssen completed sein für GF-Connection
+  const wbFinaleCompleted = wbFinale?.status === 'completed'
+  const lbFinaleCompleted = lbFinale?.status === 'completed'
+  
+  if (wbFinaleCompleted && lbFinaleCompleted && wbFinale && lbFinale) {
+    // AC6: Spezielle Grand Finale Connection
+    manager.addGrandFinaleConnection(wbFinale.id, lbFinale.id, grandFinale.id)
+  } else if (wbFinaleCompleted && wbFinale) {
+    // Nur WB-Finale completed
+    manager.addConnection(wbFinale.id, grandFinale.id, 'gf')
+  } else if (lbFinaleCompleted && lbFinale) {
+    // Nur LB-Finale completed
+    manager.addConnection(lbFinale.id, grandFinale.id, 'gf')
   }
 }
 
 /**
  * SVGConnectorLines Component
  * 
- * AC1: WB-Linien sind grün mit Glow
- * AC2: LB-Linien sind rot mit Glow
- * AC3: Grand Finale Linien sind gold und dicker (3px statt 2px)
- * AC4: Linien werden dynamisch berechnet via getBoundingClientRect()
- * AC5: Linien-Pfade sind L-förmig
+ * Verwendet den ConnectorManager für das Zeichnen der Verbindungslinien.
+ * 
+ * AC1: Nutzt ConnectorManager Klasse
+ * AC2-3: Styling über ConnectorManager
+ * AC4: Pfad-Berechnung über ConnectorManager
+ * AC5: Merge-Connections werden automatisch erstellt
+ * AC6: Grand Finale Connection
+ * AC7-9: Position-Berechnung mit Scale-Kompensation
+ * AC10: Nur WB + Grand Finale Linien
+ * 
+ * @returns null - SVG wird direkt im DOM über den ConnectorManager aktualisiert
  */
 export function SVGConnectorLines({
   heats,
   containerRef,
-  heatRefs
+  heatRefs,
+  scale = 1
 }: SVGConnectorLinesProps) {
-  const [computedLines, setComputedLines] = useState<ComputedLine[]>([])
-  const [dimensions, setDimensions] = useState({ width: 1100, height: 900 })
+  const managerRef = useRef<ConnectorManager | null>(null)
   
-  // Recalculate lines when heats change or refs update
-  const recalculateLines = useCallback(() => {
+  // Connections aufbauen und zeichnen
+  const buildAndDraw = useCallback(() => {
+    if (!containerRef.current) return
+    if (!managerRef.current) return
+    
+    const manager = managerRef.current
+    
+    // Connections leeren
+    manager.clearConnections()
+    
+    // AC5: WB-Connections aufbauen
+    buildWBConnections(heats, manager)
+    
+    // AC6: Grand Finale Connection
+    buildGrandFinaleConnection(heats, manager)
+    
+    // AC10: KEINE LB-Connections (Pool-System)
+    
+    // Zeichnen
+    manager.redraw()
+  }, [heats, containerRef])
+  
+  // Manager erstellen und initialisieren
+  useEffect(() => {
     if (!containerRef.current) return
     
-    // Get container dimensions for SVG viewBox
-    const containerRect = containerRef.current.getBoundingClientRect()
-    setDimensions({
-      width: containerRect.width,
-      height: containerRect.height
-    })
+    // Sicherstellen, dass SVG existiert
+    const svg = document.getElementById('connector-svg')
+    if (!svg) return
     
-    // Get connections from heat structure
-    const connections = getHeatConnections(heats)
-    
-    // Calculate coordinates for each connection
-    const lines = connections
-      .map(connection => {
-        const coords = calculateLineCoordinates(connection, containerRef, heatRefs)
-        if (!coords) return null
-        return { ...connection, ...coords }
-      })
-      .filter((line): line is ComputedLine => line !== null)
-    
-    setComputedLines(lines)
-  }, [heats, containerRef, heatRefs])
-  
-  // Use useLayoutEffect for DOM-dependent calculations (Edge Case 4: SSR/Initial Render)
-  useLayoutEffect(() => {
-    recalculateLines()
-  }, [recalculateLines])
-  
-  // AC4: Resize-Handler mit debounce (150ms)
-  useLayoutEffect(() => {
-    const debouncedRecalculate = debounce(recalculateLines, 150)
-    
-    window.addEventListener('resize', debouncedRecalculate)
-    
-    return () => {
-      window.removeEventListener('resize', debouncedRecalculate)
+    // Sicherstellen, dass Container ID hat
+    if (!containerRef.current.id) {
+      containerRef.current.id = 'bracket-container'
     }
-  }, [recalculateLines])
+    
+    // Manager erstellen
+    const manager = new ConnectorManager(
+      containerRef.current.id,
+      'connector-svg'
+    )
+    managerRef.current = manager
+    
+    // Initial zeichnen (mit kleiner Verzögerung für DOM)
+    const initTimer = setTimeout(() => {
+      buildAndDraw()
+    }, 50)
+    
+    // Cleanup
+    return () => {
+      clearTimeout(initTimer)
+      manager.destroy()
+      managerRef.current = null
+    }
+  }, [containerRef, buildAndDraw])
   
-  // Edge Case 1: Keine Linien wenn keine completed Heats
-  if (computedLines.length === 0) {
-    return null
-  }
+  // AC9: Scale-Update
+  useEffect(() => {
+    if (managerRef.current) {
+      managerRef.current.setScale(scale)
+      managerRef.current.redraw()
+    }
+  }, [scale])
   
-  return (
-    <svg 
-      className="svg-lines"
-      viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
-      preserveAspectRatio="xMinYMin meet"
-      data-testid="svg-connector-lines"
-    >
-      {computedLines.map(line => (
-        <path
-          key={line.id}
-          className={`line ${line.bracketType}`}
-          d={generateLShapedPath(line)}
-          data-testid={`connector-line-${line.bracketType}`}
-          data-source={line.sourceHeatId}
-          data-target={line.targetHeatId}
-        />
-      ))}
-    </svg>
-  )
+  // Heats-Änderungen verarbeiten
+  useEffect(() => {
+    if (managerRef.current) {
+      buildAndDraw()
+    }
+  }, [heats, buildAndDraw])
+  
+  // HeatRefs-Änderungen verarbeiten (debounced)
+  useEffect(() => {
+    if (!managerRef.current) return
+    
+    const timer = setTimeout(() => {
+      buildAndDraw()
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [heatRefs, buildAndDraw])
+  
+  // Component rendert nichts - SVG wird direkt im DOM aktualisiert
+  return null
 }
