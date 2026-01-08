@@ -1,45 +1,84 @@
 /**
- * Story 11-7: Bracket Legend Component
- * 
- * Zeigt eine Legende am unteren Rand des Brackets, die erklärt:
- * - Linien-Bedeutung (WB grün, LB rot, GF gold)
- * - Platzierungs-Bedeutung (Platz 1+2 weiter, Platz 3+4 raus)
- * 
- * AC1: Legende zeigt Linien-Bedeutung
- * AC2: Legende zeigt Platzierungs-Bedeutung
- * AC3: Legende ist am unteren Rand mit margin-top
- * AC4: Legende ist auf Beamer lesbar (min 13px Text)
+ * US-14.9: Legende im Mockup-Design
+ *
+ * Zeigt eine Legende am unteren Rand des Brackets mit:
+ * - Line-Items für Bracket-Typen (Quali, WB, LB, GF)
+ * - Color-Items für Platzierungen (Platz 1+2, Platz 3+4)
+ * - Spezial-Item "3x" für 3-Pilot Heat
+ *
+ * AC1: Legende Container (night bg, 8px radius, 25px margin-top, 10px 14px padding, 10px font-size)
+ * AC2: Flex-Layout (20px gap, flex-wrap: wrap)
+ * AC3: Line-Items (20px × 2px Linie, 6px gap zum Text)
+ * AC4: Line-Farben (Cyan, Grün, Rot, Gold)
+ * AC5: Color-Items (14px × 14px Quadrat, 3px radius)
+ * AC6: Color-Varianten (bg-winner/grüner border, bg-loser/roter border)
+ * AC7: Spezial-Item "3x" (font-weight 600, neon-cyan)
+ * AC8: Item-Styling (flex, center, 6px gap, steel Text)
  */
 
-interface BracketLegendProps {
-  className?: string
+interface LegendLineItem {
+  color: string
+  label: string
 }
 
-export function BracketLegend({ className = '' }: BracketLegendProps) {
+interface LegendColorItem {
+  bgColor: string
+  borderColor: string
+  label: string
+}
+
+const lineItems: LegendLineItem[] = [
+  { color: 'var(--quali-blue)', label: 'Qualifikation' },
+  { color: 'var(--winner-green)', label: 'Winner Bracket' },
+  { color: 'var(--loser-red)', label: 'Loser Bracket' },
+  { color: 'var(--gold)', label: 'Grand Finale' }
+]
+
+const colorItems: LegendColorItem[] = [
+  {
+    bgColor: 'var(--bg-winner)',
+    borderColor: 'var(--winner-green)',
+    label: 'Platz 1+2 (weiter)'
+  },
+  {
+    bgColor: 'var(--bg-loser)',
+    borderColor: 'var(--loser-red)',
+    label: 'Platz 3+4 (raus/LB)'
+  }
+]
+
+export function BracketLegend() {
   return (
-    <div className={`legend ${className}`}>
-      {/* AC1: Linien-Bedeutung */}
+    <div className="legend">
+      {/* Line Items - Bracket-Typen */}
+      {lineItems.map((item) => (
+        <div key={item.label} className="legend-item">
+          <div
+            className="legend-line"
+            style={{ backgroundColor: item.color }}
+          />
+          {item.label}
+        </div>
+      ))}
+
+      {/* Color Items - Platzierungen */}
+      {colorItems.map((item) => (
+        <div key={item.label} className="legend-item">
+          <div
+            className="legend-color"
+            style={{
+              backgroundColor: item.bgColor,
+              borderColor: item.borderColor
+            }}
+          />
+          {item.label}
+        </div>
+      ))}
+
+      {/* Special Item - 3-Pilot Heat */}
       <div className="legend-item">
-        <div className="legend-line green" />
-        Winner Bracket
-      </div>
-      <div className="legend-item">
-        <div className="legend-line red" />
-        Loser Bracket
-      </div>
-      <div className="legend-item">
-        <div className="legend-line gold" />
-        → Grand Finale
-      </div>
-      
-      {/* AC2: Platzierungs-Bedeutung */}
-      <div className="legend-item">
-        <div className="legend-color winner" />
-        Platz 1+2 (weiter)
-      </div>
-      <div className="legend-item">
-        <div className="legend-color loser" />
-        Platz 3+4 (raus)
+        <span style={{ color: 'var(--neon-cyan)', fontWeight: '600' }}>3x</span>
+        3-Pilot Heat
       </div>
     </div>
   )

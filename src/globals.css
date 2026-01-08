@@ -950,62 +950,46 @@
   }
 
   /* ========================================
-      BRACKET LEGEND (Story 11-7)
+      US-14.9: LEGENDE IM MOCKUP-DESIGN
       ======================================== */
-  /* AC3: Legende am unteren Rand mit margin-top */
+  /* AC1: Legende Container (night bg, 8px radius, 25px margin-top) */
   .legend {
     display: flex;
-    gap: 30px;
-    padding: 15px 20px;
+    gap: 20px;
+    padding: 10px 14px;
     background: var(--night);
-    border-radius: 10px;
-    margin-top: 30px;
+    border-radius: 8px;
+    margin-top: 25px;
     flex-wrap: wrap;
+    font-size: 10px;
   }
 
-  /* AC4: Beamer-lesbare Schriftgröße (min 13px) */
+  /* AC8: Item-Styling (flex, center, 6px gap, steel Text) */
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
+    gap: 6px;
     color: var(--steel);
   }
 
-  /* AC1: Linien-Elemente für Bracket-Typen */
+  /* AC3: Line-Items (20px × 2px Linie) */
   .legend-line {
-    width: 30px;
-    height: 3px;
-  }
-
-  .legend-line.green {
-    background: var(--winner-green);
-  }
-
-  .legend-line.red {
-    background: var(--loser-red);
-  }
-
-  .legend-line.gold {
-    background: var(--gold);
-  }
-
-  /* AC2: Farb-Boxen für Platzierungen */
-  .legend-color {
     width: 20px;
-    height: 20px;
-    border-radius: 4px;
+    height: 2px;
   }
 
-  .legend-color.winner {
-    background: rgba(57, 255, 20, 0.25);
-    border: 2px solid var(--winner-green);
+  /* AC4: Line-Farben werden via inline styles gesetzt (Cyan, Grün, Rot, Gold) */
+
+  /* AC5: Color-Items (14px × 14px Quadrat, 3px radius) */
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-style: solid;
   }
 
-  .legend-color.loser {
-    background: rgba(255, 7, 58, 0.25);
-    border: 2px solid var(--loser-red);
-  }
+  /* AC6: Color-Varianten werden via inline styles gesetzt (bg-winner/bg-loser, grüner/roter border) */
 
   /* ========================================
       US-14.8: ZOOM & PAN
