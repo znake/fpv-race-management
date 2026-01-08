@@ -10,6 +10,9 @@ import { cn } from '../../lib/utils'
 import { useZoomPan } from '../../hooks/useZoomPan'
 import { ZoomIndicator } from './ZoomIndicator'
 
+// US-14.10: Layout Calculator for dynamic bracket scaling
+import { calculateBracketDimensions } from '../../lib/bracket-layout-calculator'
+
 // Import heat box components
 import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
 import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
@@ -63,6 +66,9 @@ export function BracketTree({
   const loserPool = useTournamentStore(state => state.loserPool)
   const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
   const winnerPilots = useTournamentStore(state => state.winnerPilots)
+
+  // US-14.10: Calculate dynamic bracket dimensions based on pilot count
+  const bracketDimensions = calculateBracketDimensions(pilots.length)
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -493,7 +499,13 @@ export function BracketTree({
   }
 
   return (
-    <div className="bracket-container">
+    <div
+      className="bracket-container"
+      style={{
+        width: `${bracketDimensions.containerWidth}px`,
+        minWidth: `${bracketDimensions.containerWidth}px`
+      }}
+    >
       {/* 1. ACTIVE HEAT Section - when tournament is running OR in finale phase */}
       {(tournamentPhase === 'running' || tournamentPhase === 'finale') && activeHeat && (
         <div ref={activeHeatRef} className="mb-8">
