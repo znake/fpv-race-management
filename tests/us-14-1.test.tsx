@@ -78,7 +78,8 @@ describe('US-14.1: Synthwave Bracket Container', () => {
 
     const svg = container.querySelector('svg#connector-svg')
     expect(svg).toBeInTheDocument()
-    expect(svg).toHaveClass('pointer-events-none')
-    expect(svg).toHaveClass('z-[1]')
+    // SVGConnectorLines uses inline styles instead of Tailwind classes
+    expect(svg).toHaveStyle({ pointerEvents: 'none' })
+    expect(svg).toHaveStyle({ zIndex: '1' })
   })
 })

@@ -237,7 +237,8 @@ describe('US-14.5: Heat-Box Design 1:1 Mockup', () => {
       
       const header = container.querySelector('.heat-header')
       expect(header).toBeInTheDocument()
-      expect(header).toHaveTextContent('HEAT 1')
+      // US-14.5: Heat name now includes bracket prefix (WB H1, LB H2, etc.)
+      expect(header).toHaveTextContent('WB H1')
     })
 
     it('should have flex layout with space-between', () => {
@@ -344,6 +345,22 @@ describe('US-14.5: Heat-Box Design 1:1 Mockup', () => {
       
       const heatBox = container.querySelector('.heat-box.gf')
       expect(heatBox).toBeInTheDocument()
+    })
+
+    it('should show "LIVE" for active heats', () => {
+      const activeHeat = { ...mockHeat, status: 'active' as const }
+      const { container } = render(
+        <BracketHeatBox
+          heat={activeHeat}
+          pilots={mockPilots}
+          bracketType="winner"
+          onClick={mockOnClick}
+        />
+      )
+      
+      const statusBadge = container.querySelector('.heat-status')
+      expect(statusBadge).toBeInTheDocument()
+      expect(statusBadge).toHaveTextContent('LIVE')
     })
   })
 

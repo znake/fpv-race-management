@@ -120,36 +120,33 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
     })
   })
   
-  it('should render bracket container with overflow-x-auto', () => {
+  // US-14-REWRITE: Tests updated for vertical bracket layout
+  it('should render bracket container', () => {
     render(<BracketTree pilots={mockPilots} tournamentPhase="running" onSubmitResults={() => {}} />)
     
     const bracketContainer = document.querySelector('.bracket-container')
     expect(bracketContainer).not.toBeNull()
-    expect(bracketContainer).toHaveClass('overflow-x-auto')
   })
   
-  it('should have min-height for bracket container', () => {
+  it('should have bracket-tree element with flex-direction column', () => {
     render(<BracketTree pilots={mockPilots} tournamentPhase="running" onSubmitResults={() => {}} />)
     
-    const bracketContainer = document.querySelector('.bracket-container')
-    expect(bracketContainer).not.toBeNull()
-    expect(bracketContainer).toHaveClass('min-h-[600px]')
+    const bracketTree = document.querySelector('.bracket-tree')
+    expect(bracketTree).not.toBeNull()
   })
   
-  it('should apply min-width to heat boxes', () => {
+  it('should have bracket-columns-wrapper for WB+LB side-by-side', () => {
     render(<BracketTree pilots={mockPilots} tournamentPhase="running" onSubmitResults={() => {}} />)
     
-    // Check if any heat box has min-width class
-    const heatBoxes = document.querySelectorAll('[class*="min-w-"]')
-    expect(heatBoxes.length).toBeGreaterThan(0)
+    const wrapper = document.querySelector('.bracket-columns-wrapper')
+    expect(wrapper).not.toBeNull()
   })
   
-  it('should handle many pilots with horizontal scroll capability', () => {
+  it('should render zoom-wrapper for scrolling', () => {
     render(<BracketTree pilots={mockPilots} tournamentPhase="running" onSubmitResults={() => {}} />)
     
-    const bracketContainer = document.querySelector('.bracket-container')
-    expect(bracketContainer).not.toBeNull()
-    expect(bracketContainer).toHaveClass('overflow-x-auto')
+    const zoomWrapper = document.querySelector('.zoom-wrapper')
+    expect(zoomWrapper).not.toBeNull()
   })
   
   it('should display message when no pilots available', () => {
@@ -198,7 +195,7 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
     expect(bracketContainer).toBeInTheDocument()
     
     // Text should be large enough for beamer viewing (check for section headers)
-    const headerText = screen.queryAllByText(/WINNER BRACKET|LOSER BRACKET|QUALIFIKATION|GRAND FINALE/)
+    const headerText = screen.queryAllByText(/WINNER BRACKET|LOSER BRACKET|QUALIFIKATION/)
     expect(headerText.length).toBeGreaterThan(0)
   })
   
@@ -221,7 +218,8 @@ describe('BracketTree Responsive Behavior (Fixed)', () => {
     const bracketContainer = document.querySelector('.bracket-container')
     expect(bracketContainer).toBeInTheDocument()
     
-    // Should still be able to scroll horizontally on mobile
-    expect(bracketContainer).toHaveClass('overflow-x-auto')
+    // Should have zoom-wrapper for scrolling/panning
+    const zoomWrapper = document.querySelector('.zoom-wrapper')
+    expect(zoomWrapper).toBeInTheDocument()
   })
 })

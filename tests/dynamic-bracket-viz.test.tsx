@@ -103,8 +103,8 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
     }
   })
 
-  describe('AC 1: Unified Layout Container (Story 11-1)', () => {
-    test('zeigt RUNDE 1 Column für Qualifikation/Heats', () => {
+  describe('AC 1: Unified Layout Container (US-14-REWRITE)', () => {
+    test('zeigt QUALIFIKATION Section für Quali-Heats', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
           heats: mockHeats,
@@ -126,12 +126,13 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: "QUALIFIKATION" ist jetzt eine separate Section, "BRACKET HEATS" im Bracket-Baum
+      // US-14-REWRITE: QUALIFIKATION ist eine separate Section oben
       expect(screen.getByText('QUALIFIKATION')).toBeInTheDocument()
-      expect(screen.getByText('BRACKET HEATS')).toBeInTheDocument()
+      // bracket-columns-wrapper enthält WB und LB side-by-side
+      expect(document.querySelector('.bracket-columns-wrapper')).toBeInTheDocument()
     })
 
-    test('zeigt WINNER BRACKET Label am linken Rand', () => {
+    test('zeigt WINNER BRACKET Header im bracket-column', () => {
       const stateWithWBHeats = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -180,15 +181,43 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: WINNER BRACKET ist jetzt ein vertikales Label
+      // US-14-REWRITE: WINNER BRACKET als Column-Header
       expect(screen.getByText('WINNER BRACKET')).toBeInTheDocument()
+      expect(document.querySelector('.bracket-column.wb')).toBeInTheDocument()
     })
 
-    test('zeigt LOSER BRACKET Label am linken Rand', () => {
+    test('zeigt LOSER BRACKET Header im bracket-column', () => {
+      const stateWithLB = {
+        ...mockFullBracketStructure,
+        loserBracket: {
+          rounds: [{
+            id: 'lb-round-1',
+            roundNumber: 1,
+            roundName: 'LB Runde 1',
+            heats: [{
+              id: 'lb-heat-1',
+              heatNumber: 4,
+              roundNumber: 1,
+              bracketType: 'loser' as const,
+              status: 'pending' as const,
+              pilotIds: ['p3', 'p4', 'p5', 'p6'],
+              sourceHeats: [],
+              position: { x: 0, y: 200 }
+            }]
+          }]
+        }
+      }
+
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
-          heats: mockHeats,
-          fullBracketStructure: mockFullBracketStructure,
+          heats: [...mockHeats, {
+            id: 'lb-heat-1',
+            heatNumber: 4,
+            pilotIds: ['p3', 'p4', 'p5', 'p6'],
+            status: 'pending' as const,
+            bracketType: 'loser' as const
+          }],
+          fullBracketStructure: stateWithLB,
           loserPool: ['p3', 'p4'], // 2 Piloten im LB Pool
           winnerPool: [],
           grandFinalePool: [],
@@ -206,15 +235,36 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: LOSER BRACKET ist jetzt ein vertikales Label
+      // US-14-REWRITE: LOSER BRACKET als Column-Header
       expect(screen.getByText('LOSER BRACKET')).toBeInTheDocument()
+      expect(document.querySelector('.bracket-column.lb')).toBeInTheDocument()
     })
 
-    test('zeigt GRAND FINALE Column', () => {
+    test('zeigt GRAND FINALE Section unterhalb WB+LB', () => {
+      const stateWithGF = {
+        ...mockFullBracketStructure,
+        grandFinale: {
+          id: 'gf-heat-1',
+          heatNumber: 99,
+          roundNumber: 99,
+          bracketType: 'grand_finale' as const,
+          status: 'pending' as const,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          sourceHeats: [],
+          position: { x: 500, y: 100 }
+        }
+      }
+
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
-          heats: mockHeats,
-          fullBracketStructure: mockFullBracketStructure,
+          heats: [...mockHeats, {
+            id: 'gf-heat-1',
+            heatNumber: 99,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'pending' as const,
+            bracketType: 'grand_finale' as const
+          }],
+          fullBracketStructure: stateWithGF,
           loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
@@ -232,49 +282,65 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      expect(screen.getByText('GRAND FINALE')).toBeInTheDocument()
+      // US-14-REWRITE: GRAND FINALE Section unterhalb bracket-columns-wrapper
+      const gfLabels = screen.getAllByText('GRAND FINALE')
+      expect(gfLabels.length).toBeGreaterThan(0)
+      expect(document.querySelector('.grand-finale-section')).toBeInTheDocument()
     })
   })
 
-  describe('AC 2 & 3: Pool-Visualisierung (Story 11-1: Unified Layout)', () => {
-    test('zeigt WB Pool im Pools Column', () => {
-      ;(useTournamentStore as any).mockImplementation((selector: any) => {
-        const state = {
-          heats: mockHeats,
-          fullBracketStructure: mockFullBracketStructure,
-          loserPool: [],
-          winnerPool: ['p1', 'p2', 'p3'], // 3 Piloten im WB Pool
-          grandFinalePool: [],
-          getTop4Pilots: () => null,
-          hasActiveWBHeats: () => false
+  describe('AC 2 & 3: Bracket Structure (US-14-REWRITE)', () => {
+    test('zeigt bracket-columns-wrapper mit WB und LB side-by-side', () => {
+      const stateWithBrackets = {
+        ...mockFullBracketStructure,
+        winnerBracket: {
+          rounds: [{
+            id: 'wb-round-1',
+            roundNumber: 1,
+            roundName: 'WB Runde 1',
+            heats: [{
+              id: 'wb-heat-1',
+              heatNumber: 3,
+              roundNumber: 1,
+              bracketType: 'winner' as const,
+              status: 'pending' as const,
+              pilotIds: ['p1', 'p2', 'p3', 'p4'],
+              sourceHeats: [],
+              position: { x: 300, y: 0 }
+            }]
+          }]
+        },
+        loserBracket: {
+          rounds: [{
+            id: 'lb-round-1',
+            roundNumber: 1,
+            roundName: 'LB Runde 1',
+            heats: [{
+              id: 'lb-heat-1',
+              heatNumber: 4,
+              roundNumber: 1,
+              bracketType: 'loser' as const,
+              status: 'pending' as const,
+              pilotIds: ['p5', 'p6', 'p7', 'p8'],
+              sourceHeats: [],
+              position: { x: 0, y: 200 }
+            }]
+          }]
         }
-        return selector(state)
-      })
+      }
 
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      // Story 11-1: Unified Layout zeigt immer beide Pools (WB + LB) im pools-column
-      const pools = screen.getAllByTestId('pool-display-compact')
-      expect(pools.length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText('WB POOL')).toBeInTheDocument()
-    })
-
-    test('zeigt LB Pool im Pools Column', () => {
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
-          heats: mockHeats,
-          fullBracketStructure: mockFullBracketStructure,
-          loserPool: ['p3', 'p4'], // 2 Piloten im LB Pool
+          heats: [...mockHeats, 
+            { id: 'wb-heat-1', heatNumber: 3, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending' as const, bracketType: 'winner' as const },
+            { id: 'lb-heat-1', heatNumber: 4, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending' as const, bracketType: 'loser' as const }
+          ],
+          fullBracketStructure: stateWithBrackets,
+          loserPool: [],
           winnerPool: [],
           grandFinalePool: [],
           getTop4Pilots: () => null,
-          hasActiveWBHeats: () => false
+          hasActiveWBHeats: () => true
         }
         return selector(state)
       })
@@ -287,13 +353,64 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: LB Pool wird immer im Pools Column angezeigt
-      expect(screen.getByText('LB POOL')).toBeInTheDocument()
+      // US-14-REWRITE: WB und LB nebeneinander im bracket-columns-wrapper
+      const wrapper = document.querySelector('.bracket-columns-wrapper')
+      expect(wrapper).toBeInTheDocument()
+      
+      // WB links
+      expect(document.querySelector('.bracket-column.wb')).toBeInTheDocument()
+      // LB rechts
+      expect(document.querySelector('.bracket-column.lb')).toBeInTheDocument()
+    })
+
+    test('zeigt round-heats horizontal innerhalb jeder Runde', () => {
+      const stateWithRounds = {
+        ...mockFullBracketStructure,
+        winnerBracket: {
+          rounds: [{
+            id: 'wb-round-1',
+            roundNumber: 1,
+            roundName: 'WB Runde 1',
+            heats: [
+              { id: 'wb-r1-h1', heatNumber: 3, roundNumber: 1, bracketType: 'winner' as const, status: 'pending' as const, pilotIds: ['p1', 'p2', 'p3', 'p4'], sourceHeats: [], position: { x: 0, y: 0 } },
+              { id: 'wb-r1-h2', heatNumber: 4, roundNumber: 1, bracketType: 'winner' as const, status: 'pending' as const, pilotIds: ['p5', 'p6', 'p7', 'p8'], sourceHeats: [], position: { x: 150, y: 0 } }
+            ]
+          }]
+        }
+      }
+
+      ;(useTournamentStore as any).mockImplementation((selector: any) => {
+        const state = {
+          heats: [...mockHeats,
+            { id: 'wb-r1-h1', heatNumber: 3, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending' as const, bracketType: 'winner' as const },
+            { id: 'wb-r1-h2', heatNumber: 4, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending' as const, bracketType: 'winner' as const }
+          ],
+          fullBracketStructure: stateWithRounds,
+          loserPool: [],
+          winnerPool: [],
+          grandFinalePool: [],
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => true
+        }
+        return selector(state)
+      })
+
+      render(
+        <BracketTree
+          pilots={mockPilots}
+          tournamentPhase="running"
+          onSubmitResults={() => {}}
+        />
+      )
+
+      // US-14-REWRITE: Heats pro Runde sind horizontal angeordnet
+      const roundHeats = document.querySelectorAll('.round-heats')
+      expect(roundHeats.length).toBeGreaterThan(0)
     })
   })
 
-  describe('AC 5: Keine vorberechnete Struktur', () => {
-    test('zeigt KEINE leeren WB Runden-Labels wenn keine Piloten', () => {
+  describe('AC 5: Empty Bracket Handling', () => {
+    test('zeigt EmptyBracketHeatBox für leere Heats', () => {
       const structureWithEmptyRounds = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -307,7 +424,7 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
               roundNumber: 1,
               bracketType: 'winner' as const,
               status: 'empty' as const,
-              pilotIds: [], // LEER - sollte nicht angezeigt werden
+              pilotIds: [], // LEER
               sourceHeats: [],
               position: { x: 300, y: 0 }
             }]
@@ -317,7 +434,7 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
 
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
-          heats: mockHeats,
+          heats: mockHeats, // Note: wb-empty not in heats array = EmptyBracketHeatBox
           fullBracketStructure: structureWithEmptyRounds,
           loserPool: [],
           winnerPool: [],
@@ -336,12 +453,12 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Der leere WB Runde 1 Text sollte nicht erscheinen
-      // (Story 11-1: Das Unified Layout zeigt die Heats direkt in der heats-column)
-      expect(screen.queryByText('WB Runde 1')).not.toBeInTheDocument()
+      // US-14-REWRITE: WB Section wird gerendert mit leeren Platzhaltern
+      const wbSection = document.querySelector('.bracket-column.wb')
+      expect(wbSection).toBeInTheDocument()
     })
 
-    test('zeigt Heats in der heats-column', () => {
+    test('zeigt gefüllte Heats in round-heats', () => {
       const structureWithMixedHeats = {
         ...mockFullBracketStructure,
         winnerBracket: {
@@ -356,19 +473,9 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
                 roundNumber: 1,
                 bracketType: 'winner' as const,
                 status: 'pending' as const,
-                pilotIds: ['p1', 'p2'], // GEFÜLLT
+                pilotIds: ['p1', 'p2', 'p3', 'p4'], // GEFÜLLT
                 sourceHeats: [],
                 position: { x: 300, y: 0 }
-              },
-              {
-                id: 'wb-empty',
-                heatNumber: 4,
-                roundNumber: 1,
-                bracketType: 'winner' as const,
-                status: 'empty' as const,
-                pilotIds: [], // LEER
-                sourceHeats: [],
-                position: { x: 300, y: 200 }
               }
             ]
           }]
@@ -380,7 +487,7 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
           heats: [...mockHeats, {
             id: 'wb-filled',
             heatNumber: 3,
-            pilotIds: ['p1', 'p2'],
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
             status: 'pending' as const,
             bracketType: 'winner' as const
           }],
@@ -402,22 +509,41 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      // Story 11-1: Heats werden in heats-column angezeigt
-      // Die Quali-Heats (heat-1, heat-2) werden angezeigt
+      // US-14-REWRITE: Die Quali-Heats (heat-1, heat-2) werden in quali-section angezeigt
       expect(screen.getByTestId('bracket-heat-1')).toBeInTheDocument()
       expect(screen.getByTestId('bracket-heat-2')).toBeInTheDocument()
     })
   })
 
-  describe('Grand Finale Pool', () => {
-    test('zeigt Grand Finale Pool wenn Piloten vorhanden', () => {
+  describe('Grand Finale Section', () => {
+    test('zeigt Grand Finale Section wenn GF Heat vorhanden', () => {
+      const stateWithGF = {
+        ...mockFullBracketStructure,
+        grandFinale: {
+          id: 'gf-heat-1',
+          heatNumber: 99,
+          roundNumber: 99,
+          bracketType: 'grand_finale' as const,
+          status: 'pending' as const,
+          pilotIds: ['p1', 'p2', 'p3', 'p4'],
+          sourceHeats: [],
+          position: { x: 500, y: 100 }
+        }
+      }
+
       ;(useTournamentStore as any).mockImplementation((selector: any) => {
         const state = {
-          heats: mockHeats,
-          fullBracketStructure: mockFullBracketStructure,
+          heats: [...mockHeats, {
+            id: 'gf-heat-1',
+            heatNumber: 99,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'pending' as const,
+            bracketType: 'grand_finale' as const
+          }],
+          fullBracketStructure: stateWithGF,
           loserPool: [],
           winnerPool: [],
-          grandFinalePool: ['p1', 'p2'], // WB + LB Champion
+          grandFinalePool: ['p1', 'p2', 'p3', 'p4'],
           getTop4Pilots: () => null,
           hasActiveWBHeats: () => false
         }
@@ -432,7 +558,11 @@ describe('Story 4.3: Dynamische Bracket-Visualisierung', () => {
         />
       )
 
-      expect(screen.getByTestId('pool-display-grandFinale')).toBeInTheDocument()
+      // US-14-REWRITE: grand-finale-section wird unterhalb des bracket-columns-wrapper angezeigt
+      expect(document.querySelector('.grand-finale-section')).toBeInTheDocument()
+      // Multiple "GRAND FINALE" texts possible (label + heat header)
+      const gfLabels = screen.getAllByText('GRAND FINALE')
+      expect(gfLabels.length).toBeGreaterThan(0)
     })
   })
 })

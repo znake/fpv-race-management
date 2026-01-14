@@ -199,13 +199,14 @@ describe('US-14.6: SVGConnectorLines Component', () => {
 
       vi.advanceTimersByTime(200)
 
-      // Komponente sollte existieren (rendert null, also keine children)
-      expect(renderContainer.childNodes.length).toBe(0)
+      // Komponente sollte SVG rendern
+      const svg = renderContainer.querySelector('svg')
+      expect(svg).toBeTruthy()
     })
   })
 
   describe('Rendering', () => {
-    it('sollte null rendern (SVG wird direkt im DOM aktualisiert)', () => {
+    it('sollte SVG-Element rendern', () => {
       const containerRef = { current: container }
       const heatRefs = new Map<string, HTMLDivElement | null>()
 
@@ -217,8 +218,10 @@ describe('US-14.6: SVGConnectorLines Component', () => {
         />
       )
 
-      // Komponente rendert null (keine eigenen DOM-Elemente)
-      expect(renderContainer.childNodes.length).toBe(0)
+      // Komponente rendert SVG-Element
+      const svg = renderContainer.querySelector('svg')
+      expect(svg).toBeTruthy()
+      expect(svg?.id).toBe('connector-svg')
     })
   })
 })

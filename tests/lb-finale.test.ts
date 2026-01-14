@@ -591,7 +591,8 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
   })
 
   describe('Task 6: generateGrandFinale() - AC3', () => {
-    it('should generate Grand Finale with 2 pilots: WB Winner + LB Winner', () => {
+    // Story 13-3 + 13-7: Grand Finale mit 4 Piloten (WB1, WB2, LB1, LB2)
+    it('should generate Grand Finale with 4 pilots: WB Rank 1+2 + LB Rank 1+2', () => {
       // REFACTORED: generateGrandFinale now uses heats[] directly
       useTournamentStore.setState({
         heats: [
@@ -632,7 +633,8 @@ describe('Story 9-3: LB Finale & Grand Finale', () => {
       const grandFinale = generateGrandFinale()
 
       expect(grandFinale).toBeDefined()
-      expect(grandFinale?.pilotIds).toEqual(['p1', 'p5'])
+      // Story 13-3 + 13-7: 4 Piloten [WB1, WB2, LB1, LB2]
+      expect(grandFinale?.pilotIds).toEqual(['p1', 'p2', 'p5', 'p6'])
       expect(grandFinale?.bracketType).toBe('grand_finale')
       expect(grandFinale?.isFinale).toBe(true)
       expect(grandFinale?.roundName).toBe('Grand Finale')

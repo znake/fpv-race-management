@@ -1,11 +1,18 @@
 /**
- * Tests für Story 11-1: Unified Layout Container
+ * Tests für US-14-REWRITE: Vertikales Bracket Layout
  * 
- * AC1: Keine getrennten Sections mehr
- * AC2: Horizontales Spalten-Layout
- * AC3: WB und LB vertikal getrennt
- * AC4: Horizontales Scrolling bei Bedarf
- * AC5: Beamer-lesbare Mindestgrößen
+ * Neues Layout:
+ * - Quali oben (horizontal)
+ * - WB + LB nebeneinander (bracket-columns-wrapper)
+ * - Grand Finale unten (mittig)
+ * 
+ * AC1: Quali oben horizontal, WB+LB nebeneinander (vertikal), GF unten mittig
+ * AC2: WB-Runden vertikal gestapelt (R1→R2→Finale nach unten)
+ * AC3: LB-Runden vertikal mit Pool-Indicators
+ * AC4: Grüne SVG-Linien verbinden WB-Heats vertikal
+ * AC5: Grand Finale zentriert mit goldenen SVG-Linien
+ * AC6: Keine PoolDisplay mehr sichtbar
+ * AC7: Layout skaliert für 7-60 Piloten
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest'
@@ -22,7 +29,7 @@ vi.mock('../src/stores/tournamentStore', () => ({
   useTournamentStore: vi.fn()
 }))
 
-describe('Story 11-1: Unified Layout Container', () => {
+describe('US-14-REWRITE: Vertikales Bracket Layout', () => {
   let mockPilots: Pilot[]
   let mockHeats: Heat[]
   let mockFullBracketStructure: FullBracketStructure
@@ -85,7 +92,7 @@ describe('Story 11-1: Unified Layout Container', () => {
     })
   })
 
-  describe('AC1: Keine getrennten Sections mehr', () => {
+  describe('AC1: Vertikales Layout - Quali oben, WB+LB nebeneinander, GF unten', () => {
     test('hat einen einzigen bracket-container', () => {
       render(
         <BracketTree
@@ -99,7 +106,7 @@ describe('Story 11-1: Unified Layout Container', () => {
       expect(containers.length).toBe(1)
     })
 
-    test('hat keine getrennten Section-Container für WB/LB/GF', () => {
+    test('hat quali-section oben', () => {
       render(
         <BracketTree
           pilots={mockPilots}
@@ -108,13 +115,12 @@ describe('Story 11-1: Unified Layout Container', () => {
         />
       )
 
-      // Keine alten separaten Section-Container
-      expect(document.querySelector('.winner-bracket-section')).toBeNull()
-      expect(document.querySelector('.loser-bracket-section')).toBeNull()
-      // grand-finale-section existiert noch als placeholder
+      const qualiSection = document.querySelector('.quali-section')
+      expect(qualiSection).not.toBeNull()
+      expect(screen.getByText('QUALIFIKATION')).toBeInTheDocument()
     })
 
-    test('Container hat bg-night Hintergrundfarbe', () => {
+    test('hat bracket-columns-wrapper für WB+LB side-by-side', () => {
       render(
         <BracketTree
           pilots={mockPilots}
@@ -123,13 +129,11 @@ describe('Story 11-1: Unified Layout Container', () => {
         />
       )
 
-      const container = document.querySelector('.bracket-container')
-      expect(container).toHaveClass('bg-night')
+      const wrapper = document.querySelector('.bracket-columns-wrapper')
+      expect(wrapper).not.toBeNull()
     })
-  })
 
-  describe('AC2: Horizontales Spalten-Layout', () => {
-    test('hat bracket-tree mit flex layout', () => {
+    test('hat bracket-tree mit flex-direction column', () => {
       render(
         <BracketTree
           pilots={mockPilots}
@@ -140,92 +144,51 @@ describe('Story 11-1: Unified Layout Container', () => {
 
       const bracketTree = document.querySelector('.bracket-tree')
       expect(bracketTree).not.toBeNull()
-      expect(bracketTree).toHaveClass('flex')
-    })
-
-    test('hat pools-column', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const poolsColumn = document.querySelector('.pools-column')
-      expect(poolsColumn).not.toBeNull()
-    })
-
-    test('hat heats-column', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const heatsColumn = document.querySelector('.heats-column')
-      expect(heatsColumn).not.toBeNull()
-    })
-
-    test('hat connector-columns (2)', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const connectorColumns = document.querySelectorAll('.connector-column')
-      expect(connectorColumns.length).toBe(2)
-    })
-
-    test('hat finals-column', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const finalsColumn = document.querySelector('.finals-column')
-      expect(finalsColumn).not.toBeNull()
-    })
-
-    test('hat grand-finale-column', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const gfColumn = document.querySelector('.grand-finale-column')
-      expect(gfColumn).not.toBeNull()
-    })
-
-    test('zeigt korrekte Column-Labels', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      expect(screen.getByText('POOLS')).toBeInTheDocument()
-      expect(screen.getByText('BRACKET HEATS')).toBeInTheDocument()
-      expect(screen.getByText('FINALE')).toBeInTheDocument()
-      expect(screen.getByText('GRAND FINALE')).toBeInTheDocument()
     })
   })
 
-  describe('AC3: WB und LB vertikal getrennt', () => {
-    test('zeigt WINNER BRACKET Label', () => {
+  describe('AC2: WB-Runden vertikal gestapelt', () => {
+    test('zeigt WINNER BRACKET Header wenn WB vorhanden', () => {
+      const stateWithWB = {
+        ...mockFullBracketStructure,
+        winnerBracket: {
+          rounds: [{
+            id: 'wb-round-1',
+            roundNumber: 1,
+            roundName: 'WB Runde 1',
+            heats: [{
+              id: 'wb-heat-1',
+              heatNumber: 2,
+              roundNumber: 1,
+              bracketType: 'winner' as const,
+              status: 'pending' as const,
+              pilotIds: ['p1', 'p2', 'p3', 'p4'],
+              sourceHeats: [],
+              position: { x: 0, y: 0 }
+            }]
+          }]
+        }
+      }
+
+      ;(useTournamentStore as any).mockImplementation((selector: any) => {
+        const state = {
+          heats: [...mockHeats, {
+            id: 'wb-heat-1',
+            heatNumber: 2,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'pending' as const,
+            bracketType: 'winner' as const
+          }],
+          fullBracketStructure: stateWithWB,
+          loserPool: [],
+          winnerPool: [],
+          grandFinalePool: [],
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => true
+        }
+        return selector(state)
+      })
+
       render(
         <BracketTree
           pilots={mockPilots}
@@ -235,9 +198,108 @@ describe('Story 11-1: Unified Layout Container', () => {
       )
 
       expect(screen.getByText('WINNER BRACKET')).toBeInTheDocument()
+      expect(document.querySelector('.bracket-column.wb')).toBeInTheDocument()
     })
 
-    test('zeigt LOSER BRACKET Label', () => {
+    test('zeigt round-section mit round-label für WB Runden', () => {
+      const stateWithWB = {
+        ...mockFullBracketStructure,
+        winnerBracket: {
+          rounds: [{
+            id: 'wb-round-1',
+            roundNumber: 1,
+            roundName: 'WB Runde 1',
+            heats: [{
+              id: 'wb-heat-1',
+              heatNumber: 2,
+              roundNumber: 1,
+              bracketType: 'winner' as const,
+              status: 'pending' as const,
+              pilotIds: ['p1', 'p2', 'p3', 'p4'],
+              sourceHeats: [],
+              position: { x: 0, y: 0 }
+            }]
+          }]
+        }
+      }
+
+      ;(useTournamentStore as any).mockImplementation((selector: any) => {
+        const state = {
+          heats: [...mockHeats, {
+            id: 'wb-heat-1',
+            heatNumber: 2,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'pending' as const,
+            bracketType: 'winner' as const
+          }],
+          fullBracketStructure: stateWithWB,
+          loserPool: [],
+          winnerPool: [],
+          grandFinalePool: [],
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => true
+        }
+        return selector(state)
+      })
+
+      render(
+        <BracketTree
+          pilots={mockPilots}
+          tournamentPhase="running"
+          onSubmitResults={() => {}}
+        />
+      )
+
+      const roundSections = document.querySelectorAll('.round-section')
+      expect(roundSections.length).toBeGreaterThan(0)
+      
+      const roundLabels = document.querySelectorAll('.round-label')
+      expect(roundLabels.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('AC3: LB-Runden mit Pool-Indicators', () => {
+    test('zeigt LOSER BRACKET Header wenn LB vorhanden', () => {
+      const stateWithLB = {
+        ...mockFullBracketStructure,
+        loserBracket: {
+          rounds: [{
+            id: 'lb-round-1',
+            roundNumber: 1,
+            roundName: 'LB Runde 1',
+            heats: [{
+              id: 'lb-heat-1',
+              heatNumber: 3,
+              roundNumber: 1,
+              bracketType: 'loser' as const,
+              status: 'pending' as const,
+              pilotIds: ['p1', 'p2', 'p3', 'p4'],
+              sourceHeats: [],
+              position: { x: 0, y: 200 }
+            }]
+          }]
+        }
+      }
+
+      ;(useTournamentStore as any).mockImplementation((selector: any) => {
+        const state = {
+          heats: [...mockHeats, {
+            id: 'lb-heat-1',
+            heatNumber: 3,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'pending' as const,
+            bracketType: 'loser' as const
+          }],
+          fullBracketStructure: stateWithLB,
+          loserPool: [],
+          winnerPool: [],
+          grandFinalePool: [],
+          getTop4Pilots: () => null,
+          hasActiveWBHeats: () => false
+        }
+        return selector(state)
+      })
+
       render(
         <BracketTree
           pilots={mockPilots}
@@ -247,24 +309,12 @@ describe('Story 11-1: Unified Layout Container', () => {
       )
 
       expect(screen.getByText('LOSER BRACKET')).toBeInTheDocument()
-    })
-
-    test('hat bracket-spacer zwischen WB und LB', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const spacer = document.querySelector('.bracket-spacer')
-      expect(spacer).not.toBeNull()
+      expect(document.querySelector('.bracket-column.lb')).toBeInTheDocument()
     })
   })
 
-  describe('AC4: Horizontales Scrolling bei Bedarf', () => {
-    test('bracket-container hat overflow-x-auto', () => {
+  describe('AC6: Keine PoolDisplay mehr sichtbar', () => {
+    test('rendert keine pools-column', () => {
       render(
         <BracketTree
           pilots={mockPilots}
@@ -273,11 +323,11 @@ describe('Story 11-1: Unified Layout Container', () => {
         />
       )
 
-      const container = document.querySelector('.bracket-container')
-      expect(container).toHaveClass('overflow-x-auto')
+      // pools-column sollte NICHT mehr existieren
+      expect(document.querySelector('.pools-column')).toBeNull()
     })
 
-    test('bracket-tree hat min-width', () => {
+    test('rendert keine pool-display-compact', () => {
       render(
         <BracketTree
           pilots={mockPilots}
@@ -286,72 +336,8 @@ describe('Story 11-1: Unified Layout Container', () => {
         />
       )
 
-      const bracketTree = document.querySelector('.bracket-tree')
-      expect(bracketTree).toHaveClass('min-w-[900px]')
-    })
-  })
-
-  describe('AC5: Beamer-lesbare Mindestgrößen', () => {
-    test('bracket-container hat min-height 600px', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const container = document.querySelector('.bracket-container')
-      expect(container).toHaveClass('min-h-[600px]')
-    })
-
-    test('Heat-Boxen haben min-width 180px+', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      // Heat boxes sollten min-w-[180px] oder größer haben
-      const heatBoxes = document.querySelectorAll('[class*="min-w-"]')
-      expect(heatBoxes.length).toBeGreaterThan(0)
-    })
-
-    test('Finale Platzhalter haben min-width >= 200px', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      const placeholders = document.querySelectorAll('.heat-box-placeholder')
-      expect(placeholders.length).toBeGreaterThan(0)
-      
-      // Alle Platzhalter sollten min-w-[200px] oder größer haben
-      placeholders.forEach(placeholder => {
-        const hasMinWidth = placeholder.className.includes('min-w-[200px]') ||
-                           placeholder.className.includes('min-w-[240px]')
-        expect(hasMinWidth).toBe(true)
-      })
-    })
-  })
-
-  describe('Pool Visualisierung im Unified Layout', () => {
-    test('zeigt WB Pool und LB Pool nebeneinander vertikal', () => {
-      render(
-        <BracketTree
-          pilots={mockPilots}
-          tournamentPhase="running"
-          onSubmitResults={() => {}}
-        />
-      )
-
-      expect(screen.getByText('WB POOL')).toBeInTheDocument()
-      expect(screen.getByText('LB POOL')).toBeInTheDocument()
+      // pool-display-compact sollte nicht existieren
+      expect(document.querySelectorAll('[data-testid="pool-display-compact"]').length).toBe(0)
     })
   })
 

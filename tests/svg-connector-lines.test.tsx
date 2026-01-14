@@ -185,7 +185,7 @@ describe('SVGConnectorLines Component', () => {
   }
   
   describe('Rendering', () => {
-    it('sollte null rendern (SVG wird über ConnectorManager aktualisiert)', () => {
+    it('sollte SVG-Element rendern', () => {
       const containerRef = createMockContainerRef()
       const heatRefs = createMockHeatRefs()
       
@@ -197,8 +197,10 @@ describe('SVGConnectorLines Component', () => {
         />
       )
       
-      // Komponente rendert null
-      expect(container.childNodes.length).toBe(0)
+      // Komponente rendert SVG-Element
+      const svg = container.querySelector('svg')
+      expect(svg).toBeTruthy()
+      expect(svg?.id).toBe('connector-svg')
     })
   })
   
