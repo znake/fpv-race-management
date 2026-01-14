@@ -10,6 +10,7 @@ interface WinnerBracketSectionProps {
   pilots: Pilot[]
   onHeatClick: (heatId: string) => void
   registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
+  columnWidth?: number // Optional prop for overriding calculated width
 }
 
 /**
@@ -31,14 +32,15 @@ export function WinnerBracketSection({
   heats,
   pilots,
   onHeatClick,
-  registerHeatRef
+  registerHeatRef,
+  columnWidth: propColumnWidth
 }: WinnerBracketSectionProps) {
   // Return null for empty structure
   if (!structure || structure.rounds.length === 0) return null
 
-  // AC1: Calculate column width based on first round heats
+  // AC1: Calculate column width based on first round heats (if not provided via props)
   const firstRoundHeats = structure.rounds[0].heats.length
-  const columnWidth = calculateColumnWidth(firstRoundHeats)
+  const columnWidth = propColumnWidth ?? calculateColumnWidth(firstRoundHeats)
 
   /**
    * Calculate pilot count for a round

@@ -73,12 +73,37 @@ export function BracketHeatBox({
     return 'bottom'
   }
 
+  // AC5: Status-Badge text - "LIVE" for active heats, "Nx" for pilot count
+  const getStatusText = () => {
+    if (heat.status === 'active') return 'LIVE'
+    return `${pilotCount}x`
+  }
+
+  // AC4: Heat name - use roundName if available, otherwise "HEAT X"
+  const getHeatName = () => {
+    // Use bracket-specific prefix based on bracketType
+    const prefix = bracketType === 'qualification' ? 'QUALI' 
+                 : bracketType === 'loser' ? 'LB' 
+                 : bracketType === 'finale' ? 'GRAND FINALE'
+                 : 'WB'
+    
+    // Grand Finale has no number
+    if (bracketType === 'finale') return 'GRAND FINALE'
+    
+    return `${prefix} H${heat.heatNumber}`
+  }
+
   return (
-    <div className={boxClasses} onClick={onClick} data-testid={`bracket-heat-${heat.heatNumber}`}>
+    <div 
+      id={heat.id} 
+      className={boxClasses} 
+      onClick={onClick} 
+      data-testid={`bracket-heat-${heat.heatNumber}`}
+    >
       {/* AC4: Heat-Header with AC5: Status-Badge */}
       <div className="heat-header">
-        <span>HEAT {heat.heatNumber}</span>
-        <span className="heat-status">{pilotCount}x</span>
+        <span>{getHeatName()}</span>
+        <span className="heat-status">{getStatusText()}</span>
       </div>
       
       {/* Pilot Rows */}
@@ -93,10 +118,10 @@ export function BracketHeatBox({
               {/* AC9: Pilot-Avatar */}
               <img 
                 className="pilot-avatar"
-                src={pilot.imageUrl || '/default-avatar.png'}
+                src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
                 alt={pilot.name}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default-avatar.png'
+                  (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
                 }}
               />
               {/* AC10: Pilot-Name */}

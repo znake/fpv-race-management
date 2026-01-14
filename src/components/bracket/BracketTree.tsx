@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useTournamentStore } from '../../stores/tournamentStore'
 import type { Pilot, Heat, TournamentPhase } from '../../types'
 import { HeatDetailModal } from '../heat-detail-modal'
@@ -10,19 +10,17 @@ import { cn } from '../../lib/utils'
 import { useZoomPan } from '../../hooks/useZoomPan'
 import { ZoomIndicator } from './ZoomIndicator'
 
-// US-14.10: Layout Calculator for dynamic bracket scaling
+// US-14.10: Layout Calculator
 import { calculateBracketDimensions } from '../../lib/bracket-layout-calculator'
 
 // Import heat box components
-import { BracketHeatBox } from './heat-boxes/BracketHeatBox'
-import { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 import { GrandFinaleSection } from './sections/GrandFinaleSection'
-import { PoolDisplay } from './PoolDisplay'
 import { SVGConnectorLines } from './SVGConnectorLines'
 import { BracketLegend } from './BracketLegend'
 
 import { QualiSection } from './sections/QualiSection'
 import { WinnerBracketSection } from './sections/WinnerBracketSection'
+import { LoserBracketSection } from './sections/LoserBracketSection'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -35,21 +33,22 @@ interface BracketTreeProps {
 }
 
 /**
- * Story 11-1: Unified Layout Container
+ * US-14-REWRITE: Bracket Layout nach Mockup
  * 
- * Layout nach Mockup (horizontal):
- * Spalte 1: Pools (WB Pool oben, LB Pool unten)
- * Spalte 2: Runde 1 Heats (WB Heats oben, LB Heats unten)
- * Spalte 3: Connector Space (Platzhalter für SVG-Linien)
- * Spalte 4: Finals (WB Finale oben, LB Finale unten)
- * Spalte 5: Connector Space (Platzhalter für SVG-Linien)
- * Spalte 6: Grand Finale (vertikal zentriert)
+ * Neues Layout (vertikal):
+ * 1. QUALIFIKATION (oben, horizontal)
+ *    - Flow-Indicator: Platz 1+2 → WB, Platz 3+4 → LB
  * 
- * AC1: Keine getrennten Sections/Borders mehr
- * AC2: Horizontales Spalten-Layout
- * AC3: WB oben, LB unten mit Spacer dazwischen
- * AC4: Horizontales Scrolling bei Bedarf
- * AC5: Beamer-lesbare Mindestgrößen (Heat-Boxen 200px, Text 12px+, Container 600px)
+ * 2. WB + LB side-by-side (bracket-layout)
+ *    - WB links mit Column-Header "WINNER BRACKET"
+ *    - LB rechts mit Column-Header "LOSER BRACKET"
+ *    - gap: 40px zwischen beiden
+ * 
+ * 3. GRAND FINALE (unten, mittig)
+ *    - GF-Sources Labels (WB TOP 2 / LB TOP 2)
+ *    - GF-Label "GRAND FINALE" in Gold
+ * 
+ * 4. LEGENDE (ganz unten)
  */
 export function BracketTree({
   pilots,
@@ -63,12 +62,7 @@ export function BracketTree({
   const heats = useTournamentStore(state => state.heats || [])
   const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
-  const loserPool = useTournamentStore(state => state.loserPool)
-  const grandFinalePool = useTournamentStore(state => state.grandFinalePool)
   const winnerPilots = useTournamentStore(state => state.winnerPilots)
-
-  // US-14.10: Calculate dynamic bracket dimensions based on pilot count
-  const bracketDimensions = calculateBracketDimensions(pilots.length)
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -82,18 +76,12 @@ export function BracketTree({
     reset
   } = useZoomPan()
 
-  // Story 13-6: winnerPool wird dynamisch berechnet statt persistiert
-  // Verfügbare WB-Piloten = winnerPilots MINUS Piloten in pending/active WB-Heats
-  const pilotsInPendingWBHeats = new Set(
-    (heats || [])
-      .filter(h => h.bracketType === 'winner' && (h.status === 'pending' || h.status === 'active'))
-      .flatMap(h => h.pilotIds)
-  )
-  const winnerPool = winnerPilots.filter(p => !pilotsInPendingWBHeats.has(p))
-
   // Story 10-2: Check if WB has pending/active heats using Store method
   // Note: hasActiveWBHeats wird in späteren Stories (z.B. für LB-Steuerung) verwendet
   void useTournamentStore(state => state.hasActiveWBHeats())
+  
+  // Unused but kept for potential future use
+  void winnerPilots
 
   // Ref for auto-scroll to active heat
   const activeHeatRef = useRef<HTMLDivElement>(null)
@@ -241,12 +229,8 @@ export function BracketTree({
   const lbFinale = getLBFinale()
   const grandFinale = getGrandFinale()
 
-  // Get intermediate LB heats (between quali losers and LB finale)
-  const getIntermediateLBHeats = () => {
-    return lbHeats.filter(h => !h.isFinale)
-  }
-
-  const intermediateLBHeats = getIntermediateLBHeats()
+  // LB heats are now handled by LoserBracketSection using fullBracketStructure.loserBracket
+  void lbHeats
 
   // Render Qualification Section (separate, horizontal)
   const renderQualificationSection = () => {
@@ -260,8 +244,24 @@ export function BracketTree({
     )
   }
 
-  // Render the WB/LB bracket tree (without qualification)
-  const renderBracketTree = () => (
+  // Calculate dimensions using new calculator
+  const { containerWidth, wbColumnWidth, lbColumnWidth } = useMemo(() => 
+    calculateBracketDimensions(pilots.length),
+    [pilots.length]
+  )
+
+  /**
+   * US-14-REWRITE: Render WB + LB side-by-side in bracket-columns-wrapper
+   * 
+   * Layout (vertikal):
+   * - Quali oben (horizontal) - rendered separately
+   * - bracket-columns-wrapper: WB links + LB rechts (gap: 40px)
+   * - Grand Finale unten (mittig) - rendered separately
+   * 
+   * AC2: WB links, LB rechts (side-by-side mit gap: 40px)
+   * AC3: Column-Headers mit korrektem Styling
+   */
+  const renderBracketColumnsWrapper = () => (
     <div
       ref={zoomWrapperRef}
       className={cn(
@@ -270,7 +270,7 @@ export function BracketTree({
         isDragging && 'dragging'
       )}
       onDoubleClick={(e) => {
-        // AC7: Reset on Double Click + Ctrl/Cmd
+        // Reset on Double Click + Ctrl/Cmd
         if (e.ctrlKey || e.metaKey) {
           reset()
         }
@@ -278,187 +278,57 @@ export function BracketTree({
     >
       <div
         ref={zoomContainerRef}
-        className="bracket-tree flex items-stretch gap-0 min-w-[900px] relative"
+        id="bracket-container"
+        className="bracket-tree"
         style={{
           transform: `translate(${zoomState.translateX}px, ${zoomState.translateY}px) scale(${zoomState.scale})`,
-          transformOrigin: '0 0'
+          transformOrigin: '0 0',
+          width: `${containerWidth}px` // US-14-COMBINED Task 1.3
         }}
       >
-        {/* SVG Overlay für Verbindungslinien */}
-        <svg id="connector-svg" className="absolute inset-0 w-full h-full pointer-events-none z-[1] overflow-visible" />
-
-        {/* Story 11-2: SVG Connector Lines Layer */}
-        {/* US-14.8: Scale prop für Zoom-Kompensation */}
+        {/* SVG Overlay für WB Verbindungslinien (nur WB, nicht LB) */}
         <SVGConnectorLines
           heats={heats}
           containerRef={zoomContainerRef}
           heatRefs={heatRefsMap.current}
           scale={zoomState.scale}
         />
-      
-      {/* Bracket Labels am linken Rand */}
-      <div className="bracket-label wb font-display text-sm text-winner-green tracking-widest absolute -left-8 top-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-        WINNER BRACKET
-      </div>
-      <div className="bracket-label lb font-display text-sm text-loser-red tracking-widest absolute -left-8 bottom-8" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-        LOSER BRACKET
-      </div>
-
-      {/* Column 1: Pools */}
-      <div className="pools-column w-[160px] shrink-0 flex flex-col justify-start pt-8 gap-0">
-        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
-          POOLS
-        </div>
         
-        {/* WB Pool */}
-        <div className="mt-8">
-          <PoolDisplay
-            title="WB POOL"
-            pilotIds={winnerPool}
+        {/* US-14-REWRITE: WB + LB side-by-side wrapper */}
+        <div className="bracket-columns-wrapper">
+          {/* WB Column (links) - WinnerBracketSection has its own header */}
+          <WinnerBracketSection
+            structure={fullBracketStructure.winnerBracket}
+            heats={heats}
             pilots={pilots}
-            variant="compact"
-            maxDisplay={4}
-            showCount={true}
-            className="w-[140px] min-w-0"
+            onHeatClick={handleHeatClick}
+            registerHeatRef={(id, el) => {
+              registerHeatRef(id, el)
+              // Track WB Finale ref for GF positioning
+              if (wbFinale && id === wbFinale.id) {
+                wbFinaleRef.current = el
+              }
+            }}
+            columnWidth={wbColumnWidth} // Pass dynamic width
           />
-        </div>
-        
-        {/* LB Pool - positioned lower */}
-        <div className="mt-24">
-          <PoolDisplay
-            title="LB POOL"
-            pilotIds={loserPool}
-            pilots={pilots}
-            variant="compact"
-            maxDisplay={4}
-            showCount={true}
-            className="w-[140px] min-w-0"
-          />
-        </div>
-      </div>
-
-      <div className="heats-column shrink-0 flex flex-col justify-between pt-8">
-        <WinnerBracketSection
-          structure={fullBracketStructure.winnerBracket}
-          heats={heats}
-          pilots={pilots}
-          onHeatClick={handleHeatClick}
-          registerHeatRef={registerHeatRef}
-        />
-        
-        <div className="bracket-spacer h-12 flex items-center">
-          <div className="w-full border-t-2 border-dashed border-steel/30" />
-        </div>
-
-        <div className="heat-group flex flex-col gap-4">
-          {intermediateLBHeats.length > 0 ? (
-            intermediateLBHeats.map((heat) => (
-              <div key={heat.id} ref={(el) => registerHeatRef(heat.id, el)}>
-                <BracketHeatBox
-                  heat={heat}
-                  pilots={pilots}
-                  bracketType="loser"
-                  onClick={() => handleHeatClick(heat.id)}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-xs text-center">LB Heats<br />warten auf Quali</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Column 3: Connector Space */}
-      <div className="connector-column w-12 shrink-0 relative" />
-
-      {/* Column 4: Finals (WB Finale + LB Finale) */}
-      <div className="finals-column w-[230px] shrink-0 flex flex-col justify-between py-12">
-        <div className="column-label font-display text-xs text-steel tracking-widest text-center mb-3">
-          FINALE
-        </div>
-        
-        {/* WB Finale (upper) */}
-        <div className="mb-8">
-          {wbFinale ? (
-            <div ref={(el) => {
-              registerHeatRef(wbFinale.id, el)
-              wbFinaleRef.current = el
-            }}>
-              <BracketHeatBox
-                heat={wbFinale}
-                pilots={pilots}
-                bracketType="winner"
-                onClick={() => handleHeatClick(wbFinale.id)}
-              />
-            </div>
-          ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-winner-green/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-sm">WB Finale</span>
-            </div>
-          )}
-        </div>
-
-        {/* LB Finale (lower) */}
-        <div>
-          {lbFinale ? (
-            <div ref={(el) => {
-              registerHeatRef(lbFinale.id, el)
-              lbFinaleRef.current = el
-            }}>
-              <BracketHeatBox
-                heat={lbFinale}
-                pilots={pilots}
-                bracketType="loser"
-                onClick={() => handleHeatClick(lbFinale.id)}
-              />
-            </div>
-          ) : (
-            <div className="heat-box-placeholder bg-night-light border-2 border-dashed border-loser-red/30 rounded-lg p-4 min-w-[200px] min-h-[100px] flex items-center justify-center">
-              <span className="text-steel text-sm">LB Finale</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Column 5: Connector to Grand Finale */}
-      <div className="connector-column w-12 shrink-0 relative" />
-
-      {/* Column 6: Grand Finale */}
-      <div className="grand-finale-column w-[260px] shrink-0 flex items-center justify-center pl-5">
-        <div className="relative">
-          <div className="column-label font-display text-xs text-gold tracking-widest text-center mb-3">
-            GRAND FINALE
-          </div>
           
-          {grandFinale && grandFinale.pilotIds.length > 0 ? (
-            <div ref={(el) => registerHeatRef(grandFinale.id, el)}>
-              <GrandFinaleHeatBox
-                heat={grandFinale}
-                pilots={pilots}
-                heats={heats}
-              />
-            </div>
-          ) : grandFinalePool.length > 0 ? (
-            <PoolDisplay
-              title="GF POOL"
-              pilotIds={grandFinalePool}
-              pilots={pilots}
-              variant="grandFinale"
-              showCount={true}
-            />
-          ) : (
-            <div className="heat-box-placeholder bg-void border-3 border-dashed border-gold/30 rounded-2xl p-6 min-w-[240px] min-h-[160px] flex items-center justify-center shadow-glow-gold/20">
-              <span className="text-gold/50 text-sm text-center">
-                Grand Finale<br />
-                <span className="text-xs">Wartet auf Finalisten</span>
-              </span>
-            </div>
-          )}
+          {/* LB Column (rechts) - LoserBracketSection has its own header */}
+          <LoserBracketSection
+            structure={fullBracketStructure.loserBracket}
+            heats={heats}
+            pilots={pilots}
+            onHeatClick={handleHeatClick}
+            registerHeatRef={(id, el) => {
+              registerHeatRef(id, el)
+              // Track LB Finale ref for GF positioning
+              if (lbFinale && id === lbFinale.id) {
+                lbFinaleRef.current = el
+              }
+            }}
+            columnWidth={lbColumnWidth} // Pass dynamic width
+          />
         </div>
       </div>
-    </div>
     </div>
   )
 
@@ -478,7 +348,7 @@ export function BracketTree({
             Turnierverlauf
           </h3>
           {renderQualificationSection()}
-          {renderBracketTree()}
+          {renderBracketColumnsWrapper()}
           
           {/* Story 11-7: Bracket Legend */}
           <BracketLegend />
@@ -499,13 +369,7 @@ export function BracketTree({
   }
 
   return (
-    <div
-      className="bracket-container"
-      style={{
-        width: `${bracketDimensions.containerWidth}px`,
-        minWidth: `${bracketDimensions.containerWidth}px`
-      }}
-    >
+    <div className="bracket-container">
       {/* 1. ACTIVE HEAT Section - when tournament is running OR in finale phase */}
       {(tournamentPhase === 'running' || tournamentPhase === 'finale') && activeHeat && (
         <div ref={activeHeatRef} className="mb-8">
@@ -523,7 +387,7 @@ export function BracketTree({
       {renderQualificationSection()}
 
       {/* 3. WB/LB BRACKET TREE */}
-      {renderBracketTree()}
+      {renderBracketColumnsWrapper()}
 
       {/* 4. GRAND FINALE SECTION (US-14.7) */}
       <GrandFinaleSection

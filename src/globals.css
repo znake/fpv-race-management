@@ -203,10 +203,13 @@
   /* Main Content - Beamer-optimiert für 1920x1080 */
   .main-content {
     padding: 32px;
-    max-width: 1800px; /* Erhöht für Beamer-Breitbild */
-    margin: 0 auto;
     position: relative;
     z-index: 1;
+  }
+  
+  /* max-w-none überschreibt max-width wenn nötig (für Bracket full-width) */
+  .main-content.max-w-none {
+    max-width: none;
   }
 
   /* Beamer-spezifischer Container für Brackets */
@@ -313,22 +316,40 @@
     border-radius: 12px;
     padding: 25px;
     position: relative;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: visible;
     min-height: 600px;
-    /* Dynamische Breite (AC4) */
-    width: fit-content;
-    min-width: 600px;
-    max-width: 2500px;
+    /* Full-width Container - passt sich ans Fenster an */
+    width: 100%;
+    min-width: 0;
   }
 
-  /* Story 11-1: Unified Bracket Tree Layout */
-  /* AC2: Horizontales Spalten-Layout */
+  /* US-14-REWRITE: Main Bracket Layout - WB + LB side-by-side */
+  .bracket-layout {
+    display: flex;
+    gap: 40px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* US-14-REWRITE: Main Bracket Tree - vertical layout (rounds top→bottom) */
   .bracket-tree {
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
     gap: 0;
-    min-width: 1100px;
     position: relative;
+    width: 100%;
+  }
+
+  /* US-14-REWRITE: Wrapper for WB + LB side-by-side */
+  .bracket-columns-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    justify-content: center;
   }
 
   /* Bracket Columns */
@@ -735,34 +756,8 @@
 
   /* ========================================
      PILOT ROW PLACEMENT COLOR CODING (Story 11-3)
+     Removed duplicate - see US-14.5 section above
      ======================================== */
-  /* Base pilot row styling */
-  .pilot-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 8px;
-    border-radius: 5px;
-    margin: 2px 0;
-  }
-
-  /* AC1: Weiterkommer (Platz 1+2) - Green */
-  .pilot-row.top {
-    background: rgba(57, 255, 20, 0.25);
-    border-left: 3px solid var(--winner-green);
-  }
-
-  /* AC2: Eliminiert (Platz 3+4) - Red */
-  .pilot-row.bottom {
-    background: rgba(255, 7, 58, 0.25);
-    border-left: 3px solid var(--loser-red);
-  }
-
-  /* AC4: Champion im Grand Finale - Gold */
-  .pilot-row.champ {
-    background: rgba(249, 200, 14, 0.2);
-    border-left: 3px solid var(--gold);
-  }
 
   /* Story 4.3 Task 6: Heat-Animation beim Erstellen (AC: 4) */
   @keyframes heat-appear {

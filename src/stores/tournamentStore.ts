@@ -178,6 +178,9 @@ interface TournamentState {
 
   // Story 13-4: Rematch Logik
   checkAndGenerateRematches: () => Heat[]
+
+  // Story 13-5: Phase-Indikator
+  getCurrentPhaseDescription: () => string
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -754,24 +757,41 @@ export const useTournamentStore = create<TournamentState>()(
           newLoserPool.clear()
         }
         
-        // Grand Finale Generation
+        // Grand Finale Generation - Story 13-7: 4 Piloten
         // Bedingung: WB Finale UND LB Finale sind beide completed
         const wbFinaleHeat = updatedHeats.find(h => h.bracketType === 'winner' && h.isFinale)
         const lbFinaleHeat = updatedHeats.find(h => h.bracketType === 'loser' && h.isFinale)
         const grandFinaleExists = updatedHeats.some(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
         
+        // Story 13-7: Variable für pilotBracketStates Updates
+        let newPilotBracketStates = { ...get().pilotBracketStates }
+        
         if (!grandFinaleExists && 
             wbFinaleHeat?.status === 'completed' && 
             lbFinaleHeat?.status === 'completed') {
-          // Get winners from both finales
-          const wbWinner = wbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
-          const lbWinner = lbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
+          // Story 13-7: Get TOP 2 from WB Finale (nicht nur Rang 1!)
+          const wbRank1 = wbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
+          const wbRank2 = wbFinaleHeat.results?.rankings.find(r => r.rank === 2)?.pilotId
           
-          if (wbWinner && lbWinner) {
+          // Story 13-7: Get TOP 2 from LB Finale (nicht nur Rang 1!)
+          const lbRank1 = lbFinaleHeat.results?.rankings.find(r => r.rank === 1)?.pilotId
+          const lbRank2 = lbFinaleHeat.results?.rankings.find(r => r.rank === 2)?.pilotId
+          
+          // Story 13-7: Validate all 4 pilots exist and are unique (Duplikat-Validierung)
+          const gfPilots = [wbRank1, wbRank2, lbRank1, lbRank2].filter(Boolean) as string[]
+          const uniquePilots = [...new Set(gfPilots)]
+          
+          if (uniquePilots.length === 4) {
+            // Story 13-7: Set bracketOrigin for WB/LB tags
+            newPilotBracketStates[wbRank1!] = { bracket: 'grand_finale', roundReached: 0, bracketOrigin: 'wb' }
+            newPilotBracketStates[wbRank2!] = { bracket: 'grand_finale', roundReached: 0, bracketOrigin: 'wb' }
+            newPilotBracketStates[lbRank1!] = { bracket: 'grand_finale', roundReached: 0, bracketOrigin: 'lb' }
+            newPilotBracketStates[lbRank2!] = { bracket: 'grand_finale', roundReached: 0, bracketOrigin: 'lb' }
+            
             const grandFinale: Heat = {
               id: `grand-finale-${crypto.randomUUID()}`,
               heatNumber: updatedHeats.length + 1,
-              pilotIds: [wbWinner, lbWinner],
+              pilotIds: [wbRank1!, wbRank2!, lbRank1!, lbRank2!],  // 4 Piloten!
               status: 'pending',
               bracketType: 'grand_finale',
               isFinale: true,
@@ -837,7 +857,8 @@ export const useTournamentStore = create<TournamentState>()(
           isQualificationComplete: newIsQualificationComplete,
           lastCompletedBracketType: completedBracketType,
           grandFinaleRematchPending: newGrandFinaleRematchPending,
-          rematchHeats: newRematchHeats
+          rematchHeats: newRematchHeats,
+          pilotBracketStates: newPilotBracketStates  // Story 13-7: pilotBracketStates mit bracketOrigin
           // NOTE: fullBracketStructure wird NICHT mehr aktualisiert - nur für Visualisierung
           // NOTE: winnerPool wird nicht mehr persistiert - wird dynamisch aus winnerPilots berechnet
         })
@@ -1240,51 +1261,101 @@ export const useTournamentStore = create<TournamentState>()(
         return newHeat
       },
 
-      // Story 9-2: Get next recommended heat based on alternation (AC7)
-      // Now includes dynamic LB heats (heats with bracketType='loser' or ID starting with 'lb-heat-')
+      // Story 13-5: Get next recommended heat with WB-vor-LB priority
+      // AC1: WB wird vor LB priorisiert innerhalb derselben Runde
+      // AC2: LB-Heats einer Runde werden erst empfohlen wenn alle WB-Heats der Runde abgeschlossen sind
       getNextRecommendedHeat: () => {
-        const { heats, lastCompletedBracketType, fullBracketStructure } = get()
+        const { heats, isQualificationComplete } = get()
 
-        if (!fullBracketStructure) return null
-
-        // Get pending heats from WB
-        const wbHeatIds = new Set<string>()
-        for (const round of fullBracketStructure.winnerBracket.rounds) {
-          for (const heat of round.heats) {
-            wbHeatIds.add(heat.id)
-          }
+        // 1. Quali Phase - priorisiere Quali-Heats
+        if (!isQualificationComplete) {
+          const pendingQuali = heats.find(h =>
+            (!h.bracketType || h.bracketType === 'qualification') &&
+            h.status === 'pending'
+          )
+          if (pendingQuali) return pendingQuali
         }
 
-        // Get all LB heat IDs from bracket structure
-        const lbHeatIds = new Set<string>()
-        for (const round of fullBracketStructure.loserBracket.rounds) {
-          for (const heat of round.heats) {
-            lbHeatIds.add(heat.id)
-          }
-        }
+        // 2. Grand Finale - höchste Priorität wenn verfügbar
+        const pendingGrandFinale = heats.find(h =>
+          (h.bracketType === 'grand_finale' || h.bracketType === 'finale') &&
+          h.status === 'pending'
+        )
+        if (pendingGrandFinale) return pendingGrandFinale
 
+        // 3. Sammle alle pending WB und LB Heats
         const pendingWB = heats.filter(h =>
-          h.status === 'pending' && wbHeatIds.has(h.id)
+          h.status === 'pending' &&
+          (h.bracketType === 'winner' || h.id.startsWith('wb-'))
         )
 
-        // Include BOTH bracket structure LB heats AND dynamic LB heats
-        // Dynamic LB heats are those with bracketType='loser' OR ID starting with 'lb-heat-'
         const pendingLB = heats.filter(h =>
           h.status === 'pending' &&
-          (lbHeatIds.has(h.id) || h.bracketType === 'loser' || h.id.startsWith('lb-heat-'))
+          (h.bracketType === 'loser' || h.id.startsWith('lb-'))
         )
 
-        // If only one bracket has heats, return from that
+        // Keine Heats mehr
         if (pendingWB.length === 0 && pendingLB.length === 0) return null
-        if (pendingWB.length === 0) return pendingLB[0] ?? null
+
+        // Nur WB Heats verfügbar
         if (pendingLB.length === 0) return pendingWB[0] ?? null
 
-        // Both have heats → alternate
-        if (lastCompletedBracketType === 'winner' || lastCompletedBracketType === 'qualifier') {
-          return pendingLB[0] // LB is next
-        } else {
-          return pendingWB[0] // WB is next
+        // Nur LB Heats verfügbar
+        if (pendingWB.length === 0) return pendingLB[0] ?? null
+
+        // 4. WB-vor-LB Logik: Finde die niedrigste Runde mit pending Heats
+        // Ermittle aktuelle Runden
+        const getMinRound = (heatList: Heat[]): number => {
+          const rounds = heatList
+            .map(h => h.roundNumber)
+            .filter((r): r is number => r !== undefined)
+          return rounds.length > 0 ? Math.min(...rounds) : 0
         }
+
+        const minWBRound = getMinRound(pendingWB)
+        const minLBRound = getMinRound(pendingLB)
+
+        // Wenn beide Runden gleich oder WB-Runde niedriger → WB zuerst
+        // Wenn LB-Runde niedriger → LB muss aufholen
+        if (minWBRound <= minLBRound || minLBRound === 0) {
+          // Prüfe ob es noch pending WB Heats in der aktuellen Runde gibt
+          const wbHeatsCurrentRound = pendingWB.filter(h => 
+            h.roundNumber === minWBRound || h.roundNumber === undefined
+          )
+          
+          if (wbHeatsCurrentRound.length > 0) {
+            return wbHeatsCurrentRound[0]
+          }
+        }
+
+        // WB-Runde ist abgeschlossen oder keine WB-Heats mehr → LB kann laufen
+        // Aber nur wenn alle WB-Heats der entsprechenden Runde fertig sind
+        
+        // Prüfe ob alle WB-Heats der aktuellen LB-Runde abgeschlossen sind
+        const wbHeatsForLBRound = heats.filter(h =>
+          (h.bracketType === 'winner' || h.id.startsWith('wb-')) &&
+          (h.roundNumber === minLBRound || h.roundNumber === undefined)
+        )
+        
+        const allWBHeatsForLBRoundComplete = wbHeatsForLBRound.length === 0 || 
+          wbHeatsForLBRound.every(h => h.status === 'completed')
+
+        if (allWBHeatsForLBRoundComplete) {
+          const lbHeatsCurrentRound = pendingLB.filter(h =>
+            h.roundNumber === minLBRound || h.roundNumber === undefined
+          )
+          if (lbHeatsCurrentRound.length > 0) {
+            return lbHeatsCurrentRound[0]
+          }
+        }
+
+        // Fallback: Wenn WB noch nicht fertig, empfehle WB
+        if (pendingWB.length > 0) {
+          return pendingWB[0]
+        }
+
+        // Letzte Option: LB
+        return pendingLB[0] ?? null
       },
 
       // NOTE: Story 13-6 - generateWBHeatFromPool, canGenerateWBFinale, generateWBFinale wurden entfernt
@@ -1455,6 +1526,124 @@ export const useTournamentStore = create<TournamentState>()(
         }
 
         return rematches
+      },
+
+      // Story 13-5: getCurrentPhaseDescription - Beschreibt die aktuelle Turnier-Phase
+      // AC3: Visueller Indikator zeigt "WB R1 läuft" / "LB R1 wartet auf WB"
+      getCurrentPhaseDescription: () => {
+        const { heats, tournamentPhase, isQualificationComplete, lbRoundWaitingForWB } = get()
+
+        // Turnier noch nicht gestartet
+        if (tournamentPhase === 'setup') {
+          return 'Setup'
+        }
+
+        // Turnier beendet
+        if (tournamentPhase === 'completed') {
+          return 'Turnier beendet'
+        }
+
+        // Finale Phase
+        if (tournamentPhase === 'finale') {
+          const grandFinale = heats.find(h => 
+            (h.bracketType === 'grand_finale' || h.bracketType === 'finale')
+          )
+          if (grandFinale?.status === 'pending' || grandFinale?.status === 'active') {
+            return 'Grand Finale'
+          }
+          if (grandFinale?.status === 'completed') {
+            return 'Turnier beendet'
+          }
+        }
+
+        // Quali Phase
+        if (!isQualificationComplete) {
+          const activeQuali = heats.find(h => 
+            (!h.bracketType || h.bracketType === 'qualification') && 
+            h.status === 'active'
+          )
+          const pendingQuali = heats.filter(h => 
+            (!h.bracketType || h.bracketType === 'qualification') && 
+            h.status === 'pending'
+          ).length
+
+          if (activeQuali) {
+            return `Quali läuft (${pendingQuali} verbleibend)`
+          }
+          return 'Quali Phase'
+        }
+
+        // WB/LB Phase - finde aktive Runden
+        const activeWBHeat = heats.find(h => 
+          (h.bracketType === 'winner' || h.id.startsWith('wb-')) && 
+          h.status === 'active'
+        )
+        const activeLBHeat = heats.find(h => 
+          (h.bracketType === 'loser' || h.id.startsWith('lb-')) && 
+          h.status === 'active'
+        )
+
+        // WB Finale
+        const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
+        if (wbFinale?.status === 'active') {
+          return 'WB Finale läuft'
+        }
+        if (wbFinale?.status === 'pending') {
+          return 'WB Finale bereit'
+        }
+
+        // LB Finale
+        const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
+        if (lbFinale?.status === 'active') {
+          return 'LB Finale läuft'
+        }
+        if (lbFinale?.status === 'pending' && wbFinale?.status === 'completed') {
+          return 'LB Finale bereit'
+        }
+
+        // Aktiver WB Heat
+        if (activeWBHeat) {
+          const roundNum = activeWBHeat.roundNumber || 1
+          return `WB Runde ${roundNum} läuft`
+        }
+
+        // Aktiver LB Heat
+        if (activeLBHeat) {
+          const roundNum = activeLBHeat.roundNumber || 1
+          return `LB Runde ${roundNum} läuft`
+        }
+
+        // LB wartet auf WB
+        if (lbRoundWaitingForWB) {
+          const pendingLB = heats.find(h => 
+            (h.bracketType === 'loser' || h.id.startsWith('lb-')) && 
+            h.status === 'pending'
+          )
+          const roundNum = pendingLB?.roundNumber || 1
+          return `LB Runde ${roundNum} wartet auf WB`
+        }
+
+        // Pending WB Heats vorhanden
+        const pendingWB = heats.filter(h => 
+          (h.bracketType === 'winner' || h.id.startsWith('wb-')) && 
+          h.status === 'pending'
+        )
+        if (pendingWB.length > 0) {
+          const roundNum = pendingWB[0].roundNumber || 1
+          return `WB Runde ${roundNum} bereit`
+        }
+
+        // Pending LB Heats vorhanden
+        const pendingLB = heats.filter(h => 
+          (h.bracketType === 'loser' || h.id.startsWith('lb-')) && 
+          h.status === 'pending'
+        )
+        if (pendingLB.length > 0) {
+          const roundNum = pendingLB[0].roundNumber || 1
+          return `LB Runde ${roundNum} bereit`
+        }
+
+        return 'Turnier läuft'
       }
     }),
     {

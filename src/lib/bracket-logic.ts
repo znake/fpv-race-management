@@ -42,7 +42,7 @@ import type {
 export function getPilotBracketOrigin(pilotId: string, heats: Heat[]): 'wb' | 'lb' {
   const wasInLoserBracket = heats.some(heat =>
     heat.bracketType === 'loser' &&
-    heat.pilotIds.includes(pilotId)
+    heat.pilotIds?.includes(pilotId) // Safe access for pilotIds
   )
   return wasInLoserBracket ? 'lb' : 'wb'
 }

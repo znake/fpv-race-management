@@ -48,10 +48,13 @@ export function GrandFinaleHeatBox({
             {/* AC9: Pilot-Avatar */}
             <img
               className="pilot-avatar"
-              src={pilot.imageUrl}
+              src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
               alt={pilot.name}
               style={{
                 borderColor: origin === 'wb' ? 'var(--winner-green)' : 'var(--loser-red)'
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
               }}
             />
 

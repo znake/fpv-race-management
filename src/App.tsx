@@ -140,7 +140,7 @@ export function App() {
       </nav>
       
       {/* Main Content - Beamer-optimiert */}
-      <main className="main-content overflow-x-hidden">
+      <main className="main-content overflow-x-hidden max-w-none">
 
       {activeTab === 'piloten' && (
         <div className="max-w-6xl mx-auto">
@@ -247,7 +247,7 @@ export function App() {
             }}
           />
         ) : (
-          <div className="max-w-7xl mx-auto p-6">
+          <div className="w-full px-4">
             <BracketTree 
               pilots={pilots}
               tournamentPhase={tournamentPhase}

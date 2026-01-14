@@ -74,12 +74,29 @@ export function FilledBracketHeatBox({
     return 'bottom'
   }
 
+  // AC5: Status-Badge text - "LIVE" for active heats, "Nx" for pilot count
+  const getStatusText = () => {
+    if (status === 'active') return 'LIVE'
+    return `${pilotCount}x`
+  }
+
+  // AC4: Heat name - use bracket-specific prefix
+  const getHeatName = () => {
+    const prefix = bracketType === 'qualification' ? 'QUALI' 
+                 : bracketType === 'loser' ? 'LB' 
+                 : bracketType === 'finale' ? 'GRAND FINALE'
+                 : 'WB'
+    
+    if (bracketType === 'finale') return 'GRAND FINALE'
+    return `${prefix} H${heatNumber}`
+  }
+
   return (
     <div className={boxClasses} onClick={onClick} data-testid={`bracket-heat-${heatNumber}`}>
       {/* Heat-Header with Status-Badge */}
       <div className="heat-header">
-        <span>HEAT {heatNumber}</span>
-        <span className="heat-status">{pilotCount}x</span>
+        <span>{getHeatName()}</span>
+        <span className="heat-status">{getStatusText()}</span>
       </div>
       
       {/* Pilot Rows */}
@@ -94,10 +111,10 @@ export function FilledBracketHeatBox({
               {/* Pilot-Avatar */}
               <img 
                 className="pilot-avatar"
-                src={pilot.imageUrl || '/default-avatar.png'}
+                src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
                 alt={pilot.name}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default-avatar.png'
+                  (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
                 }}
               />
               {/* Pilot-Name */}
