@@ -334,14 +334,14 @@
     z-index: 2;
   }
 
-  /* US-14-REWRITE: Main Bracket Tree - vertical layout (rounds top→bottom) */
+  /* US-14-REWRITE: Main Bracket Tree - outer container */
   .bracket-tree {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0;
     position: relative;
-    width: 100%;
+    min-width: max-content; /* Allow horizontal scroll if needed */
   }
 
   /* US-14-REWRITE: Wrapper for WB + LB side-by-side */
@@ -349,7 +349,9 @@
     display: flex;
     flex-direction: row;
     gap: 40px;
-    justify-content: center;
+    justify-content: flex-start; /* Changed from center to flex-start */
+    align-items: flex-start;
+    width: 100%;
   }
 
   /* Bracket Columns */
@@ -358,6 +360,16 @@
     flex-direction: column;
     align-items: center;
     position: relative;
+    flex-shrink: 0; /* Prevent columns from shrinking */
+  }
+  
+  /* Minimum widths for readability */
+  .bracket-column.wb {
+    min-width: 300px; /* Ensure WB is at least 300px wide */
+  }
+  
+  .bracket-column.lb {
+    min-width: 400px; /* Ensure LB is at least 400px wide */
   }
 
   /* US-14.3 AC2: Winner Bracket Column Header */

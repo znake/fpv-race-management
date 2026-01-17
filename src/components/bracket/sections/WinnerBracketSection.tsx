@@ -50,16 +50,72 @@ export function WinnerBracketSection({
     return heatCount * 4
   }
 
+  /**
+   * QUICK-FIX: Get dynamic WB heats not in structure
+   * Epic 13 generates heats dynamically - render them even if not in structure
+   */
+  const getStructureHeatIds = () => {
+    const ids = new Set<string>()
+    structure.rounds.forEach(round => {
+      round.heats.forEach(h => ids.add(h.id))
+    })
+    return ids
+  }
+
+  const dynamicWBHeats = heats.filter(h => 
+    h.bracketType === 'winner' && 
+    !getStructureHeatIds().has(h.id)
+  )
+
+  // Separate regular heats from finales
+  const regularWBHeats = dynamicWBHeats.filter(h => !h.isFinale)
+  const finaleHeat = dynamicWBHeats.find(h => h.isFinale)
+
   return (
     <div 
       className="bracket-column wb" 
-      style={{ width: `${columnWidth}px` }}
+      style={{ 
+        width: `${columnWidth}px`,
+        minWidth: `${columnWidth}px` 
+      }}
       data-testid="winner-bracket-section"
     >
       {/* AC2: Column Header with green styling */}
       <div className="bracket-column-header">WINNER BRACKET</div>
       
       <div className="bracket-tree" id="wb-tree">
+        {/* QUICK-FIX: Render dynamic WB regular heats FIRST (if any) */}
+        {regularWBHeats.length > 0 && (
+          <div className="round-section">
+            <div className="round-label">
+              RUNDE 1 ({regularWBHeats.length * 4} Piloten)
+            </div>
+            <div 
+              className="round-heats" 
+              style={{ gap: `${calculateRoundGap(0)}px` }}
+            >
+              {regularWBHeats.map((heat) => (
+                <div 
+                  key={heat.id} 
+                  ref={(el) => registerHeatRef(heat.id, el)}
+                >
+                  <BracketHeatBox
+                    heat={heat}
+                    pilots={pilots}
+                    bracketType="winner"
+                    onClick={() => onHeatClick(heat.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Connector space after dynamic R1 */}
+        {regularWBHeats.length > 0 && structure.rounds.length > 0 && (
+          <div className="connector-space" id="wb-conn-r1-r2" />
+        )}
+        
         {structure.rounds.map((round, idx) => {
           // AC3: Calculate pilot count for this round
           const pilotCount = getPilotCount(round.heats.length)
@@ -80,6 +136,7 @@ export function WinnerBracketSection({
                   className="round-heats" 
                   style={{ gap: `${calculateRoundGap(idx)}px` }}
                 >
+                  {/* Structure-based heats */}
                   {round.heats.map((bracketHeat) => {
                     const heat = heats.find(h => h.id === bracketHeat.id)
                     
@@ -126,6 +183,35 @@ export function WinnerBracketSection({
             </React.Fragment>
           )
         })}
+        
+        {/* QUICK-FIX: Render WB Finale AFTER structure rounds (if exists) */}
+        {finaleHeat && (
+          <>
+            {/* Connector space before finale */}
+            {structure.rounds.length > 0 && (
+              <div className="connector-space" id="wb-conn-finale" />
+            )}
+            
+            <div className="round-section">
+              <div className="round-label">
+                FINALE ({finaleHeat.pilotIds.length} Piloten)
+              </div>
+              <div className="round-heats">
+                <div 
+                  key={finaleHeat.id} 
+                  ref={(el) => registerHeatRef(finaleHeat.id, el)}
+                >
+                  <BracketHeatBox
+                    heat={finaleHeat}
+                    pilots={pilots}
+                    bracketType="winner"
+                    onClick={() => onHeatClick(finaleHeat.id)}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

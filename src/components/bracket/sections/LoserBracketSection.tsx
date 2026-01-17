@@ -35,6 +35,27 @@ export function LoserBracketSection({
   const columnWidth = providedColumnWidth ?? calculateLBColumnWidth(maxHeatsInRound)
 
   /**
+   * QUICK-FIX: Get dynamic LB heats not in structure
+   * Epic 13 generates heats dynamically - render them even if not in structure
+   */
+  const getStructureHeatIds = () => {
+    const ids = new Set<string>()
+    structure.rounds.forEach(round => {
+      round.heats.forEach(h => ids.add(h.id))
+    })
+    return ids
+  }
+
+  const dynamicLBHeats = heats.filter(h => 
+    h.bracketType === 'loser' && 
+    !getStructureHeatIds().has(h.id)
+  )
+
+  // Separate regular heats from finales
+  const regularLBHeats = dynamicLBHeats.filter(h => !h.isFinale)
+  const finaleHeat = dynamicLBHeats.find(h => h.isFinale)
+
+  /**
    * Calculate pilot count for a round
    * Standard: 4 pilots per heat, but supports 3-pilot heats
    */
@@ -112,13 +133,54 @@ export function LoserBracketSection({
   return (
     <div 
       className="bracket-column lb" 
-      style={{ width: `${columnWidth}px` }}
+      style={{ 
+        width: `${columnWidth}px`,
+        minWidth: `${columnWidth}px` 
+      }}
       data-testid="loser-bracket-section"
     >
       {/* AC2: Column Header with red styling */}
       <div className="bracket-column-header">LOSER BRACKET</div>
       
       <div className="bracket-tree" id="lb-tree">
+        {/* QUICK-FIX: Render dynamic LB regular heats FIRST (if any) */}
+        {regularLBHeats.length > 0 && (
+          <div className="round-section">
+            <div className="round-label">
+              RUNDE 1 ({regularLBHeats.length * 4} Piloten)
+            </div>
+            <div className="round-heats" style={{ gap: '10px' }}>
+              {regularLBHeats.map((heat) => {
+                const isThreePilot = heat.pilotIds.length === 3
+                return (
+                  <div 
+                    key={heat.id} 
+                    ref={(el) => registerHeatRef(heat.id, el)}
+                    data-three-pilot={isThreePilot ? 'true' : 'false'}
+                  >
+                    <BracketHeatBox
+                      heat={heat}
+                      pilots={pilots}
+                      bracketType="loser"
+                      onClick={() => onHeatClick(heat.id)}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        
+        {/* Pool indicator after dynamic R1 */}
+        {regularLBHeats.length > 0 && structure.rounds.length > 0 && (
+          <div className="pool-indicator">
+            <span className="arrow">↓</span>
+            {' '}Piloten weiter{' '}
+            <span className="arrow">→</span>
+            {' '}Neu gemischt
+          </div>
+        )}
+        
         {structure.rounds.map((round, idx) => {
           // AC3: Get pool composition text for this round
           const composition = getPoolComposition(idx)
@@ -138,6 +200,7 @@ export function LoserBracketSection({
                 
                 {/* AC4/AC5: Heats layout - horizontal, NO connector spaces */}
                 <div className="round-heats" style={{ gap: '10px' }}>
+                  {/* Structure-based heats */}
                   {round.heats.map((bracketHeat) => {
                     const heat = heats.find(h => h.id === bracketHeat.id)
                     const isThreePilot = isThreePilotHeat(bracketHeat.id)
@@ -194,6 +257,41 @@ export function LoserBracketSection({
             </React.Fragment>
           )
         })}
+        
+        {/* QUICK-FIX: Render LB Finale AFTER structure rounds (if exists) */}
+        {finaleHeat && (
+          <>
+            {/* Pool indicator before finale */}
+            {structure.rounds.length > 0 && (
+              <div className="pool-indicator">
+                <span className="arrow">↓</span>
+                {' '}Top Piloten{' '}
+                <span className="arrow">→</span>
+                {' '}Finale
+              </div>
+            )}
+            
+            <div className="round-section">
+              <div className="round-label">
+                FINALE ({finaleHeat.pilotIds.length} Piloten)
+              </div>
+              <div className="round-heats" style={{ gap: '10px' }}>
+                <div 
+                  key={finaleHeat.id} 
+                  ref={(el) => registerHeatRef(finaleHeat.id, el)}
+                  data-three-pilot={finaleHeat.pilotIds.length === 3 ? 'true' : 'false'}
+                >
+                  <BracketHeatBox
+                    heat={finaleHeat}
+                    pilots={pilots}
+                    bracketType="loser"
+                    onClick={() => onHeatClick(finaleHeat.id)}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
