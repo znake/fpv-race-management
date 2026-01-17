@@ -70,8 +70,8 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
     })
   })
 
-  describe('swapPilots()', () => {
-    it('swaps two pilots between different heats', () => {
+  describe('movePilotToHeat()', () => {
+    it('moves pilot from source heat to target heat', () => {
       const { result } = renderHook(() => useTournamentStore())
 
       // Add pilots and generate heats
@@ -81,68 +81,177 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
         result.current.generateHeats(42)
       })
 
-      // Get two pilots from different heats
+      // Get pilot from heat 1 and heat 2
       const heat1 = result.current.heats[0]
       const heat2 = result.current.heats[1]
-      const pilot1Id = heat1.pilotIds[0]
-      const pilot2Id = heat2.pilotIds[0]
+      const pilotToMove = heat1.pilotIds[0]
 
-      // Swap
+      // Move pilot from heat 1 to heat 2
       act(() => {
-        result.current.swapPilots(pilot1Id, pilot2Id)
+        result.current.movePilotToHeat(pilotToMove, heat2.id)
       })
 
-      // Verify swap occurred
-      expect(result.current.heats[0].pilotIds).toContain(pilot2Id)
-      expect(result.current.heats[1].pilotIds).toContain(pilot1Id)
-      expect(result.current.heats[0].pilotIds).not.toContain(pilot1Id)
-      expect(result.current.heats[1].pilotIds).not.toContain(pilot2Id)
+      // Assert: pilot is in heat2.pilotIds, not in heat1.pilotIds
+      expect(result.current.heats[1].pilotIds).toContain(pilotToMove)
+      expect(result.current.heats[0].pilotIds).not.toContain(pilotToMove)
     })
 
-    it('does not swap pilots in the same heat', () => {
+    it('removes pilot from source heat pilotIds', () => {
       const { result } = renderHook(() => useTournamentStore())
 
-      // Add pilots and generate heats
       const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
       })
 
-      // Get two pilots from the same heat
       const heat1 = result.current.heats[0]
-      const pilot1Id = heat1.pilotIds[0]
-      const pilot2Id = heat1.pilotIds[1]
-      const originalOrder = [...heat1.pilotIds]
+      const heat2 = result.current.heats[1]
+      const originalHeat1Size = heat1.pilotIds.length
+      const pilotToMove = heat1.pilotIds[0]
 
-      // Attempt swap
       act(() => {
-        result.current.swapPilots(pilot1Id, pilot2Id)
+        result.current.movePilotToHeat(pilotToMove, heat2.id)
       })
 
-      // Verify no swap occurred
-      expect(result.current.heats[0].pilotIds).toEqual(originalOrder)
+      // Assert: source heat's pilotIds array is shorter by 1
+      expect(result.current.heats[0].pilotIds.length).toBe(originalHeat1Size - 1)
     })
 
-    it('handles non-existent pilot IDs gracefully', () => {
+    it('adds pilot to target heat pilotIds', () => {
       const { result } = renderHook(() => useTournamentStore())
 
-      // Add pilots and generate heats
       const pilots = createMockPilots(10)
       act(() => {
         pilots.forEach(p => result.current.addPilot(p))
         result.current.generateHeats(42)
       })
 
+      const heat1 = result.current.heats[0]
+      const heat2 = result.current.heats[1]
+      const originalHeat2Size = heat2.pilotIds.length
+      const pilotToMove = heat1.pilotIds[0]
+
+      act(() => {
+        result.current.movePilotToHeat(pilotToMove, heat2.id)
+      })
+
+      // Assert: target heat's pilotIds array is longer by 1
+      expect(result.current.heats[1].pilotIds.length).toBe(originalHeat2Size + 1)
+    })
+
+    it('does nothing when source and target are the same heat', () => {
+      const { result } = renderHook(() => useTournamentStore())
+
+      const pilots = createMockPilots(10)
+      act(() => {
+        pilots.forEach(p => result.current.addPilot(p))
+        result.current.generateHeats(42)
+      })
+
+      const heat1 = result.current.heats[0]
+      const pilotToMove = heat1.pilotIds[0]
       const originalHeats = result.current.heats.map(h => [...h.pilotIds])
 
-      // Attempt swap with invalid ID
+      // Try to move pilot to same heat
       act(() => {
-        result.current.swapPilots('invalid-id', result.current.heats[0].pilotIds[0])
+        result.current.movePilotToHeat(pilotToMove, heat1.id)
       })
 
-      // Verify no change
+      // Assert: heats unchanged
       expect(result.current.heats.map(h => [...h.pilotIds])).toEqual(originalHeats)
+    })
+
+    it('does nothing when pilotId does not exist', () => {
+      const { result } = renderHook(() => useTournamentStore())
+
+      const pilots = createMockPilots(10)
+      act(() => {
+        pilots.forEach(p => result.current.addPilot(p))
+        result.current.generateHeats(42)
+      })
+
+      const heat2 = result.current.heats[1]
+      const originalHeats = result.current.heats.map(h => [...h.pilotIds])
+
+      // Try to move non-existent pilot
+      act(() => {
+        result.current.movePilotToHeat('invalid-id', heat2.id)
+      })
+
+      // Assert: heats unchanged
+      expect(result.current.heats.map(h => [...h.pilotIds])).toEqual(originalHeats)
+    })
+
+    it('does nothing when targetHeatId does not exist', () => {
+      const { result } = renderHook(() => useTournamentStore())
+
+      const pilots = createMockPilots(10)
+      act(() => {
+        pilots.forEach(p => result.current.addPilot(p))
+        result.current.generateHeats(42)
+      })
+
+      const heat1 = result.current.heats[0]
+      const pilotToMove = heat1.pilotIds[0]
+      const originalHeats = result.current.heats.map(h => [...h.pilotIds])
+
+      // Try to move to non-existent heat
+      act(() => {
+        result.current.movePilotToHeat(pilotToMove, 'invalid-heat-id')
+      })
+
+      // Assert: heats unchanged
+      expect(result.current.heats.map(h => [...h.pilotIds])).toEqual(originalHeats)
+    })
+
+    it('allows more than 4 pilots in target heat', () => {
+      const { result } = renderHook(() => useTournamentStore())
+
+      const pilots = createMockPilots(10)
+      act(() => {
+        pilots.forEach(p => result.current.addPilot(p))
+        result.current.generateHeats(42)
+      })
+
+      // Heat 0 should have 4 pilots, let's move pilots from other heats to it
+      const heat0 = result.current.heats[0]
+      const heat1 = result.current.heats[1]
+      const pilotToMove = heat1.pilotIds[0]
+
+      act(() => {
+        result.current.movePilotToHeat(pilotToMove, heat0.id)
+      })
+
+      // Assert: heat now has 5 pilots (no error)
+      expect(result.current.heats[0].pilotIds.length).toBe(5)
+    })
+
+    it('allows source heat to become empty', () => {
+      const { result } = renderHook(() => useTournamentStore())
+
+      // Create a scenario with a small heat (3 pilots)
+      const pilots = createMockPilots(7) // Creates 1x4 + 1x3 heats
+      act(() => {
+        pilots.forEach(p => result.current.addPilot(p))
+        result.current.generateHeats(42)
+      })
+
+      // Find the 3-pilot heat and move all pilots away
+      const smallHeat = result.current.heats.find(h => h.pilotIds.length === 3)!
+      const largeHeat = result.current.heats.find(h => h.pilotIds.length === 4)!
+      const pilotsToMove = [...smallHeat.pilotIds]
+
+      act(() => {
+        pilotsToMove.forEach(pilotId => {
+          result.current.movePilotToHeat(pilotId, largeHeat.id)
+        })
+      })
+
+      // Assert: source heat has 0 pilots, still exists
+      const emptyHeat = result.current.heats.find(h => h.id === smallHeat.id)
+      expect(emptyHeat).toBeDefined()
+      expect(emptyHeat!.pilotIds.length).toBe(0)
     })
   })
 

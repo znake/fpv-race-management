@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useDroppable, useDraggable } from '@dnd-kit/core'
 import { cn } from '../../lib/utils'
 import { PilotAvatar } from './pilot-avatar'
 import { RankBadge } from './rank-badge'
@@ -31,10 +32,9 @@ export interface HeatCardProps {
   onClick?: () => void
   onEdit?: () => void
 
-  // Swap mode props (für heat-assignment-view)
-  swapMode?: boolean
-  selectedPilotId?: string | null
-  onPilotClick?: (pilotId: string, heatId: string) => void
+  // DnD props (für heat-assignment-view)
+  heatId?: string  // für DnD Drop-Target
+  invalidReason?: 'overfilled' | 'empty' | null  // für > 4 oder 0 Piloten
 
   // Styling
   className?: string
@@ -55,9 +55,8 @@ export function HeatCard({
   isFinale,
   onClick,
   onEdit,
-  swapMode = false,
-  selectedPilotId = null,
-  onPilotClick,
+  heatId,
+  invalidReason = null,
   className,
 }: HeatCardProps) {
   // Gemeinsame Logik
@@ -84,7 +83,6 @@ export function HeatCard({
 
   // Use displayHeatNumber if provided (from actual heats[]), otherwise fall back to heatNumber
   const displayNumber = displayHeatNumber ?? heatNumber
-  const isSelectedHeat = Boolean(selectedPilotId && pilotIds.includes(selectedPilotId))
 
   // Variant-spezifisches Rendering
   switch (variant) {
@@ -121,16 +119,12 @@ export function HeatCard({
       return (
         <OverviewVariant
           heatNumber={displayNumber}
+          heatId={heatId ?? `heat-${heatNumber}`}
           sortedPilots={sortedPilots}
-          results={results}
           status={status}
-          borderClass={borderClass}
-          onEdit={onEdit}
-          isSelectedHeat={isSelectedHeat}
-          selectedPilotId={selectedPilotId}
-          swapMode={swapMode}
+          invalidReason={invalidReason}
           isRecommended={isRecommended}
-          onPilotClick={onPilotClick}
+          onEdit={onEdit}
           className={className}
         />
       )
@@ -463,40 +457,77 @@ function FilledVariant({
   )
 }
 
-// Variant: Overview (Kompakte Übersicht)
+// Draggable Pilot Row for OverviewVariant
+function DraggablePilotRow({ 
+  pilot, 
+}: { 
+  pilot: Pilot
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: pilot.id,
+  })
+  
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={cn(
+        "flex items-center gap-3 rounded-xl p-3 transition-all cursor-grab active:cursor-grabbing",
+        isDragging ? "opacity-50 scale-105" : "bg-void border-2 border-steel",
+        "hover:border-neon-cyan/50"
+      )}
+    >
+      <PilotAvatar
+        imageUrl={pilot.imageUrl}
+        name={pilot.name}
+        size="md"
+      />
+      <div className="font-ui text-base text-chrome font-semibold">
+        {pilot.name}
+      </div>
+    </div>
+  )
+}
+
+// Variant: Overview (Kompakte Übersicht mit DnD)
 function OverviewVariant({
   heatNumber,
+  heatId,
   sortedPilots,
-  results,
   status,
-  borderClass,
-  onEdit,
-  isSelectedHeat,
-  selectedPilotId,
-  swapMode,
+  invalidReason,
   isRecommended,
-  onPilotClick,
+  onEdit,
   className,
 }: {
   heatNumber: number
+  heatId: string
   sortedPilots: Pilot[]
-  results?: HeatResults
   status: 'empty' | 'pending' | 'active' | 'completed'
-  borderClass: string
-  onEdit?: () => void
-  isSelectedHeat: boolean
-  selectedPilotId: string | null
-  swapMode: boolean
+  invalidReason?: 'overfilled' | 'empty' | null
   isRecommended?: boolean
-  onPilotClick?: (pilotId: string, heatId: string) => void
+  onEdit?: () => void
   className?: string
 }) {
-  const finalBorderClass = isSelectedHeat
-    ? 'border-neon-cyan shadow-glow-cyan'
-    : borderClass
+  const { setNodeRef, isOver } = useDroppable({ 
+    id: heatId 
+  })
+
+  // Border class based on state - F10 fix: orange for empty, red for overfilled
+  const borderClass = invalidReason === 'overfilled'
+    ? 'border-loser-red shadow-glow-red'
+    : invalidReason === 'empty'
+      ? 'border-gold shadow-glow-gold'  // Using gold as "warning orange" in Synthwave theme
+      : isOver 
+        ? 'border-neon-cyan shadow-glow-cyan' 
+        : 'border-steel'
 
   return (
-    <div className={cn('bg-night border-2', finalBorderClass, 'rounded-2xl p-5 relative', className)}>
+    <div 
+      ref={setNodeRef}
+      className={cn('bg-night border-2', borderClass, 'rounded-2xl p-5 relative', className)}
+    >
       {/* Recommended Badge */}
       {isRecommended && (
         <div className="absolute -top-2 -right-2 bg-neon-cyan text-void text-xs font-bold px-2 py-1 rounded-full shadow-glow-cyan">
@@ -522,43 +553,12 @@ function OverviewVariant({
       </div>
 
       <div className="space-y-3">
-        {sortedPilots.map((pilot) => {
-          const isSelected = selectedPilotId === pilot.id
-          const isClickable = swapMode
-          const canSwapWith = swapMode && selectedPilotId && selectedPilotId !== pilot.id && !isSelectedHeat
-          const ranking = results?.rankings.find((r) => r.pilotId === pilot.id)
-
-          return (
-            <div
-              key={pilot.id}
-              onClick={() => isClickable && onPilotClick?.(pilot.id, `heat-${heatNumber}`)}
-              className={cn(
-                "flex items-center gap-3 rounded-xl p-3 transition-all",
-                isClickable && "cursor-pointer",
-                isSelected
-                  ? "bg-neon-cyan/20 border-2 border-neon-cyan shadow-glow-cyan"
-                  : canSwapWith
-                    ? "bg-void border-2 border-neon-pink hover:bg-neon-pink/10"
-                    : "bg-void border-2 border-steel",
-                isClickable && !isSelected && !canSwapWith && "hover:border-neon-cyan/50"
-              )}
-            >
-              <PilotAvatar
-                imageUrl={pilot.imageUrl}
-                name={pilot.name}
-                size="md"
-                className={isSelected ? "border-neon-cyan" : "border-steel"}
-              />
-              <div className="flex items-center">
-                <div className="font-ui text-base text-chrome font-semibold">{pilot.name}</div>
-                {ranking && <RankBadge rank={ranking.rank as 1 | 2 | 3 | 4} size="sm" />}
-              </div>
-              {isSelected && (
-                <span className="ml-auto text-neon-cyan text-sm font-semibold">AUSGEWÄHLT</span>
-              )}
-            </div>
-          )
-        })}
+        {sortedPilots.map((pilot) => (
+          <DraggablePilotRow 
+            key={pilot.id} 
+            pilot={pilot}
+          />
+        ))}
       </div>
     </div>
   )

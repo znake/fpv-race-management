@@ -116,7 +116,7 @@ interface TournamentState {
   
   // Heat assignment actions (Story 3.3)
   shuffleHeats: (seed?: number) => void
-  swapPilots: (pilotId1: string, pilotId2: string) => void
+  movePilotToHeat: (pilotId: string, targetHeatId: string) => void
   confirmHeatAssignment: () => void
   cancelHeatAssignment: () => void
   
@@ -410,38 +410,38 @@ export const useTournamentStore = create<TournamentState>()(
         set({ heats: newHeats })
       },
 
-      swapPilots: (pilotId1, pilotId2) => {
+      movePilotToHeat: (pilotId, targetHeatId) => {
         const { heats } = get()
         
-        // Find heats containing each pilot
-        const heat1Index = heats.findIndex(h => h.pilotIds.includes(pilotId1))
-        const heat2Index = heats.findIndex(h => h.pilotIds.includes(pilotId2))
+        // Find source heat containing the pilot
+        const sourceHeat = heats.find(h => h.pilotIds.includes(pilotId))
+        // Find target heat by ID
+        const targetHeat = heats.find(h => h.id === targetHeatId)
         
-        // Validate both pilots exist in heats
-        if (heat1Index === -1 || heat2Index === -1) return
+        // Guard: invalid IDs → silent return
+        if (!sourceHeat || !targetHeat) return
         
-        // Don't swap if same heat
-        if (heat1Index === heat2Index) return
+        // Guard: same heat → no action
+        if (sourceHeat.id === targetHeat.id) return
         
-        const newHeats = [...heats]
-        
-        // Find indices within each heat
-        const pilot1Idx = newHeats[heat1Index].pilotIds.indexOf(pilotId1)
-        const pilot2Idx = newHeats[heat2Index].pilotIds.indexOf(pilotId2)
-        
-        // Swap pilot positions
-        newHeats[heat1Index] = {
-          ...newHeats[heat1Index],
-          pilotIds: newHeats[heat1Index].pilotIds.map((id, i) => 
-            i === pilot1Idx ? pilotId2 : id
-          )
-        }
-        newHeats[heat2Index] = {
-          ...newHeats[heat2Index],
-          pilotIds: newHeats[heat2Index].pilotIds.map((id, i) => 
-            i === pilot2Idx ? pilotId1 : id
-          )
-        }
+        // Create new heats array with pilot moved
+        const newHeats = heats.map(heat => {
+          if (heat.id === sourceHeat.id) {
+            // Remove pilot from source heat
+            return {
+              ...heat,
+              pilotIds: heat.pilotIds.filter(id => id !== pilotId)
+            }
+          }
+          if (heat.id === targetHeat.id) {
+            // Add pilot to target heat
+            return {
+              ...heat,
+              pilotIds: [...heat.pilotIds, pilotId]
+            }
+          }
+          return heat
+        })
         
         set({ heats: newHeats })
       },
@@ -1261,11 +1261,11 @@ export const useTournamentStore = create<TournamentState>()(
         return newHeat
       },
 
-      // Story 13-5: Get next recommended heat with WB-vor-LB priority
-      // AC1: WB wird vor LB priorisiert innerhalb derselben Runde
-      // AC2: LB-Heats einer Runde werden erst empfohlen wenn alle WB-Heats der Runde abgeschlossen sind
+      // Story 13-5: Get next recommended heat with WB/LB alternation
+      // AC7: Automatische Abwechslung WB/LB - nach WB empfehle LB, nach LB empfehle WB
+      // AC1: WB wird vor LB priorisiert wenn lastCompletedBracketType null ist
       getNextRecommendedHeat: () => {
-        const { heats, isQualificationComplete } = get()
+        const { heats, isQualificationComplete, lastCompletedBracketType } = get()
 
         // 1. Quali Phase - priorisiere Quali-Heats
         if (!isQualificationComplete) {
@@ -1303,7 +1303,18 @@ export const useTournamentStore = create<TournamentState>()(
         // Nur LB Heats verfügbar
         if (pendingWB.length === 0) return pendingLB[0] ?? null
 
-        // 4. WB-vor-LB Logik: Finde die niedrigste Runde mit pending Heats
+        // AC7: Abwechslung basierend auf lastCompletedBracketType
+        // Wenn zuletzt WB completed wurde → empfehle LB (und umgekehrt)
+        if (lastCompletedBracketType === 'winner') {
+          // Nach WB → empfehle LB
+          return pendingLB[0]
+        }
+        if (lastCompletedBracketType === 'loser') {
+          // Nach LB → empfehle WB
+          return pendingWB[0]
+        }
+
+        // 4. Fallback: WB-vor-LB Logik wenn lastCompletedBracketType null oder 'qualifier'
         // Ermittle aktuelle Runden
         const getMinRound = (heatList: Heat[]): number => {
           const rounds = heatList

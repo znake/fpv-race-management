@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core'
 import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { useTournamentStore } from '../stores/tournamentStore'
@@ -14,50 +15,41 @@ type HeatAssignmentViewProps = {
 }
 
 export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatAssignmentViewProps) {
-  const [swapMode, setSwapMode] = useState(false)
-  const [selectedPilotId, setSelectedPilotId] = useState<string | null>(null)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
 
   const shuffleHeats = useTournamentStore((state) => state.shuffleHeats)
-  const swapPilots = useTournamentStore((state) => state.swapPilots)
+  const movePilotToHeat = useTournamentStore((state) => state.movePilotToHeat)
+
+  // DnD sensors configuration
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 }
+    })
+  )
 
   // Calculate heat distribution summary
   const fourPlayerHeats = heats.filter(h => h.pilotIds.length === 4).length
   const threePlayerHeats = heats.filter(h => h.pilotIds.length === 3).length
   const totalPilots = heats.reduce((sum, h) => sum + h.pilotIds.length, 0)
 
-  const handlePilotClick = (pilotId: string, heatId: string) => {
-    if (!swapMode) return
+  // Validation: check for invalid heats
+  const hasOverfilledHeats = heats.some(h => h.pilotIds.length > 4)
+  const hasEmptyHeats = heats.some(h => h.pilotIds.length === 0)
+  const hasInvalidHeats = hasOverfilledHeats || hasEmptyHeats
+  const overfilledHeatNumbers = heats.filter(h => h.pilotIds.length > 4).map(h => h.heatNumber)
+  const emptyHeatNumbers = heats.filter(h => h.pilotIds.length === 0).map(h => h.heatNumber)
 
-    if (!selectedPilotId) {
-      // First pilot selected
-      setSelectedPilotId(pilotId)
-    } else {
-      // Second pilot selected
-      const selectedHeat = heats.find(h => h.pilotIds.includes(selectedPilotId))
-      const clickedHeat = heats.find(h => h.id === heatId)
-
-      if (selectedHeat?.id === clickedHeat?.id) {
-        // Same heat - just switch selection
-        setSelectedPilotId(pilotId)
-      } else {
-        // Different heats - perform swap
-        swapPilots(selectedPilotId, pilotId)
-        setSelectedPilotId(null)
-        setSwapMode(false)
-      }
-    }
-  }
-
-  const handleCancelSwapMode = () => {
-    setSwapMode(false)
-    setSelectedPilotId(null)
+  // DnD handler
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
+    const pilotId = active.id as string
+    const targetHeatId = over.id as string
+    movePilotToHeat(pilotId, targetHeatId)
   }
 
   const handleShuffle = () => {
     shuffleHeats()
-    // Reset swap mode if active
-    handleCancelSwapMode()
   }
 
   const handleConfirmCancel = () => {
@@ -90,60 +82,47 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
         >
           🔀 Neu mischen
         </button>
-
-        {!swapMode ? (
-          <button
-            onClick={() => setSwapMode(true)}
-            className="bg-night border-2 border-steel text-steel px-6 py-3 rounded-lg font-semibold hover:border-neon-pink hover:text-neon-pink transition-colors"
-          >
-            ↔️ Piloten tauschen
-          </button>
-        ) : (
-          <button
-            onClick={handleCancelSwapMode}
-            className="bg-night border-2 border-loser-red text-loser-red px-6 py-3 rounded-lg font-semibold hover:bg-loser-red/10 transition-colors"
-          >
-            ✕ Tausch abbrechen
-          </button>
-        )}
       </div>
 
-      {/* Swap Mode Hint */}
-      {swapMode && (
-        <div className={cn(
-          "mb-6 p-4 rounded-xl border-2 text-center",
-          selectedPilotId
-            ? "bg-neon-cyan/10 border-neon-cyan text-neon-cyan"
-            : "bg-neon-pink/10 border-neon-pink text-neon-pink"
-        )}>
+      {/* Validation Warnings */}
+      {hasOverfilledHeats && (
+        <div className="mb-6 p-4 rounded-xl border-2 bg-loser-red/10 border-loser-red text-loser-red">
           <p className="font-ui text-lg font-semibold">
-            {selectedPilotId
-              ? "Wähle zweiten Piloten zum Tauschen"
-              : "Wähle ersten Piloten zum Tauschen"}
+            Heat {overfilledHeatNumbers.join(', ')} hat mehr als 4 Piloten. 
+            Bitte Piloten verschieben, um das Turnier zu starten.
+          </p>
+        </div>
+      )}
+      {hasEmptyHeats && (
+        <div className="mb-6 p-4 rounded-xl border-2 bg-gold/10 border-gold text-gold">
+          <p className="font-ui text-lg font-semibold">
+            Heat {emptyHeatNumbers.join(', ')} hat keine Piloten. 
+            Bitte Piloten hinzufügen oder neu mischen.
           </p>
         </div>
       )}
 
-      {/* Heat Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {heats
-          .slice()
-          .sort((a, b) => a.heatNumber - b.heatNumber)
-          .map((heat) => (
-            <HeatCard
-              key={heat.id}
-              variant="overview"
-              heatNumber={heat.heatNumber}
-              pilots={pilots}
-              pilotIds={heat.pilotIds}
-              results={heat.results}
-              status={heat.status}
-              swapMode={swapMode}
-              selectedPilotId={selectedPilotId}
-              onPilotClick={handlePilotClick}
-            />
-          ))}
-      </div>
+      {/* Heat Grid with DnD */}
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {heats
+            .slice()
+            .sort((a, b) => a.heatNumber - b.heatNumber)
+            .map((heat) => (
+              <HeatCard
+                key={heat.id}
+                variant="overview"
+                heatId={heat.id}
+                heatNumber={heat.heatNumber}
+                pilots={pilots}
+                pilotIds={heat.pilotIds}
+                results={heat.results}
+                status={heat.status}
+                invalidReason={heat.pilotIds.length > 4 ? 'overfilled' : heat.pilotIds.length === 0 ? 'empty' : null}
+              />
+            ))}
+        </div>
+      </DndContext>
 
       {/* Footer Actions */}
       <div className="flex justify-center gap-4 pt-6 border-t border-steel/30">
@@ -155,10 +134,10 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
         </button>
         <button
           onClick={onConfirm}
-          disabled={swapMode}
+          disabled={hasInvalidHeats}
           className={cn(
             "bg-neon-pink text-void px-8 py-4 rounded-xl font-bold text-lg transition-all",
-            swapMode
+            hasInvalidHeats
               ? "opacity-50 cursor-not-allowed"
               : "shadow-glow-pink hover:shadow-[0_0_30px_rgba(255,42,109,0.7)]"
           )}
