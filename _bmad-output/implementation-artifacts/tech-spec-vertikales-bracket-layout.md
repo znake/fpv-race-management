@@ -2,7 +2,7 @@
 title: 'Vertikales Bracket-Layout'
 slug: 'vertikales-bracket-layout'
 created: '2026-01-10'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack:
   - React 18.3.1
