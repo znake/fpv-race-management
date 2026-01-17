@@ -68,7 +68,8 @@ describe('getTop4Pilots', () => {
     expect(result).toBeNull()
   })
 
-  it('returns place 1 and 2 from grand finale results', () => {
+  it('returns all 4 places from grand finale results (4-pilot format per tournament rules)', () => {
+    // Story 13-3: Grand Finale hat 4 Piloten (2 aus WB + 2 aus LB)
     const pilots: Pilot[] = [
       { id: 'p1', name: 'Champion', imageUrl: '/p1.jpg' },
       { id: 'p2', name: 'RunnerUp', imageUrl: '/p2.jpg' },
@@ -122,7 +123,7 @@ describe('getTop4Pilots', () => {
           roundNumber: 99,
           bracketType: 'finale',
           status: 'completed',
-          pilotIds: ['p1', 'p2'],
+          pilotIds: ['p1', 'p2', 'p3', 'p4'], // 4 Piloten per Turnier-Regeln
           sourceHeats: [],
           targetHeat: undefined,
           position: { x: 0, y: 0 }
@@ -134,6 +135,8 @@ describe('getTop4Pilots', () => {
           heatNumber: 5,
           pilotIds: ['p1', 'p4'],
           status: 'completed',
+          bracketType: 'winner',
+          isFinale: true,
           results: {
             rankings: [
               { pilotId: 'p1', rank: 1 },
@@ -147,6 +150,8 @@ describe('getTop4Pilots', () => {
           heatNumber: 6,
           pilotIds: ['p2', 'p3'],
           status: 'completed',
+          bracketType: 'loser',
+          isFinale: true,
           results: {
             rankings: [
               { pilotId: 'p2', rank: 1 },
@@ -158,12 +163,15 @@ describe('getTop4Pilots', () => {
         {
           id: 'finale-1',
           heatNumber: 99,
-          pilotIds: ['p1', 'p2'],
+          pilotIds: ['p1', 'p2', 'p3', 'p4'], // 4 Piloten
           status: 'completed',
+          bracketType: 'grand_finale',
           results: {
             rankings: [
               { pilotId: 'p1', rank: 1 },
-              { pilotId: 'p2', rank: 2 }
+              { pilotId: 'p2', rank: 2 },
+              { pilotId: 'p3', rank: 3 },
+              { pilotId: 'p4', rank: 4 }
             ],
             completedAt: '2025-12-20T12:20:00Z'
           }
@@ -176,6 +184,8 @@ describe('getTop4Pilots', () => {
     expect(result).not.toBeNull()
     expect(result?.place1?.name).toBe('Champion')
     expect(result?.place2?.name).toBe('RunnerUp')
+    expect(result?.place3?.name).toBe('Third')
+    expect(result?.place4?.name).toBe('Fourth')
   })
 })
 

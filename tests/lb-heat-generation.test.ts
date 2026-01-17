@@ -404,9 +404,10 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
     it('should recommend LB heat after WB heat completion', () => {
       useTournamentStore.setState({
         lastCompletedBracketType: 'winner',
+        isQualificationComplete: true,  // WICHTIG: Quali muss abgeschlossen sein
         heats: [
-          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending' },
-          { id: 'lb-heat-1', heatNumber: 2, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending' },
+          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending', bracketType: 'winner' },
+          { id: 'lb-heat-1', heatNumber: 2, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending', bracketType: 'loser' },
         ],
         fullBracketStructure: {
           qualification: { heats: [] },
