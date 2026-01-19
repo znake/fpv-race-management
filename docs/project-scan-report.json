@@ -1,0 +1,132 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-01-19T13:15:00Z",
+    "last_updated": "2026-01-19T14:30:00Z",
+    "completed": "2026-01-19T14:30:00Z"
+  },
+  "mode": "initial_scan",
+  "scan_level": "exhaustive",
+  "status": "completed",
+  "project_root": "/Users/jakoblehner/coding/heats",
+  "output_folder": "/Users/jakoblehner/coding/heats/docs",
+  "completed_steps": [
+    {
+      "step": "step_1",
+      "status": "completed",
+      "timestamp": "2026-01-19T13:15:00Z",
+      "summary": "Classified as monolith with 1 part (Web/React/TypeScript/Vite)"
+    },
+    {
+      "step": "step_2",
+      "status": "completed",
+      "timestamp": "2026-01-19T13:20:00Z",
+      "summary": "Discovered existing documentation: PRD, Architecture, 90+ user stories"
+    },
+    {
+      "step": "step_3",
+      "status": "completed",
+      "timestamp": "2026-01-19T13:25:00Z",
+      "summary": "Analyzed tech stack: React 18, TypeScript 5.5, Vite 5.4, Zustand, Tailwind"
+    },
+    {
+      "step": "step_4",
+      "status": "completed",
+      "timestamp": "2026-01-19T13:45:00Z",
+      "summary": "Exhaustive analysis: ~40 source files, 17 test files, store architecture"
+    },
+    {
+      "step": "step_5",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:00:00Z",
+      "summary": "Generated source-tree.md"
+    },
+    {
+      "step": "step_6",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:05:00Z",
+      "summary": "Generated tech-stack.md"
+    },
+    {
+      "step": "step_8",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:15:00Z",
+      "summary": "Generated architecture-deep-dive.md"
+    },
+    {
+      "step": "step_9",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:20:00Z",
+      "summary": "Generated getting-started.md and store-api.md"
+    },
+    {
+      "step": "step_10",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:25:00Z",
+      "summary": "Generated master index.md"
+    },
+    {
+      "step": "step_11",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:28:00Z",
+      "summary": "Validated all 9 documentation files"
+    },
+    {
+      "step": "step_12",
+      "status": "completed",
+      "timestamp": "2026-01-19T14:30:00Z",
+      "summary": "Finalized workflow"
+    }
+  ],
+  "current_step": "completed",
+  "findings": {
+    "project_classification": {
+      "repository_type": "monolith",
+      "primary_tech": "React/TypeScript/Vite",
+      "project_type_id": "web",
+      "project_name": "fpv-racing-heats"
+    },
+    "project_types": [
+      {
+        "part_id": "root",
+        "project_type_id": "web",
+        "display_name": "FPV Racing Heats Manager"
+      }
+    ],
+    "tech_stack": {
+      "framework": "React 18.3.1",
+      "language": "TypeScript 5.5.4",
+      "build_tool": "Vite 5.4.8",
+      "state_management": "Zustand 4.5.5",
+      "styling": "Tailwind CSS 3.4.14",
+      "testing": "Vitest 2.1.4"
+    },
+    "architecture": {
+      "pattern": "Component-based SPA",
+      "data_source": "heats[] as Single Source of Truth",
+      "persistence": "localStorage",
+      "state_pattern": "Pool-based dynamic heat generation"
+    },
+    "codebase_stats": {
+      "source_files": "~40",
+      "test_files": 17,
+      "components": "20+",
+      "custom_hooks": 3,
+      "store_modules": 1,
+      "epics": 14,
+      "user_stories": "90+"
+    }
+  },
+  "outputs_generated": [
+    "docs/index.md",
+    "docs/source-tree.md",
+    "docs/tech-stack.md",
+    "docs/architecture-deep-dive.md",
+    "docs/getting-started.md",
+    "docs/store-api.md",
+    "docs/project-scan-report.json"
+  ],
+  "user_context": {
+    "note": "SVG-basiertes Bracket-Design (epic-14) ist das aktuellste Design-Dokument"
+  }
+}
