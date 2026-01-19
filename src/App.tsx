@@ -310,6 +310,7 @@ export function App() {
           onConfirm={() => {
             resetTournament()
             setShowResetTournamentDialog(false)
+            setActiveTab('piloten')
           }}
           onCancel={() => setShowResetTournamentDialog(false)}
         />
