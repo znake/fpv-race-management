@@ -38,8 +38,7 @@ export function resetTournamentStore(): void {
     isLBFinaleComplete: false,
     isGrandFinaleComplete: false,
 
-    // Structure
-    fullBracketStructure: null,
+    // Phase 4: fullBracketStructure entfernt - heats[] ist Single Source of Truth
     lastCompletedBracketType: null,
   });
 }

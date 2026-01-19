@@ -13,33 +13,17 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useTournamentStore } from '../src/stores/tournamentStore'
 
-// Helper to create minimal bracket structure for tests
-function createMinimalBracketStructure(options: {
+// Helper to create minimal heats array for tests (replaces fullBracketStructure)
+function createMinimalHeats(options: {
   hasActiveWBHeats?: boolean
-  wbHeats?: Array<{ id: string; status: string }>
 }) {
-  return {
-    qualification: { heats: [] },
-    winnerBracket: {
-      rounds: [{
-        id: 'wb-round-1',
-        roundNumber: 1,
-        roundName: 'WB Runde 1',
-        heats: options.wbHeats || [{
-          id: 'wb-heat-1',
-          heatNumber: 1,
-          pilotIds: ['p1', 'p2', 'p3', 'p4'],
-          status: options.hasActiveWBHeats ? 'pending' : 'completed',
-          roundNumber: 1,
-          bracketType: 'winner',
-          sourceHeats: [],
-          position: { x: 0, y: 0 }
-        }]
-      }]
-    },
-    loserBracket: { rounds: [] },
-    grandFinale: null
-  }
+  return [{
+    id: 'wb-heat-1',
+    heatNumber: 1,
+    pilotIds: ['p1', 'p2', 'p3', 'p4'],
+    status: options.hasActiveWBHeats ? 'pending' as const : 'completed' as const,
+    bracketType: 'winner' as const
+  }]
 }
 
 describe('Story 9-2: Dynamic LB Heat Generation', () => {
@@ -55,7 +39,6 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       loserPilots: [],
       eliminatedPilots: [],
       loserPool: [],
-      fullBracketStructure: null,
       lastCompletedBracketType: null,
     })
   })
@@ -146,7 +129,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         loserPool: ['p1', 'p2'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: createMinimalHeats({ hasActiveWBHeats: true })
       })
       
       const { canGenerateLBHeat } = useTournamentStore.getState()
@@ -167,8 +150,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         ],
         loserPool: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'],
         tournamentPhase: 'running',
-        heats: [],
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: createMinimalHeats({ hasActiveWBHeats: true })
       })
     })
 
@@ -271,29 +253,8 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
           heatNumber: 1,
           pilotIds: ['p1', 'p2', 'p3', 'p4'],
           status: 'active',
-        }],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: { rounds: [] },
-          loserBracket: {
-            rounds: [{
-              id: 'lb-round-1',
-              roundNumber: 1,
-              roundName: 'LB Runde 1',
-              heats: [{
-                id: 'lb-heat-1',
-                heatNumber: 1,
-                pilotIds: ['p1', 'p2', 'p3', 'p4'],
-                status: 'active',
-                roundNumber: 1,
-                bracketType: 'loser',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }]
-            }]
-          },
-          grandFinale: null
-        } as any
+          bracketType: 'loser'
+        }]
       })
     })
 
@@ -364,29 +325,8 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
           heatNumber: 1,
           pilotIds: ['p1', 'p2', 'p3', 'p4'],
           status: 'active',
-        }],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              roundName: 'WB Runde 1',
-              heats: [{
-                id: 'wb-heat-1',
-                heatNumber: 1,
-                pilotIds: ['p1', 'p2', 'p3', 'p4'],
-                status: 'active',
-                roundNumber: 1,
-                bracketType: 'winner',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }]
-            }]
-          },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+          bracketType: 'winner'
+        }]
       })
       
       const { submitHeatResults } = useTournamentStore.getState()
@@ -408,25 +348,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         heats: [
           { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending', bracketType: 'winner' },
           { id: 'lb-heat-1', heatNumber: 2, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending', bracketType: 'loser' },
-        ],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'wb-heat-1', status: 'pending', pilotIds: ['p1', 'p2', 'p3', 'p4'] }]
-            }]
-          },
-          loserBracket: {
-            rounds: [{
-              id: 'lb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'lb-heat-1', status: 'pending', pilotIds: ['p5', 'p6', 'p7', 'p8'] }]
-            }]
-          },
-          grandFinale: null
-        } as any
+        ]
       })
       
       const { getNextRecommendedHeat } = useTournamentStore.getState()
@@ -439,27 +361,9 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         lastCompletedBracketType: 'loser',
         heats: [
-          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending' },
-          { id: 'lb-heat-1', heatNumber: 2, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending' },
-        ],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'wb-heat-1', status: 'pending', pilotIds: ['p1', 'p2', 'p3', 'p4'] }]
-            }]
-          },
-          loserBracket: {
-            rounds: [{
-              id: 'lb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'lb-heat-1', status: 'pending', pilotIds: ['p5', 'p6', 'p7', 'p8'] }]
-            }]
-          },
-          grandFinale: null
-        } as any
+          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending', bracketType: 'winner' },
+          { id: 'lb-heat-1', heatNumber: 2, pilotIds: ['p5', 'p6', 'p7', 'p8'], status: 'pending', bracketType: 'loser' },
+        ]
       })
       
       const { getNextRecommendedHeat } = useTournamentStore.getState()
@@ -472,20 +376,8 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       useTournamentStore.setState({
         lastCompletedBracketType: 'winner',
         heats: [
-          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending' },
-        ],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'wb-heat-1', status: 'pending', pilotIds: ['p1', 'p2', 'p3', 'p4'] }]
-            }]
-          },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'pending', bracketType: 'winner' },
+        ]
       })
       
       const { getNextRecommendedHeat } = useTournamentStore.getState()
@@ -498,20 +390,8 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
     it('should return null when no pending heats exist', () => {
       useTournamentStore.setState({
         heats: [
-          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'completed' },
-        ],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              heats: [{ id: 'wb-heat-1', status: 'completed', pilotIds: ['p1', 'p2', 'p3', 'p4'] }]
-            }]
-          },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+          { id: 'wb-heat-1', heatNumber: 1, pilotIds: ['p1', 'p2', 'p3', 'p4'], status: 'completed', bracketType: 'winner' },
+        ]
       })
       
       const { getNextRecommendedHeat } = useTournamentStore.getState()
@@ -543,43 +423,22 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       // Pool already has 2 pilots, WB heat will add 2 more → total 4 → LB heat generated
       useTournamentStore.setState({
         loserPool: ['p5', 'p6'], // 2 existing
-        heats: [{
-          id: 'wb-heat-1',
-          heatNumber: 1,
-          pilotIds: ['p1', 'p2', 'p3', 'p4'],
-          status: 'active',
-        }],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              roundName: 'WB Runde 1',
-              heats: [{
-                id: 'wb-heat-1',
-                heatNumber: 1,
-                pilotIds: ['p1', 'p2', 'p3', 'p4'],
-                status: 'active',
-                roundNumber: 1,
-                bracketType: 'winner',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }, {
-                id: 'wb-heat-2',
-                heatNumber: 2,
-                pilotIds: ['p5', 'p6', 'p7', 'p8'],
-                status: 'pending',
-                roundNumber: 1,
-                bracketType: 'winner',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }]
-            }]
+        heats: [
+          {
+            id: 'wb-heat-1',
+            heatNumber: 1,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'active',
+            bracketType: 'winner'
           },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+          {
+            id: 'wb-heat-2',
+            heatNumber: 2,
+            pilotIds: ['p5', 'p6', 'p7', 'p8'],
+            status: 'pending',
+            bracketType: 'winner'
+          }
+        ]
       })
       
       const { submitHeatResults } = useTournamentStore.getState()
@@ -605,43 +464,22 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
     it('should NOT auto-generate LB heat when pool < 4 after WB heat', () => {
       useTournamentStore.setState({
         loserPool: [], // Empty pool
-        heats: [{
-          id: 'wb-heat-1',
-          heatNumber: 1,
-          pilotIds: ['p1', 'p2', 'p3', 'p4'],
-          status: 'active',
-        }],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              roundName: 'WB Runde 1',
-              heats: [{
-                id: 'wb-heat-1',
-                heatNumber: 1,
-                pilotIds: ['p1', 'p2', 'p3', 'p4'],
-                status: 'active',
-                roundNumber: 1,
-                bracketType: 'winner',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }, {
-                id: 'wb-heat-2',
-                heatNumber: 2,
-                pilotIds: ['p5', 'p6', 'p7', 'p8'],
-                status: 'pending',
-                roundNumber: 1,
-                bracketType: 'winner',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }]
-            }]
+        heats: [
+          {
+            id: 'wb-heat-1',
+            heatNumber: 1,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'active',
+            bracketType: 'winner'
           },
-          loserBracket: { rounds: [] },
-          grandFinale: null
-        } as any
+          {
+            id: 'wb-heat-2',
+            heatNumber: 2,
+            pilotIds: ['p5', 'p6', 'p7', 'p8'],
+            status: 'pending',
+            bracketType: 'winner'
+          }
+        ]
       })
       
       const { submitHeatResults } = useTournamentStore.getState()
@@ -676,7 +514,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         ],
         loserPool: ['p1', 'p2'],
         tournamentPhase: 'running',
-        fullBracketStructure: createMinimalBracketStructure({ hasActiveWBHeats: true }) as any
+        heats: createMinimalHeats({ hasActiveWBHeats: true })
       })
       
       const { canGenerateLBHeat, generateLBHeat } = useTournamentStore.getState()
@@ -703,46 +541,22 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         // 2 pilots already waiting in pool
         loserPool: ['p5', 'p6'],
         tournamentPhase: 'running',
-        heats: [{
-          id: 'lb-heat-1',
-          heatNumber: 1,
-          pilotIds: ['p1', 'p2', 'p3', 'p4'],
-          status: 'active',
-        }],
-        fullBracketStructure: {
-          qualification: { heats: [] },
-          winnerBracket: {
-            rounds: [{
-              id: 'wb-round-1',
-              roundNumber: 1,
-              heats: [{ 
-                id: 'wb-heat-pending', 
-                status: 'pending',
-                pilotIds: ['p7', 'p8', 'p9', 'p10'],
-                roundNumber: 1,
-                bracketType: 'winner'
-              }]
-            }]
+        heats: [
+          {
+            id: 'lb-heat-1',
+            heatNumber: 1,
+            pilotIds: ['p1', 'p2', 'p3', 'p4'],
+            status: 'active',
+            bracketType: 'loser'
           },
-          loserBracket: {
-            rounds: [{
-              id: 'lb-round-1',
-              roundNumber: 1,
-              roundName: 'LB Runde 1',
-              heats: [{
-                id: 'lb-heat-1',
-                heatNumber: 1,
-                pilotIds: ['p1', 'p2', 'p3', 'p4'],
-                status: 'active',
-                roundNumber: 1,
-                bracketType: 'loser',
-                sourceHeats: [],
-                position: { x: 0, y: 0 }
-              }]
-            }]
-          },
-          grandFinale: null
-        } as any
+          {
+            id: 'wb-heat-pending',
+            heatNumber: 2,
+            pilotIds: ['p7', 'p8', 'p9', 'p10'],
+            status: 'pending',
+            bracketType: 'winner'
+          }
+        ]
       })
       
       const { submitHeatResults } = useTournamentStore.getState()

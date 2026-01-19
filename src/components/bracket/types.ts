@@ -1,6 +1,9 @@
 import type React from 'react'
 import type { Heat, Pilot } from '../../types'
-import type { FullBracketStructure, BracketHeat, BracketType } from '../../lib/bracket-structure-generator'
+
+// Phase 4: Bracket-Structure-Generator entfernt
+// BracketType wird jetzt als einfacher Union-Type definiert
+export type BracketType = 'qualification' | 'winner' | 'loser' | 'finale' | 'grand_finale'
 
 // Heat Box Props
 export interface BracketHeatBoxProps {
@@ -12,14 +15,30 @@ export interface BracketHeatBoxProps {
   isNew?: boolean
 }
 
+// Phase 4: EmptyBracketHeatBoxProps - vereinfacht ohne BracketHeat dependency
 export interface EmptyBracketHeatBoxProps {
-  bracketHeat: BracketHeat
+  bracketHeat: {
+    id: string
+    heatNumber: number
+    pilotIds: string[]
+    status: string
+    roundNumber?: number
+    bracketType?: BracketType
+    sourceHeats?: string[]
+    position?: { x: number; y: number }
+  }
   bracketType: BracketType
   displayHeatNumber?: number
 }
 
+// Phase 4: FilledBracketHeatBoxProps - vereinfacht
 export interface FilledBracketHeatBoxProps {
-  bracketHeat: BracketHeat
+  bracketHeat: {
+    id: string
+    heatNumber: number
+    pilotIds: string[]
+    status: string
+  }
   pilots: Pilot[]
   bracketType: BracketType
   onClick?: () => void
@@ -27,75 +46,13 @@ export interface FilledBracketHeatBoxProps {
   actualHeat?: Heat
 }
 
-// Layout Props
-export interface HeatsSectionProps {
-  fullBracket: FullBracketStructure
-  heats: Heat[]
-  pilots: Pilot[]
-  onHeatClick: (heatId: string) => void
-}
-
-export interface BracketRoundColumnProps {
-  round: {
-    id: string
-    roundName: string
-    heats: BracketHeat[]
-  }
-  bracketType: 'winner' | 'loser'
-  pilots: Pilot[]
-  heats: Heat[]
-}
-
-// Section Props
-export interface WinnerBracketSectionProps {
-  fullBracket: FullBracketStructure
-  pilots: Pilot[]
-  heats: Heat[]
-  onHeatClick: (heatId: string) => void
-}
-
-// US-14.4: Old LoserBracketSectionProps kept for backwards compatibility
-export interface LoserBracketSectionPropsLegacy {
-  fullBracket: FullBracketStructure
-  pilots: Pilot[]
-  heats: Heat[]
-  loserPool: string[]
-  hasActiveWBHeats: boolean
-  onHeatClick: (heatId: string) => void
-}
-
-// US-14.4: New LoserBracketSectionProps with structure-based approach
-export interface LoserBracketSectionProps {
-  structure: FullBracketStructure['loserBracket']
-  heats: Heat[]
-  pilots: Pilot[]
-  onHeatClick: (heatId: string) => void
-  registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
-  columnWidth?: number // Optional, calculated from structure if not provided
-}
-
-// US-14.7: Legacy GrandFinaleSectionProps for backwards compatibility
-export interface GrandFinaleSectionPropsLegacy {
-  fullBracket: FullBracketStructure
-  pilots: Pilot[]
-  heats: Heat[]
-  grandFinalePool: string[]
-}
-
-// US-14.7: New GrandFinaleSectionProps with dynamic positioning
+// US-14.7: GrandFinaleSectionProps with dynamic positioning
 export interface GrandFinaleSectionProps {
   grandFinaleHeat: Heat | null
   pilots: Pilot[]
   heats: Heat[] // For bracketOrigin lookup
   wbFinaleRef: React.RefObject<HTMLDivElement>
   lbFinaleRef: React.RefObject<HTMLDivElement>
-}
-
-export interface DynamicLBHeatsSectionProps {
-  heats: Heat[]
-  fullBracket: FullBracketStructure
-  pilots: Pilot[]
-  onHeatClick: (heatId: string) => void
 }
 
 // Grand Finale Heat Box

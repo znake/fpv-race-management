@@ -90,12 +90,11 @@ describe('Story 7.1: Reset-Funktionen', () => {
         result.current.resetTournament()
       })
       
-       // Verify bracket state is cleared
-       expect(result.current.winnerPilots.length).toBe(0)
-       expect(result.current.loserPilots.length).toBe(0)
-       expect(result.current.eliminatedPilots.length).toBe(0)
-       expect(result.current.fullBracketStructure).toBe(null)
-     })
+      // Verify bracket state is cleared
+      expect(result.current.winnerPilots.length).toBe(0)
+      expect(result.current.loserPilots.length).toBe(0)
+      expect(result.current.eliminatedPilots.length).toBe(0)
+    })
   })
 
   describe('deleteAllPilots()', () => {
@@ -188,17 +187,16 @@ describe('Story 7.1: Reset-Funktionen', () => {
         result.current.resetAll()
       })
       
-       // Verify: Complete reset
-       expect(result.current.pilots.length).toBe(0)
-       expect(result.current.heats.length).toBe(0)
-       expect(result.current.tournamentPhase).toBe('setup')
-       expect(result.current.tournamentStarted).toBe(false)
-       expect(result.current.currentHeatIndex).toBe(0)
-       expect(result.current.winnerPilots.length).toBe(0)
-       expect(result.current.loserPilots.length).toBe(0)
-       expect(result.current.eliminatedPilots.length).toBe(0)
-       expect(result.current.fullBracketStructure).toBe(null)
-     })
+      // Verify: Complete reset
+      expect(result.current.pilots.length).toBe(0)
+      expect(result.current.heats.length).toBe(0)
+      expect(result.current.tournamentPhase).toBe('setup')
+      expect(result.current.tournamentStarted).toBe(false)
+      expect(result.current.currentHeatIndex).toBe(0)
+      expect(result.current.winnerPilots.length).toBe(0)
+      expect(result.current.loserPilots.length).toBe(0)
+      expect(result.current.eliminatedPilots.length).toBe(0)
+    })
 
     it('should clear localStorage', () => {
       // Setup: Running tournament

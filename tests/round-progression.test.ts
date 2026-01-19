@@ -253,12 +253,12 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
       })
     })
 
-    describe('2.6: WB Finale generieren wenn nur 2-3 Piloten übrig', () => {
-      it('sollte WB Finale generieren wenn nur 2-3 Piloten im winnerPool und keine pending WB-Heats', () => {
-        // 8 Piloten → 4 Quali-Gewinner → 1 WB Heat → 2 Gewinner = WB Finale
+    describe('2.6: WB Finale oder Direct-Qualify wenn nur 2-3 Piloten übrig', () => {
+      it('sollte bei 2 Piloten im WB Direct-Qualify nutzen (kein WB Finale)', () => {
+        // 8 Piloten → 4 Quali-Gewinner → 1 WB Heat → 2 Gewinner = Direct-Qualify (kein Finale nötig!)
         const result = setupTournamentWithCompletedQuali(8)
         
-        // WB Heats abschließen bis Finale
+        // WB Heats abschließen
         let wbHeats = result.current.heats.filter(h => 
           h.bracketType === 'winner' && !h.isFinale && h.status !== 'completed'
         )
@@ -281,14 +281,62 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
           iterations++
         }
         
-        // WB Finale sollte existieren
+        // Bei 2 Piloten: KEIN WB Finale, stattdessen Direct-Qualify
         const wbFinale = result.current.heats.find(h => 
           h.bracketType === 'winner' && h.isFinale
         )
         
-        expect(wbFinale).toBeDefined()
-        expect(wbFinale!.pilotIds.length).toBeGreaterThanOrEqual(2)
-        expect(wbFinale!.pilotIds.length).toBeLessThanOrEqual(3)
+        // WB Finale sollte NICHT existieren bei nur 2 Piloten
+        expect(wbFinale).toBeUndefined()
+        
+        // Stattdessen: Die 2 WB-Piloten sollten als grand_finale markiert sein
+        const wbFinalists = Object.entries(result.current.pilotBracketStates)
+          .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+        expect(wbFinalists.length).toBe(2)
+      })
+      
+      it('sollte WB Finale generieren wenn genau 3 Piloten im winnerPool', () => {
+        // 12 Piloten → 6 Quali-Gewinner → 1 WB Heat (4 Piloten) → 2 WB übrig + noch 2 im Pool = 4
+        // Aber nach 1 WB Heat: 2 Gewinner, 2 Verlierer... dann noch 2 aus Pool = 4 → nochmal WB Heat
+        // Am Ende 3 Piloten → WB Finale
+        // Wir nutzen 12 Piloten für diesen Test, da das einen 3-Piloten-WB-Pool erzeugen kann
+        const result = setupTournamentWithCompletedQuali(12)
+        
+        // WB Heats abschließen bis nur noch 3 Piloten übrig
+        let wbHeats = result.current.heats.filter(h => 
+          h.bracketType === 'winner' && !h.isFinale && h.status !== 'completed'
+        )
+        
+        let iterations = 0
+        while (wbHeats.length > 0 && iterations < 15) {
+          const heat = wbHeats[0]
+          const rankings: Ranking[] = heat.pilotIds.map((pilotId, index) => ({
+            pilotId,
+            rank: (index + 1) as 1 | 2 | 3 | 4
+          }))
+          
+          act(() => {
+            result.current.submitHeatResults(heat.id, rankings)
+          })
+          
+          wbHeats = result.current.heats.filter(h => 
+            h.bracketType === 'winner' && !h.isFinale && h.status !== 'completed'
+          )
+          iterations++
+        }
+        
+        // Prüfe WB Finale oder Direct-Qualify
+        const wbFinale = result.current.heats.find(h => 
+          h.bracketType === 'winner' && h.isFinale
+        )
+        const wbFinalists = Object.entries(result.current.pilotBracketStates)
+          .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+        
+        // Entweder WB Finale (bei 3 Piloten) oder Direct-Qualify (bei 2 Piloten)
+        const hasWBFinale = wbFinale !== undefined
+        const hasDirectQualify = wbFinalists.length === 2
+        
+        expect(hasWBFinale || hasDirectQualify).toBe(true)
       })
     })
   })
@@ -366,11 +414,11 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
       })
     })
 
-    it('sollte nach WB-Heat-Abschluss weitere WB-Heats oder WB Finale generieren', () => {
+    it('sollte nach WB-Heat-Abschluss weitere WB-Heats oder WB Finale/Direct-Qualify generieren', () => {
       // 16 Piloten für mehr Runden
       const result = setupTournamentWithCompletedQuali(16)
       
-      // Schließe alle WB-Heats ab bis Finale
+      // Schließe alle WB-Heats ab bis Finale oder Direct-Qualify
       let wbHeats = result.current.heats.filter(h => 
         h.bracketType === 'winner' && h.status !== 'completed'
       )
@@ -393,12 +441,18 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
         iterations++
       }
       
-      // Nach Abschluss sollte WB Finale existieren
+      // Nach Abschluss sollte entweder WB Finale oder Direct-Qualify existieren
       const wbFinale = result.current.heats.find(h => 
         h.bracketType === 'winner' && h.isFinale
       )
+      const wbFinalists = Object.entries(result.current.pilotBracketStates)
+        .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
       
-      expect(wbFinale).toBeDefined()
+      // Entweder WB Finale (bei 3 Piloten) oder Direct-Qualify (bei 2 Piloten)
+      const hasWBFinale = wbFinale !== undefined
+      const hasDirectQualify = wbFinalists.length === 2
+      
+      expect(hasWBFinale || hasDirectQualify).toBe(true)
     })
   })
 

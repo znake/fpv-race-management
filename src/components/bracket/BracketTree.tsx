@@ -60,7 +60,7 @@ export function BracketTree({
   onNewTournament
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
-  const fullBracketStructure = useTournamentStore(state => state.fullBracketStructure)
+  // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const winnerPilots = useTournamentStore(state => state.winnerPilots)
 
@@ -165,36 +165,21 @@ export function BracketTree({
     )
   }
 
-  // No full bracket structure yet (legacy state) - Beamer-optimiert
-  if (!fullBracketStructure) {
-    return (
-      <div className="bracket-container">
-        <p className="font-ui text-beamer-body text-steel text-center">Bracket-Struktur wird generiert...</p>
-      </div>
-    )
-  }
+  // Phase 1.3: Loading-State basiert jetzt auf tournamentStarted statt fullBracketStructure
+  // (fullBracketStructure Check bleibt vorerst für Backward-Compatibility)
 
   // Get Top 4 for Victory Ceremony
   const top4 = tournamentPhase === 'completed' ? getTop4Pilots() : null
 
   // Helper: Get heats for different brackets
+  // Phase 1.2: Verwendet bracketType statt fullBracketStructure
   const getQualiHeats = () => {
-    const qualiHeatIds = new Set(fullBracketStructure.qualification.heats.map(h => h.id))
-    return heats.filter(h => qualiHeatIds.has(h.id))
+    return heats.filter(h => !h.bracketType || h.bracketType === 'qualification')
   }
 
   const getWBHeats = () => {
-    // Get WB heats from rounds + dynamic WB heats
-    const wbFromRounds = fullBracketStructure.winnerBracket.rounds.flatMap(r => r.heats)
-    const wbHeatIds = new Set(wbFromRounds.map(h => h.id))
-    
-    // Also get dynamically generated WB heats not in structure
-    const dynamicWBHeats = heats.filter(h => 
-      h.bracketType === 'winner' && 
-      !wbHeatIds.has(h.id)
-    )
-    
-    return [...heats.filter(h => wbHeatIds.has(h.id)), ...dynamicWBHeats]
+    // Refactored: Verwendet nur heats[] mit bracketType
+    return heats.filter(h => h.bracketType === 'winner')
   }
 
   const getLBHeats = () => {
@@ -296,9 +281,8 @@ export function BracketTree({
         
         {/* US-14-REWRITE: WB + LB side-by-side wrapper */}
         <div className="bracket-columns-wrapper">
-          {/* WB Column (links) - WinnerBracketSection has its own header */}
+          {/* WB Column (links) - Phase 2.1: structure Prop entfernt */}
           <WinnerBracketSection
-            structure={fullBracketStructure.winnerBracket}
             heats={heats}
             pilots={pilots}
             onHeatClick={handleHeatClick}
@@ -309,12 +293,11 @@ export function BracketTree({
                 wbFinaleRef.current = el
               }
             }}
-            columnWidth={wbColumnWidth} // Pass dynamic width
+            columnWidth={wbColumnWidth}
           />
           
-          {/* LB Column (rechts) - LoserBracketSection has its own header */}
+          {/* LB Column (rechts) - Phase 2.2: structure Prop entfernt */}
           <LoserBracketSection
-            structure={fullBracketStructure.loserBracket}
             heats={heats}
             pilots={pilots}
             onHeatClick={handleHeatClick}
@@ -325,7 +308,7 @@ export function BracketTree({
                 lbFinaleRef.current = el
               }
             }}
-            columnWidth={lbColumnWidth} // Pass dynamic width
+            columnWidth={lbColumnWidth}
           />
         </div>
       </div>

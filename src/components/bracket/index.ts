@@ -9,15 +9,12 @@ export { EmptyBracketHeatBox } from './heat-boxes/EmptyBracketHeatBox'
 export { BracketHeatBox } from './heat-boxes/BracketHeatBox'
 export { FilledBracketHeatBox } from './heat-boxes/FilledBracketHeatBox'
 
-// Layout
-export { HeatsSection } from './layout/HeatsSection'
-export { BracketRoundColumn } from './layout/BracketRoundColumn'
+// Phase 4: Legacy Layout-Komponenten entfernt (HeatsSection, BracketRoundColumn, DynamicLBHeatsSection)
 
 // Sections
 export { WinnerBracketSection } from './sections/WinnerBracketSection'
 export { LoserBracketSection } from './sections/LoserBracketSection'
 export { GrandFinaleSection } from './sections/GrandFinaleSection'
-export { DynamicLBHeatsSection } from './sections/DynamicLBHeatsSection'
 export { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 
 // Pools

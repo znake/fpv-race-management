@@ -205,36 +205,17 @@ describe('WB Heat Completion adds losers to pool (AC1)', () => {
   })
 
   it('should add WB losers (rank 3+4) to loserPool when WB heat is completed', () => {
-    // Create a simple WB heat (without full bracket structure for this unit test)
+    // Create a simple WB heat with bracketType (no fullBracketStructure needed)
     const wbHeat = {
       id: 'wb-heat-1',
       heatNumber: 1,
       pilotIds: ['p1', 'p2', 'p3', 'p4'],
       status: 'active' as const,
-    }
-    
-    // Create minimal bracket structure with WB heat
-    const bracketStructure = {
-      qualification: { heats: [] },
-      winnerBracket: {
-        rounds: [{
-          roundNumber: 1,
-          heats: [{
-            id: 'wb-heat-1',
-            heatNumber: 1,
-            pilotIds: ['p1', 'p2', 'p3', 'p4'],
-            status: 'active' as const,
-            roundNumber: 1,
-          }]
-        }]
-      },
-      loserBracket: { rounds: [] },
-      grandFinale: null
+      bracketType: 'winner' as const,
     }
     
     useTournamentStore.setState({ 
-      heats: [wbHeat],
-      fullBracketStructure: bracketStructure as any
+      heats: [wbHeat]
     })
     
     const { submitHeatResults } = useTournamentStore.getState()

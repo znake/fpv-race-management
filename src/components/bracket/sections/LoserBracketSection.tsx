@@ -1,15 +1,23 @@
-import React from 'react'
 import { BracketHeatBox } from '../heat-boxes/BracketHeatBox'
-import { EmptyBracketHeatBox } from '../heat-boxes/EmptyBracketHeatBox'
 import { calculateLBColumnWidth } from '../../../lib/bracket-layout-calculator'
-import type { LoserBracketSectionProps } from '../types'
+import type { Heat, Pilot } from '../../../types'
+
+// Phase 2.2: Neues Interface ohne structure Prop
+interface LoserBracketSectionProps {
+  heats: Heat[]
+  pilots: Pilot[]
+  onHeatClick: (heatId: string) => void
+  registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
+  columnWidth?: number
+}
 
 /**
  * US-14.4: Loser Bracket Layout
  * 
- * Renders the Loser Bracket as a pool-based vertical column with rounds.
- * Unlike WB, LB uses Pool-Indicators instead of SVG connector lines
- * because pilots are "reshuffled" between rounds (pool-based system).
+ * REFACTORED: Renders ONLY dynamic heats from heats[] array.
+ * The fullBracketStructure is used only for layout calculations, not for rendering.
+ * This fixes the duplicate heat rendering bug where both structure-based and
+ * dynamic heats were shown.
  * 
  * AC1: Bracket-column container with dynamic width (40px gap from WB)
  * AC2: Red "LOSER BRACKET" header with Bebas Neue, glow-red
@@ -20,115 +28,29 @@ import type { LoserBracketSectionProps } from '../types'
  * AC7: Red border and glow for LB heats
  */
 export function LoserBracketSection({
-  structure,
   heats,
   pilots,
   onHeatClick,
   registerHeatRef,
   columnWidth: providedColumnWidth
 }: LoserBracketSectionProps) {
-  // Return null for empty structure
-  if (!structure || structure.rounds.length === 0) return null
-
-  // AC1: Calculate column width based on max heats in any round
-  const maxHeatsInRound = Math.max(...structure.rounds.map(r => r.heats.length))
-  const columnWidth = providedColumnWidth ?? calculateLBColumnWidth(maxHeatsInRound)
-
-  /**
-   * QUICK-FIX: Get dynamic LB heats not in structure
-   * Epic 13 generates heats dynamically - render them even if not in structure
-   */
-  const getStructureHeatIds = () => {
-    const ids = new Set<string>()
-    structure.rounds.forEach(round => {
-      round.heats.forEach(h => ids.add(h.id))
-    })
-    return ids
-  }
-
-  const dynamicLBHeats = heats.filter(h => 
-    h.bracketType === 'loser' && 
-    !getStructureHeatIds().has(h.id)
-  )
+  // Get ALL LB heats from heats[] array (the single source of truth)
+  const allLBHeats = heats.filter(h => h.bracketType === 'loser')
 
   // Separate regular heats from finales
-  const regularLBHeats = dynamicLBHeats.filter(h => !h.isFinale)
-  const finaleHeat = dynamicLBHeats.find(h => h.isFinale)
-
-  /**
-   * Calculate pilot count for a round
-   * Standard: 4 pilots per heat, but supports 3-pilot heats
-   */
-  const getPilotCount = (roundIndex: number): number => {
-    const round = structure.rounds[roundIndex]
-    let totalPilots = 0
-    
-    round.heats.forEach(bracketHeat => {
-      const heat = heats.find(h => h.id === bracketHeat.id)
-      if (heat) {
-        totalPilots += heat.pilotIds.length
-      } else {
-        // Empty bracket heat placeholder - assume 4 pilots
-        totalPilots += 4
-      }
-    })
-    
-    return totalPilots
+  const regularLBHeats = allLBHeats.filter(h => !h.isFinale)
+  const finaleHeat = allLBHeats.find(h => h.isFinale)
+  
+  // Phase 2.2: Return null if no LB heats exist (kein Placeholder mehr nötig)
+  if (allLBHeats.length === 0) {
+    return null
   }
 
-  /**
-   * AC3: Get pool composition text for a round
-   * Shows where pilots come from (e.g., "16 Quali + 8 WB R1")
-   */
-  const getPoolComposition = (roundIndex: number): string => {
-    const currentPilotCount = getPilotCount(roundIndex)
-    
-    if (roundIndex === 0) {
-      // First LB round - receives losers from Quali
-      return `${currentPilotCount} Piloten`
-    }
-    
-    // Later rounds - show combination of LB winners and WB losers
-    const prevRound = structure.rounds[roundIndex - 1]
-    const advancingFromPrevious = prevRound.heats.length * 2 // 2 winners per heat
-    const fromWB = currentPilotCount - advancingFromPrevious
-    
-    if (fromWB > 0) {
-      return `${advancingFromPrevious} LB + ${fromWB} WB`
-    }
-    return `${currentPilotCount} Piloten`
-  }
+  // AC1: Calculate column width based on number of regular LB heats
+  const columnWidth = providedColumnWidth ?? calculateLBColumnWidth(Math.max(1, regularLBHeats.length))
 
-  /**
-   * AC4: Calculate pilot flow info for pool indicator
-   */
-  const getPoolIndicatorInfo = (currentRoundIndex: number): {
-    advancingCount: number
-    incomingFromWB: number
-    totalNext: number
-  } | null => {
-    if (currentRoundIndex >= structure.rounds.length - 1) return null
-    
-    const currentRound = structure.rounds[currentRoundIndex]
-    
-    const advancingCount = currentRound.heats.length * 2 // 2 winners per heat
-    const nextPilotCount = getPilotCount(currentRoundIndex + 1)
-    const incomingFromWB = Math.max(0, nextPilotCount - advancingCount)
-    
-    return {
-      advancingCount,
-      incomingFromWB,
-      totalNext: nextPilotCount
-    }
-  }
-
-  /**
-   * AC6: Check if heat is a 3-pilot heat
-   */
-  const isThreePilotHeat = (heatId: string): boolean => {
-    const heat = heats.find(h => h.id === heatId)
-    return heat ? heat.pilotIds.length === 3 : false
-  }
+  // Calculate total pilots in regular heats
+  const totalPilots = regularLBHeats.reduce((sum, h) => sum + h.pilotIds.length, 0)
 
   return (
     <div 
@@ -143,11 +65,11 @@ export function LoserBracketSection({
       <div className="bracket-column-header">LOSER BRACKET</div>
       
       <div className="bracket-tree" id="lb-tree">
-        {/* QUICK-FIX: Render dynamic LB regular heats FIRST (if any) */}
+        {/* Render regular LB heats (non-finale) */}
         {regularLBHeats.length > 0 && (
           <div className="round-section">
             <div className="round-label">
-              RUNDE 1 ({regularLBHeats.length * 4} Piloten)
+              RUNDE 1 ({totalPilots} Piloten)
             </div>
             <div className="round-heats" style={{ gap: '10px' }}>
               {regularLBHeats.map((heat) => {
@@ -171,126 +93,37 @@ export function LoserBracketSection({
           </div>
         )}
         
-        {/* Pool indicator after dynamic R1 */}
-        {regularLBHeats.length > 0 && structure.rounds.length > 0 && (
+        {/* Pool indicator before finale */}
+        {regularLBHeats.length > 0 && finaleHeat && (
           <div className="pool-indicator">
             <span className="arrow">↓</span>
-            {' '}Piloten weiter{' '}
+            {' '}Top Piloten{' '}
             <span className="arrow">→</span>
-            {' '}Neu gemischt
+            {' '}Finale
           </div>
         )}
         
-        {structure.rounds.map((round, idx) => {
-          // AC3: Get pool composition text for this round
-          const composition = getPoolComposition(idx)
-          // Use 1-based round numbering for display (Round 1, 2, 3...)
-          const displayRoundNumber = idx + 1
-          
-          // AC4: Get pool indicator info (null for last round)
-          const poolInfo = getPoolIndicatorInfo(idx)
-          
-          return (
-            <React.Fragment key={round.id}>
-              {/* AC3: Round Section with pool composition label */}
-              <div className="round-section">
-                <div className="round-label">
-                  RUNDE {displayRoundNumber} ({composition})
-                </div>
-                
-                {/* AC4/AC5: Heats layout - horizontal, NO connector spaces */}
-                <div className="round-heats" style={{ gap: '10px' }}>
-                  {/* Structure-based heats */}
-                  {round.heats.map((bracketHeat) => {
-                    const heat = heats.find(h => h.id === bracketHeat.id)
-                    const isThreePilot = isThreePilotHeat(bracketHeat.id)
-                    
-                    // AC7: Render empty placeholder if heat not found
-                    if (!heat) {
-                      return (
-                        <div 
-                          key={bracketHeat.id} 
-                          ref={(el) => registerHeatRef(bracketHeat.id, el)}
-                          data-three-pilot={isThreePilot ? 'true' : 'false'}
-                        >
-                          <EmptyBracketHeatBox
-                            bracketHeat={bracketHeat}
-                            bracketType="loser"
-                          />
-                        </div>
-                      )
-                    }
-                    
-                    // AC6 + AC7: Render filled heat with loser bracket styling
-                    return (
-                      <div 
-                        key={heat.id} 
-                        ref={(el) => registerHeatRef(heat.id, el)}
-                        data-three-pilot={isThreePilot ? 'true' : 'false'}
-                      >
-                        <BracketHeatBox
-                          heat={heat}
-                          pilots={pilots}
-                          bracketType="loser"
-                          onClick={() => onHeatClick(heat.id)}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              
-              {/* AC4: Pool-Indicator between rounds (NOT connector-space!) */}
-              {/* AC5: No SVG lines in LB - using pool indicator instead */}
-              {poolInfo && (
-                <div className="pool-indicator">
-                  <span className="arrow">↓</span>
-                  {' '}{poolInfo.advancingCount} Piloten weiter
-                  {poolInfo.incomingFromWB > 0 && (
-                    <> + {poolInfo.incomingFromWB} WB Verlierer</>
-                  )}
-                  {' = '}{poolInfo.totalNext} Piloten{' '}
-                  <span className="arrow">→</span>
-                  {' '}Neu gemischt
-                </div>
-              )}
-            </React.Fragment>
-          )
-        })}
-        
-        {/* QUICK-FIX: Render LB Finale AFTER structure rounds (if exists) */}
+        {/* Render LB Finale (if exists) */}
         {finaleHeat && (
-          <>
-            {/* Pool indicator before finale */}
-            {structure.rounds.length > 0 && (
-              <div className="pool-indicator">
-                <span className="arrow">↓</span>
-                {' '}Top Piloten{' '}
-                <span className="arrow">→</span>
-                {' '}Finale
-              </div>
-            )}
-            
-            <div className="round-section">
-              <div className="round-label">
-                FINALE ({finaleHeat.pilotIds.length} Piloten)
-              </div>
-              <div className="round-heats" style={{ gap: '10px' }}>
-                <div 
-                  key={finaleHeat.id} 
-                  ref={(el) => registerHeatRef(finaleHeat.id, el)}
-                  data-three-pilot={finaleHeat.pilotIds.length === 3 ? 'true' : 'false'}
-                >
-                  <BracketHeatBox
-                    heat={finaleHeat}
-                    pilots={pilots}
-                    bracketType="loser"
-                    onClick={() => onHeatClick(finaleHeat.id)}
-                  />
-                </div>
+          <div className="round-section">
+            <div className="round-label">
+              FINALE ({finaleHeat.pilotIds.length} Piloten)
+            </div>
+            <div className="round-heats" style={{ gap: '10px' }}>
+              <div 
+                key={finaleHeat.id} 
+                ref={(el) => registerHeatRef(finaleHeat.id, el)}
+                data-three-pilot={finaleHeat.pilotIds.length === 3 ? 'true' : 'false'}
+              >
+                <BracketHeatBox
+                  heat={finaleHeat}
+                  pilots={pilots}
+                  bracketType="loser"
+                  onClick={() => onHeatClick(finaleHeat.id)}
+                />
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

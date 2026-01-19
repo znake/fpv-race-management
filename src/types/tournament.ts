@@ -1,7 +1,7 @@
 // src/types/tournament.ts
 
 import type { Pilot, HeatResults } from '../lib/schemas'
-import type { FullBracketStructure } from '../lib/bracket-structure-generator'
+// Phase 3: fullBracketStructure entfernt - heats[] ist Single Source of Truth
 
 /**
  * Tournament phase states
@@ -65,6 +65,7 @@ export interface Top4Pilots {
 
 /**
  * Full tournament state (data only, no actions)
+ * Phase 3: fullBracketStructure entfernt - heats[] ist Single Source of Truth
  */
 export interface TournamentStateData {
   pilots: Pilot[]
@@ -81,6 +82,5 @@ export interface TournamentStateData {
   isWBFinaleComplete: boolean
   isLBFinaleComplete: boolean
   isGrandFinaleComplete: boolean
-  fullBracketStructure: FullBracketStructure | null
   lastCompletedBracketType: 'winner' | 'loser' | 'qualifier' | null
 }

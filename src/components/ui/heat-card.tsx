@@ -5,7 +5,7 @@ import { PilotAvatar } from './pilot-avatar'
 import { RankBadge } from './rank-badge'
 import { sortPilotsByRank, getHeatBorderClasses, getPilotRowClass } from '../../lib/ui-helpers'
 import type { Pilot, HeatResults } from '../../lib/schemas'
-import type { BracketType } from '../../lib/bracket-structure-generator'
+import type { BracketType } from '../bracket/types'
 
 export interface HeatCardProps {
   // Variante bestimmt Layout

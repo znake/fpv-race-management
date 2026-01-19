@@ -24,10 +24,5 @@ export type {
   PilotBracketState,
 } from './tournament';
 
-// Bracket Types (re-export commonly used)
-export type {
-  BracketType,
-  BracketHeat,
-  BracketRound,
-  FullBracketStructure,
-} from '../lib/bracket-structure-generator';
+// Phase 4: Bracket-Structure-Types entfernt - heats[] ist Single Source of Truth
+// BracketType wird jetzt direkt in Heat.bracketType definiert

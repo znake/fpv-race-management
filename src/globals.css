@@ -1006,6 +1006,7 @@
     overflow: auto;
     position: relative;
     cursor: default;
+    min-height: 1000px; /* Ensure enough space for scrolling */
   }
 
   /* AC3: Pan-Mode Cursor */
