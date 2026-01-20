@@ -454,6 +454,60 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     return currentRoundHeats.every(h => h.status === 'completed')
   }
 
+  // ===== HELPER: Prüft ob WB-Runde N abgeschlossen ist =====
+  // Wird benötigt um sicherzustellen, dass LB-Runde N erst startet wenn WB-Runde N fertig ist
+  const isWBRoundComplete = (roundNumber: number): boolean => {
+    const wbHeats = updatedHeats.filter(h => h.bracketType === 'winner')
+    if (wbHeats.length === 0) return false // Keine WB-Heats = Runde nicht fertig
+    
+    const roundHeats = wbHeats.filter(h => (h.roundNumber ?? 1) === roundNumber)
+    if (roundHeats.length === 0) return false // Keine Heats in dieser Runde
+    
+    return roundHeats.every(h => h.status === 'completed')
+  }
+
+  // ===== HELPER: Prüft ob WB keine weiteren regulären Heats mehr hat =====
+  // WB ist "fertig" wenn:
+  // 1. WB Finale existiert (egal ob pending/active/completed), ODER
+  // 2. Keine pending/active WB-Heats mehr UND winnerPool < 4 (nicht genug für reguläre Heats)
+  const isWBFinishedOrInFinale = (): boolean => {
+    const wbFinaleExists = updatedHeats.some(h => h.bracketType === 'winner' && h.isFinale)
+    if (wbFinaleExists) return true
+    
+    const hasPendingOrActiveWB = updatedHeats.some(h => 
+      h.bracketType === 'winner' && (h.status === 'pending' || h.status === 'active')
+    )
+    // WB ist fertig wenn keine pending/active WB-Heats und winnerPool zu klein für reguläre Heats
+    return !hasPendingOrActiveWB && newWinnerPool.size < POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT
+  }
+
+  // ===== HELPER: Prüft ob LB-Heats für eine bestimmte Runde generiert werden können =====
+  // LB-Runde N darf erst generiert werden wenn:
+  // 1. WB-Runde N komplett ist (damit alle WB-Verlierer im loserPool sind), ODER
+  // 2. WB bereits im Finale ist (keine weiteren WB-Runden mehr)
+  // 3. Alle LB-Heats der aktuellen Runde abgeschlossen sind
+  const canGenerateLBHeats = (): boolean => {
+    const lbHeats = updatedHeats.filter(h => h.bracketType === 'loser')
+    
+    // Erste LB-Runde: Warten auf WB R1
+    if (lbHeats.length === 0) {
+      return isWBRoundComplete(1)
+    }
+    
+    // Finde die aktuelle LB-Rundennummer
+    const maxLBRound = Math.max(...lbHeats.map(h => h.roundNumber ?? 1))
+    const currentLBRoundHeats = lbHeats.filter(h => (h.roundNumber ?? 1) === maxLBRound)
+    const allLBHeatsComplete = currentLBRoundHeats.every(h => h.status === 'completed')
+    
+    if (!allLBHeatsComplete) return false // Aktuelle LB-Runde noch nicht fertig
+    
+    // Nächste LB-Runde kann starten wenn:
+    // 1. Entsprechende WB-Runde komplett ist, ODER
+    // 2. WB bereits im Finale ist (keine weiteren regulären WB-Runden)
+    const nextLBRound = maxLBRound + 1
+    return isWBRoundComplete(nextLBRound) || isWBFinishedOrInFinale()
+  }
+
   // ===== WINNER BRACKET HEAT GENERATION =====
 
   // Generate WB Heats from pool
@@ -540,10 +594,12 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
   const wbReadyForGrandFinale = wbFinaleCompleted || wbDirectQualifiedPilots.length === 2
 
-  // Generate LB Heats - nur wenn Quali abgeschlossen UND alle LB-Heats der aktuellen Runde abgeschlossen sind
-  // WICHTIG: Analog zu WB muss auch LB auf isQualificationComplete warten!
-  // Sonst werden LB Heats während der Quali generiert und blockieren spätere Generierung.
-  if (isQualificationComplete && canGenerateNewHeats('loser')) {
+  // Generate LB Heats - nur wenn:
+  // 1. Quali abgeschlossen ist
+  // 2. Die entsprechende WB-Runde abgeschlossen ist (damit alle WB-Verlierer im Pool sind)
+  // 3. Alle LB-Heats der aktuellen Runde abgeschlossen sind
+  // WICHTIG: LB-Runde N wartet auf WB-Runde N, damit die WB-Verlierer ins LB kommen!
+  if (isQualificationComplete && canGenerateLBHeats()) {
     const lbRoundNumber = getCurrentRound('loser')
     
     // Generate as many heats as possible for this round

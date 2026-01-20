@@ -424,31 +424,34 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       })
     })
 
-    it('should auto-generate LB heat when WB heat adds losers to pool >= 4', () => {
-      // Pool already has 2 pilots, WB heat will add 2 more → total 4 → LB heat generated
+    it('should auto-generate LB heat when ALL WB heats of the round are completed', () => {
+      // LB R1 can only start after WB R1 is COMPLETELY finished
+      // This ensures all WB losers are in the loserPool before LB heats are generated
       useTournamentStore.setState({
-        loserPool: ['p5', 'p6'], // 2 existing
+        loserPool: ['p9', 'p10', 'p11', 'p12'], // 4 existing from Quali
         heats: [
           {
             id: 'wb-heat-1',
             heatNumber: 1,
             pilotIds: ['p1', 'p2', 'p3', 'p4'],
             status: 'active',
-            bracketType: 'winner'
+            bracketType: 'winner',
+            roundNumber: 1
           },
           {
             id: 'wb-heat-2',
             heatNumber: 2,
             pilotIds: ['p5', 'p6', 'p7', 'p8'],
             status: 'pending',
-            bracketType: 'winner'
+            bracketType: 'winner',
+            roundNumber: 1
           }
         ]
       })
       
       const { submitHeatResults } = useTournamentStore.getState()
       
-      // Complete WB heat: p3, p4 become losers → added to pool
+      // Complete FIRST WB heat: p3, p4 become losers → added to pool
       submitHeatResults('wb-heat-1', [
         { pilotId: 'p1', rank: 1 },
         { pilotId: 'p2', rank: 2 },
@@ -456,14 +459,31 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         { pilotId: 'p4', rank: 4 },
       ])
       
-      const state = useTournamentStore.getState()
+      let state = useTournamentStore.getState()
       
-      // Should have auto-generated an LB heat
-      const lbHeats = state.heats.filter(h => h.id.startsWith('lb-heat-'))
+      // Should NOT have generated LB heats yet - WB R1 not complete
+      let lbHeats = state.heats.filter(h => h.id.startsWith('lb-heat-'))
+      expect(lbHeats.length).toBe(0)
+      
+      // Pool should have 6 pilots now (4 from Quali + 2 from WB)
+      expect(state.loserPool.length).toBe(6)
+      
+      // Complete SECOND WB heat: p7, p8 become losers → added to pool
+      submitHeatResults('wb-heat-2', [
+        { pilotId: 'p5', rank: 1 },
+        { pilotId: 'p6', rank: 2 },
+        { pilotId: 'p7', rank: 3 },
+        { pilotId: 'p8', rank: 4 },
+      ])
+      
+      state = useTournamentStore.getState()
+      
+      // NOW LB heats should be generated - WB R1 is complete
+      lbHeats = state.heats.filter(h => h.id.startsWith('lb-heat-'))
       expect(lbHeats.length).toBeGreaterThanOrEqual(1)
       
-      // Pool should have less than 4 pilots now (or 0 if exactly 4 were used)
-      expect(state.loserPool.length).toBeLessThan(4)
+      // Pool should have been used for LB heats (8 pilots → 2 heats of 4)
+      expect(state.loserPool.length).toBe(0)
     })
 
     it('should NOT auto-generate LB heat when pool < 4 after WB heat', () => {
