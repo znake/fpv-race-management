@@ -14,14 +14,13 @@ interface LoserBracketSectionProps {
 /**
  * US-14.4: Loser Bracket Layout
  * 
- * REFACTORED: Renders ONLY dynamic heats from heats[] array.
- * The fullBracketStructure is used only for layout calculations, not for rendering.
- * This fixes the duplicate heat rendering bug where both structure-based and
- * dynamic heats were shown.
+ * REFACTORED: Renders heats grouped by roundNumber.
+ * Each round is rendered as a separate round-section with proper vertical stacking.
+ * This fixes the bug where all heats were shown on the same level.
  * 
  * AC1: Bracket-column container with dynamic width (40px gap from WB)
  * AC2: Red "LOSER BRACKET" header with Bebas Neue, glow-red
- * AC3: Round sections with pool composition labels
+ * AC3: Round sections with pool composition labels - GROUPED BY roundNumber
  * AC4: Pool-Indicator between rounds showing pilot flow
  * AC5: NO SVG lines in LB (pool-based system)
  * AC6: Support for 3-pilot heats (120px width)
@@ -46,11 +45,23 @@ export function LoserBracketSection({
     return null
   }
 
-  // AC1: Calculate column width based on number of regular LB heats
-  const columnWidth = providedColumnWidth ?? calculateLBColumnWidth(Math.max(1, regularLBHeats.length))
-
-  // Calculate total pilots in regular heats
-  const totalPilots = regularLBHeats.reduce((sum, h) => sum + h.pilotIds.length, 0)
+  // Group heats by roundNumber
+  const heatsByRound = new Map<number, Heat[]>()
+  regularLBHeats.forEach(heat => {
+    const round = heat.roundNumber ?? 1
+    const existing = heatsByRound.get(round) || []
+    existing.push(heat)
+    heatsByRound.set(round, existing)
+  })
+  
+  // Sort rounds ascending
+  const sortedRounds = Array.from(heatsByRound.entries()).sort(([a], [b]) => a - b)
+  
+  // Calculate max heats in any round for column width
+  const maxHeatsPerRound = Math.max(...Array.from(heatsByRound.values()).map(h => h.length), 1)
+  
+  // AC1: Calculate column width based on maximum heats in any round
+  const columnWidth = providedColumnWidth ?? calculateLBColumnWidth(maxHeatsPerRound)
 
   return (
     <div 
@@ -65,43 +76,50 @@ export function LoserBracketSection({
       <div className="bracket-column-header">LOSER BRACKET</div>
       
       <div className="bracket-tree" id="lb-tree">
-        {/* Render regular LB heats (non-finale) */}
-        {regularLBHeats.length > 0 && (
-          <div className="round-section">
-            <div className="round-label">
-              RUNDE 1 ({totalPilots} Piloten)
+        {/* Render each round as a separate section */}
+        {sortedRounds.map(([roundNumber, roundHeats], roundIndex) => {
+          const totalPilotsInRound = roundHeats.reduce((sum, h) => sum + h.pilotIds.length, 0)
+          const isLastRound = roundIndex === sortedRounds.length - 1
+          
+          return (
+            <div key={`round-${roundNumber}`}>
+              <div className="round-section">
+                <div className="round-label">
+                  RUNDE {roundNumber} ({totalPilotsInRound} Piloten)
+                </div>
+                <div className="round-heats" style={{ gap: '10px' }}>
+                  {roundHeats.map((heat) => {
+                    const isThreePilot = heat.pilotIds.length === 3
+                    return (
+                      <div 
+                        key={heat.id} 
+                        ref={(el) => registerHeatRef(heat.id, el)}
+                        data-three-pilot={isThreePilot ? 'true' : 'false'}
+                      >
+                        <BracketHeatBox
+                          heat={heat}
+                          pilots={pilots}
+                          bracketType="loser"
+                          onClick={() => onHeatClick(heat.id)}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              
+              {/* Pool indicator between rounds */}
+              {(!isLastRound || finaleHeat) && (
+                <div className="pool-indicator">
+                  <span className="arrow">↓</span>
+                  {' '}Top Piloten{' '}
+                  <span className="arrow">→</span>
+                  {' '}Neu gemischt
+                </div>
+              )}
             </div>
-            <div className="round-heats" style={{ gap: '10px' }}>
-              {regularLBHeats.map((heat) => {
-                const isThreePilot = heat.pilotIds.length === 3
-                return (
-                  <div 
-                    key={heat.id} 
-                    ref={(el) => registerHeatRef(heat.id, el)}
-                    data-three-pilot={isThreePilot ? 'true' : 'false'}
-                  >
-                    <BracketHeatBox
-                      heat={heat}
-                      pilots={pilots}
-                      bracketType="loser"
-                      onClick={() => onHeatClick(heat.id)}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-        
-        {/* Pool indicator before finale */}
-        {regularLBHeats.length > 0 && finaleHeat && (
-          <div className="pool-indicator">
-            <span className="arrow">↓</span>
-            {' '}Top Piloten{' '}
-            <span className="arrow">→</span>
-            {' '}Finale
-          </div>
-        )}
+          )
+        })}
         
         {/* Render LB Finale (if exists) */}
         {finaleHeat && (

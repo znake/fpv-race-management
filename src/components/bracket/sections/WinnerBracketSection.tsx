@@ -14,14 +14,13 @@ interface WinnerBracketSectionProps {
 /**
  * US-14.3: Winner Bracket Layout
  * 
- * REFACTORED: Renders ONLY dynamic heats from heats[] array.
- * The fullBracketStructure is used only for layout calculations, not for rendering.
- * This fixes the duplicate heat rendering bug where both structure-based and
- * dynamic heats were shown.
+ * REFACTORED: Renders heats grouped by roundNumber.
+ * Each round is rendered as a separate round-section with proper vertical stacking.
+ * This fixes the bug where all heats were shown on the same level.
  * 
  * AC1: Bracket-column container with dynamic width
  * AC2: Green "WINNER BRACKET" header
- * AC3: Round sections with pilot count labels
+ * AC3: Round sections with pilot count labels - GROUPED BY roundNumber
  * AC4: Horizontal heats per round
  * AC5: Larger gaps for R2+ to center under parent pairs
  * AC6: Connector spaces between rounds for SVG lines
@@ -46,11 +45,23 @@ export function WinnerBracketSection({
     return null
   }
 
-  // AC1: Calculate column width based on number of regular WB heats
-  const columnWidth = propColumnWidth ?? calculateColumnWidth(Math.max(1, regularWBHeats.length))
-
-  // Calculate total pilots in regular heats
-  const totalPilots = regularWBHeats.reduce((sum, h) => sum + h.pilotIds.length, 0)
+  // Group heats by roundNumber
+  const heatsByRound = new Map<number, Heat[]>()
+  regularWBHeats.forEach(heat => {
+    const round = heat.roundNumber ?? 1
+    const existing = heatsByRound.get(round) || []
+    existing.push(heat)
+    heatsByRound.set(round, existing)
+  })
+  
+  // Sort rounds ascending
+  const sortedRounds = Array.from(heatsByRound.entries()).sort(([a], [b]) => a - b)
+  
+  // Calculate max heats in any round for column width
+  const maxHeatsPerRound = Math.max(...Array.from(heatsByRound.values()).map(h => h.length), 1)
+  
+  // AC1: Calculate column width based on maximum heats in any round
+  const columnWidth = propColumnWidth ?? calculateColumnWidth(maxHeatsPerRound)
 
   return (
     <div 
@@ -65,37 +76,44 @@ export function WinnerBracketSection({
       <div className="bracket-column-header">WINNER BRACKET</div>
       
       <div className="bracket-tree" id="wb-tree">
-        {/* Render regular WB heats (non-finale) */}
-        {regularWBHeats.length > 0 && (
-          <div className="round-section">
-            <div className="round-label">
-              RUNDE 1 ({totalPilots} Piloten)
-            </div>
-            <div 
-              className="round-heats" 
-              style={{ gap: `${calculateRoundGap(0)}px` }}
-            >
-              {regularWBHeats.map((heat) => (
-                <div 
-                  key={heat.id} 
-                  ref={(el) => registerHeatRef(heat.id, el)}
-                >
-                  <BracketHeatBox
-                    heat={heat}
-                    pilots={pilots}
-                    bracketType="winner"
-                    onClick={() => onHeatClick(heat.id)}
-                  />
+        {/* Render each round as a separate section */}
+        {sortedRounds.map(([roundNumber, roundHeats], roundIndex) => {
+          const totalPilotsInRound = roundHeats.reduce((sum, h) => sum + h.pilotIds.length, 0)
+          const isLastRound = roundIndex === sortedRounds.length - 1
+          
+          return (
+            <div key={`round-${roundNumber}`}>
+              <div className="round-section">
+                <div className="round-label">
+                  RUNDE {roundNumber} ({totalPilotsInRound} Piloten)
                 </div>
-              ))}
+                <div 
+                  className="round-heats" 
+                  style={{ gap: `${calculateRoundGap(roundIndex)}px` }}
+                >
+                  {roundHeats.map((heat) => (
+                    <div 
+                      key={heat.id} 
+                      ref={(el) => registerHeatRef(heat.id, el)}
+                    >
+                      <BracketHeatBox
+                        heat={heat}
+                        pilots={pilots}
+                        bracketType="winner"
+                        onClick={() => onHeatClick(heat.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Connector space between rounds (not after the last regular round if no finale) */}
+              {(!isLastRound || finaleHeat) && (
+                <div className="connector-space" id={`wb-conn-r${roundNumber}-r${roundNumber + 1}`} />
+              )}
             </div>
-          </div>
-        )}
-        
-        {/* Connector space before finale */}
-        {regularWBHeats.length > 0 && finaleHeat && (
-          <div className="connector-space" id="wb-conn-finale" />
-        )}
+          )
+        })}
         
         {/* Render WB Finale (if exists) */}
         {finaleHeat && (
