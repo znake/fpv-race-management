@@ -49,14 +49,20 @@ export function BracketHeatBox({
     })
   }, [heat, pilots])
 
+  // Check if heat is active (live)
+  const isActive = heat.status === 'active'
+
   // AC1-AC3: Build heat-box classes
+  // AC7 (Tech-Spec): Active heats get cursor-pointer, animate-pulse, and glow effect
   const boxClasses = cn(
     'heat-box',
     bracketType === 'loser' && 'lb',
     bracketType === 'qualification' && 'quali',
     isGrandFinale && 'gf',
     isThreePilot && 'three-pilot',
-    isNew && 'heat-appear'
+    isNew && 'heat-appear',
+    // Live heat styling: clickable with pulsing glow
+    isActive && 'cursor-pointer animate-pulse motion-reduce:animate-none shadow-[0_0_20px_rgba(5,217,232,0.5)]'
   )
 
   // Get pilot row class based on rank
@@ -98,7 +104,7 @@ export function BracketHeatBox({
       id={heat.id} 
       className={boxClasses} 
       onClick={onClick} 
-      data-testid={`bracket-heat-${heat.heatNumber}`}
+      data-testid={isGrandFinale ? 'grand-finale-heat' : `bracket-heat-${heat.heatNumber}`}
     >
       {/* AC4: Heat-Header with AC5: Status-Badge */}
       <div className="heat-header">

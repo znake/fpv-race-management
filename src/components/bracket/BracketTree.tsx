@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useTournamentStore } from '../../stores/tournamentStore'
 import type { Pilot, Heat, TournamentPhase } from '../../types'
 import { HeatDetailModal } from '../heat-detail-modal'
+import { PlacementEntryModal } from '../placement-entry-modal'
 import { ActiveHeatView } from '../active-heat-view'
 import { VictoryCeremony } from '../victory-ceremony'
 import { cn } from '../../lib/utils'
@@ -63,6 +64,8 @@ export function BracketTree({
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const winnerPilots = useTournamentStore(state => state.winnerPilots)
+  // Task 4: Check if qualification is complete (for conditional ActiveHeatView rendering)
+  const isQualificationComplete = useTournamentStore(state => state.isQualificationComplete)
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -104,6 +107,18 @@ export function BracketTree({
 
   // Modal state
   const [selectedHeat, setSelectedHeat] = useState<string | null>(null)
+  // Placement Modal state (for active heats in bracket)
+  const [placementHeat, setPlacementHeat] = useState<Heat | null>(null)
+
+  // Lifecycle: Close placement modal if heat is no longer active
+  useEffect(() => {
+    if (placementHeat) {
+      const currentHeat = heats.find(h => h.id === placementHeat.id)
+      if (!currentHeat || currentHeat.status !== 'active') {
+        setPlacementHeat(null)
+      }
+    }
+  }, [heats, placementHeat])
 
   // Auto-scroll to active heat after heat completion
   const scrollToActiveHeat = useCallback(() => {
@@ -130,7 +145,16 @@ export function BracketTree({
   }, [activeHeat?.id, tournamentPhase, scrollToActiveHeat])
 
   const handleHeatClick = (heatId: string) => {
-    setSelectedHeat(heatId)
+    const heat = heats.find(h => h.id === heatId)
+    if (heat?.status === 'active') {
+      // Active heat: open Placement Modal (mutual exclusivity)
+      setSelectedHeat(null)
+      setPlacementHeat(heat)
+    } else {
+      // Non-active heat: open Detail Modal
+      setPlacementHeat(null)
+      setSelectedHeat(heatId)
+    }
   }
 
   const handleCloseModal = () => {
@@ -353,8 +377,9 @@ export function BracketTree({
 
   return (
     <div className="bracket-container">
-      {/* 1. ACTIVE HEAT Section - when tournament is running OR in finale phase */}
-      {(tournamentPhase === 'running' || tournamentPhase === 'finale') && activeHeat && (
+      {/* 1. ACTIVE HEAT Section - only during qualification phase (before isQualificationComplete) */}
+      {/* After qualification, the PlacementEntryModal in the bracket is used instead */}
+      {tournamentPhase === 'running' && !isQualificationComplete && activeHeat && (
         <div ref={activeHeatRef} className="mb-8">
           <ActiveHeatView
             heat={activeHeat}
@@ -399,6 +424,20 @@ export function BracketTree({
           isOpen={!!selectedHeat}
           onClose={handleCloseModal}
           onEdit={() => handleEditHeat(selectedHeatData.id)}
+        />
+      )}
+
+      {/* Placement Entry Modal for active heats */}
+      {placementHeat && (
+        <PlacementEntryModal
+          heat={placementHeat}
+          pilots={pilots}
+          isOpen={!!placementHeat}
+          onClose={() => setPlacementHeat(null)}
+          onSubmitResults={(heatId, rankings) => {
+            onSubmitResults(heatId, rankings)
+            setPlacementHeat(null)
+          }}
         />
       )}
     </div>
