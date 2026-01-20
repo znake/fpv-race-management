@@ -110,11 +110,12 @@ export function BracketTree({
   // Placement Modal state (for active heats in bracket)
   const [placementHeat, setPlacementHeat] = useState<Heat | null>(null)
 
-  // Lifecycle: Close placement modal if heat is no longer active
+  // Lifecycle: Close placement modal if heat no longer exists
+  // Note: Allow editing of both 'active' and 'completed' heats
   useEffect(() => {
     if (placementHeat) {
       const currentHeat = heats.find(h => h.id === placementHeat.id)
-      if (!currentHeat || currentHeat.status !== 'active') {
+      if (!currentHeat) {
         setPlacementHeat(null)
       }
     }
@@ -163,7 +164,8 @@ export function BracketTree({
 
   const handleEditHeat = (heatId: string) => {
     setSelectedHeat(null)
-    console.log('Edit heat:', heatId)
+    const heat = heats.find(h => h.id === heatId)
+    if (heat) setPlacementHeat(heat)
   }
 
   const selectedHeatData = heats.find(h => h.id === selectedHeat)
