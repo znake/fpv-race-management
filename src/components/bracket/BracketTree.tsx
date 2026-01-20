@@ -404,6 +404,7 @@ export function BracketTree({
         heats={heats}
         wbFinaleRef={wbFinaleRef}
         lbFinaleRef={lbFinaleRef}
+        onHeatClick={handleHeatClick}
       />
 
       {/* 5. BRACKET LEGEND (Story 11-7) */}

@@ -12,7 +12,8 @@ import type { GrandFinaleHeatBoxProps } from '../types'
 export function GrandFinaleHeatBox({
   heat,
   pilots,
-  heats = []
+  heats = [],
+  onClick
 }: GrandFinaleHeatBoxProps) {
   // Get pilot data with bracket origin and ranking
   const pilotsWithOrigin = heat.pilotIds.map(pilotId => {
@@ -24,9 +25,11 @@ export function GrandFinaleHeatBox({
 
   return (
     <div
-      className="heat-box gf"
+      className={`heat-box gf${onClick ? ' clickable' : ''}`}
       id="grand-finale"
       data-testid="grand-finale-heat"
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
       {/* AC3: GF-Label "GRAND FINALE" */}
       <div className="heat-header">

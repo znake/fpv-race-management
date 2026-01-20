@@ -15,7 +15,8 @@ export function GrandFinaleSection({
   pilots,
   heats,
   wbFinaleRef,
-  lbFinaleRef
+  lbFinaleRef,
+  onHeatClick
 }: GrandFinaleSectionProps) {
   const sectionRef = useRef<HTMLDivElement>(null)
 
@@ -85,6 +86,7 @@ export function GrandFinaleSection({
           heat={grandFinaleHeat}
           pilots={pilots}
           heats={heats}
+          onClick={() => onHeatClick(grandFinaleHeat.id)}
         />
       </div>
     </div>
