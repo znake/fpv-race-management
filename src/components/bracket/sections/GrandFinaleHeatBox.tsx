@@ -1,4 +1,5 @@
 import { getPilotBracketOrigin } from '../../../lib/bracket-logic'
+import { cn } from '../../../lib/utils'
 import type { GrandFinaleHeatBoxProps } from '../types'
 
 /**
@@ -23,9 +24,17 @@ export function GrandFinaleHeatBox({
     return { pilot, origin, rank }
   }).sort((a, b) => (a.rank || 5) - (b.rank || 5))
 
+  // Check if heat is active (live)
+  const isActive = heat.status === 'active'
+
   return (
     <div
-      className={`heat-box gf${onClick ? ' clickable' : ''}`}
+      className={cn(
+        'heat-box gf',
+        onClick && 'clickable',
+        // Live heat styling: clickable with animated orange border
+        isActive && 'heat-live-border shadow-glow-orange'
+      )}
       id="grand-finale"
       data-testid="grand-finale-heat"
       onClick={onClick}

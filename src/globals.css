@@ -25,6 +25,7 @@
     --chrome: #e0e0e0;
     --steel: #888888;
     --quali-blue: #00bfff;
+    --live-orange: #ff6b00;
     
     /* Glow Effects */
     --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
@@ -33,6 +34,7 @@
     --glow-green: 0 0 10px rgba(57, 255, 20, 0.4);
     --glow-red: 0 0 10px rgba(255, 7, 58, 0.4);
     --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
+    --glow-orange: 0 0 20px rgba(255, 107, 0, 0.6);
     
     /* Legacy shadcn variables */
     --background: 240 10% 3.9%;
@@ -288,6 +290,76 @@
   @keyframes glow-pulse-cyan {
     0%, 100% { box-shadow: 0 0 20px rgba(5, 217, 232, 0.5); }
     50% { box-shadow: 0 0 40px rgba(5, 217, 232, 0.7); }
+  }
+
+  @keyframes glow-pulse-orange {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.6); }
+    50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.9); }
+  }
+
+  /* Live Heat - Animated Dashed Border */
+  @keyframes dash-rotate {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -24; }
+  }
+
+  .heat-live {
+    position: relative;
+    border-color: transparent !important;
+    animation: glow-pulse-orange 1.5s ease-in-out infinite;
+  }
+
+  .heat-live::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 11px;
+    background: 
+      linear-gradient(var(--night-light), var(--night-light)) padding-box,
+      repeating-linear-gradient(
+        90deg,
+        var(--live-orange) 0px,
+        var(--live-orange) 8px,
+        transparent 8px,
+        transparent 16px
+      ) border-box;
+    border: 3px solid transparent;
+    animation: rotate-border 3s linear infinite;
+    z-index: -1;
+  }
+
+  /* Rotating dashed border effect using conic gradient */
+  .heat-live-border {
+    position: relative;
+    overflow: visible;
+  }
+
+  .heat-live-border::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 12px;
+    padding: 3px;
+    background: conic-gradient(
+      from var(--angle),
+      var(--live-orange) 0deg,
+      transparent 60deg,
+      var(--live-orange) 120deg,
+      transparent 180deg,
+      var(--live-orange) 240deg,
+      transparent 300deg,
+      var(--live-orange) 360deg
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotate-border 2s linear infinite;
+    z-index: -1;
   }
 
   /* Success Pulse Animation (Story 4.2) */
@@ -764,6 +836,10 @@
 
   .shadow-glow-red {
     box-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
+  }
+
+  .shadow-glow-orange {
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
   }
 
   /* ========================================

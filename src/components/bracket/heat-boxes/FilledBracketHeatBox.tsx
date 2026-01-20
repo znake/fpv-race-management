@@ -51,13 +51,18 @@ export function FilledBracketHeatBox({
     })
   }, [bracketHeat.pilotIds, pilots, status, results])
 
+  // Check if heat is active (live)
+  const isActive = status === 'active'
+
   // Build heat-box classes
   const boxClasses = cn(
     'heat-box',
     bracketType === 'loser' && 'lb',
     bracketType === 'qualification' && 'quali',
     isGrandFinale && 'gf',
-    isThreePilot && 'three-pilot'
+    isThreePilot && 'three-pilot',
+    // Live heat styling: clickable with animated orange border
+    isActive && 'cursor-pointer heat-live-border shadow-glow-orange'
   )
 
   // Get pilot row class based on rank

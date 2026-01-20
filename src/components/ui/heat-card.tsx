@@ -219,8 +219,8 @@ function BracketVariant({
 }) {
   // Border color based on bracket type (not status) - matching mockup
   const getBorderClass = () => {
-    // Active status overrides bracket type
-    if (status === 'active') return 'border-neon-cyan shadow-glow-cyan'
+    // Active status overrides bracket type - use animated orange border
+    if (status === 'active') return 'heat-live-border shadow-glow-orange'
     
     // Qualification bracket = cyan
     if (bracketType === 'qualification') {
@@ -366,7 +366,7 @@ function FilledVariant({
   const borderClass = {
     empty: 'border-steel border-dashed',
     pending: 'border-steel',
-    active: 'border-neon-cyan shadow-glow-cyan',
+    active: 'heat-live-border shadow-glow-orange',
     completed: 'border-winner-green shadow-glow-green'
   }[status] || 'border-steel'
 

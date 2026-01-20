@@ -95,7 +95,7 @@ export function getHeatBorderClasses(status: string, isRecommended?: boolean): s
     return 'border-neon-cyan shadow-glow-cyan animate-pulse'
   }
   if (status === 'active') {
-    return 'border-neon-cyan shadow-glow-cyan'
+    return 'heat-live-border shadow-glow-orange'
   }
   if (status === 'completed') {
     return 'border-winner-green shadow-glow-green'

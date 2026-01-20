@@ -61,8 +61,8 @@ export function BracketHeatBox({
     isGrandFinale && 'gf',
     isThreePilot && 'three-pilot',
     isNew && 'heat-appear',
-    // Live heat styling: clickable with pulsing glow
-    isActive && 'cursor-pointer animate-pulse motion-reduce:animate-none shadow-[0_0_20px_rgba(5,217,232,0.5)]'
+    // Live heat styling: clickable with animated orange border
+    isActive && 'cursor-pointer heat-live-border shadow-glow-orange'
   )
 
   // Get pilot row class based on rank
