@@ -438,22 +438,6 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     return allCompleted ? maxRound + 1 : maxRound
   }
 
-  // ===== HELPER: Prüft ob für ein Bracket neue Heats generiert werden können =====
-  // Neue Heats werden nur generiert wenn:
-  // 1. Noch keine Heats existieren (erste Runde), ODER
-  // 2. Alle Heats der aktuellen Runde abgeschlossen sind (nächste Runde starten)
-  const canGenerateNewHeats = (bracketType: 'winner' | 'loser'): boolean => {
-    const bracketHeats = updatedHeats.filter(h => h.bracketType === bracketType)
-    if (bracketHeats.length === 0) return true // Erste Runde kann immer starten
-    
-    // Finde die höchste Rundennummer
-    const maxRound = Math.max(...bracketHeats.map(h => h.roundNumber ?? 1))
-    
-    // Prüfe ob alle Heats dieser Runde abgeschlossen sind
-    const currentRoundHeats = bracketHeats.filter(h => (h.roundNumber ?? 1) === maxRound)
-    return currentRoundHeats.every(h => h.status === 'completed')
-  }
-
   // ===== HELPER: Prüft ob WB-Runde N abgeschlossen ist =====
   // Wird benötigt um sicherzustellen, dass LB-Runde N erst startet wenn WB-Runde N fertig ist
   const isWBRoundComplete = (roundNumber: number): boolean => {
@@ -508,13 +492,49 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     return isWBRoundComplete(nextLBRound) || isWBFinishedOrInFinale()
   }
 
+  // ===== HELPER: Prüft ob LB-Runde N abgeschlossen ist =====
+  const isLBRoundComplete = (roundNumber: number): boolean => {
+    const lbHeats = updatedHeats.filter(h => h.bracketType === 'loser')
+    if (lbHeats.length === 0) return false // Keine LB-Heats = Runde nicht fertig
+    
+    const roundHeats = lbHeats.filter(h => (h.roundNumber ?? 1) === roundNumber)
+    if (roundHeats.length === 0) return false // Keine Heats in dieser Runde
+    
+    return roundHeats.every(h => h.status === 'completed')
+  }
+
+  // ===== HELPER: Prüft ob WB-Heats für eine bestimmte Runde generiert werden können =====
+  // WB-Runde N+1 darf erst generiert werden wenn:
+  // 1. WB-Runde N komplett ist
+  // 2. LB-Runde N komplett ist (damit der Ablauf WB R1 → LB R1 → WB R2 → LB R2 eingehalten wird)
+  // Ausnahme: WB R1 kann direkt nach Quali starten (kein LB R0)
+  const canGenerateWBHeats = (): boolean => {
+    const wbHeats = updatedHeats.filter(h => h.bracketType === 'winner')
+    
+    // Erste WB-Runde: Kann direkt nach Quali starten
+    if (wbHeats.length === 0) {
+      return true
+    }
+    
+    // Finde die aktuelle WB-Rundennummer
+    const maxWBRound = Math.max(...wbHeats.map(h => h.roundNumber ?? 1))
+    const currentWBRoundHeats = wbHeats.filter(h => (h.roundNumber ?? 1) === maxWBRound)
+    const allWBHeatsComplete = currentWBRoundHeats.every(h => h.status === 'completed')
+    
+    if (!allWBHeatsComplete) return false // Aktuelle WB-Runde noch nicht fertig
+    
+    // Nächste WB-Runde (N+1) kann starten wenn LB-Runde N fertig ist
+    // Beispiel: WB R2 kann starten wenn LB R1 fertig ist
+    return isLBRoundComplete(maxWBRound)
+  }
+
   // ===== WINNER BRACKET HEAT GENERATION =====
 
   // Generate WB Heats from pool
   // IMPORTANT: Only generate after all quali heats are completed
-  // AND only if all heats of the current round are completed (to properly track rounds)
-  // Generate ALL heats for the next round at once (while loop)
-  if (isQualificationComplete && canGenerateNewHeats('winner')) {
+  // AND only if corresponding LB round is completed (to maintain proper round order)
+  // Ablauf: Quali → WB R1 → LB R1 → WB R2 → LB R2 → ...
+  if (isQualificationComplete && canGenerateWBHeats()) {
     const wbRoundNumber = getCurrentRound('winner')
     
     // Generate as many heats as possible for this round
