@@ -465,31 +465,83 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     return !hasPendingOrActiveWB && newWinnerPool.size < POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT
   }
 
+  // ===== HELPER: Berechnet erwartete Pilotenzahl für eine LB-Runde =====
+  // LB R1: Quali-Verlierer (50%) + WB R1-Verlierer (50% von 50%)
+  // LB R2: LB R1-Gewinner (50%) + WB R2-Verlierer (falls vorhanden)
+  // usw.
+  const calculateExpectedLBPoolSize = (lbRound: number): number => {
+    // Zähle Quali-Heats um Verlierer zu bestimmen
+    const qualiHeats = updatedHeats.filter(h => h.bracketType === 'qualification')
+    
+    if (lbRound === 1) {
+      // LB R1: Quali-Verlierer + WB R1-Verlierer
+      // Quali-Verlierer: ~50% aller Piloten (Platz 3+4 aus jedem Heat)
+      const qualiLosers = qualiHeats.reduce((sum, h) => {
+        // Platz 3+4 = 2 Piloten bei 4er-Heat, 1 Pilot bei 3er-Heat
+        return sum + Math.max(0, h.pilotIds.length - 2)
+      }, 0)
+      
+      // WB R1-Verlierer: 50% der WB R1-Piloten
+      const wbR1Heats = updatedHeats.filter(h => h.bracketType === 'winner' && (h.roundNumber ?? 1) === 1)
+      const wbR1Losers = wbR1Heats.reduce((sum, h) => {
+        return sum + Math.max(0, h.pilotIds.length - 2)
+      }, 0)
+      
+      return qualiLosers + wbR1Losers
+    }
+    
+    // Für spätere Runden: LB-Gewinner der Vorrunde + WB-Verlierer dieser Runde
+    const prevLBHeats = updatedHeats.filter(h => h.bracketType === 'loser' && (h.roundNumber ?? 1) === lbRound - 1)
+    const prevLBSurvivors = prevLBHeats.reduce((sum, h) => {
+      // Top 2 überleben
+      return sum + Math.min(2, h.pilotIds.length)
+    }, 0)
+    
+    // WB-Verlierer dieser Runde (WB Runde N verliert zu LB Runde N)
+    const wbRoundHeats = updatedHeats.filter(h => h.bracketType === 'winner' && (h.roundNumber ?? 1) === lbRound)
+    const wbRoundLosers = wbRoundHeats.reduce((sum, h) => {
+      return sum + Math.max(0, h.pilotIds.length - 2)
+    }, 0)
+    
+    return prevLBSurvivors + wbRoundLosers
+  }
+
   // ===== HELPER: Prüft ob LB-Heats für eine bestimmte Runde generiert werden können =====
   // LB-Runde N darf erst generiert werden wenn:
   // 1. WB-Runde N komplett ist (damit alle WB-Verlierer im loserPool sind), ODER
   // 2. WB bereits im Finale ist (keine weiteren WB-Runden mehr)
   // 3. Alle LB-Heats der aktuellen Runde abgeschlossen sind
+  // 4. NEU: Alle erwarteten Piloten im Pool sind (Pool-Aggregation)
   const canGenerateLBHeats = (): boolean => {
     const lbHeats = updatedHeats.filter(h => h.bracketType === 'loser')
     
-    // Erste LB-Runde: Warten auf WB R1
-    if (lbHeats.length === 0) {
-      return isWBRoundComplete(1)
+    // Bestimme welche LB-Runde generiert werden soll
+    let targetLBRound = 1
+    if (lbHeats.length > 0) {
+      const maxLBRound = Math.max(...lbHeats.map(h => h.roundNumber ?? 1))
+      const currentLBRoundHeats = lbHeats.filter(h => (h.roundNumber ?? 1) === maxLBRound)
+      const allLBHeatsComplete = currentLBRoundHeats.every(h => h.status === 'completed')
+      
+      if (!allLBHeatsComplete) return false // Aktuelle LB-Runde noch nicht fertig
+      targetLBRound = maxLBRound + 1
     }
     
-    // Finde die aktuelle LB-Rundennummer
-    const maxLBRound = Math.max(...lbHeats.map(h => h.roundNumber ?? 1))
-    const currentLBRoundHeats = lbHeats.filter(h => (h.roundNumber ?? 1) === maxLBRound)
-    const allLBHeatsComplete = currentLBRoundHeats.every(h => h.status === 'completed')
+    // Prüfe ob entsprechende WB-Runde komplett ist ODER WB im Finale
+    const wbRoundComplete = isWBRoundComplete(targetLBRound) || isWBFinishedOrInFinale()
+    if (!wbRoundComplete) return false
     
-    if (!allLBHeatsComplete) return false // Aktuelle LB-Runde noch nicht fertig
+    // NEU: Prüfe ob Pool die erwartete Größe erreicht hat
+    // Dies stellt sicher, dass alle Piloten gesammelt werden bevor Heats generiert werden
+    const expectedPoolSize = calculateExpectedLBPoolSize(targetLBRound)
     
-    // Nächste LB-Runde kann starten wenn:
-    // 1. Entsprechende WB-Runde komplett ist, ODER
-    // 2. WB bereits im Finale ist (keine weiteren regulären WB-Runden)
-    const nextLBRound = maxLBRound + 1
-    return isWBRoundComplete(nextLBRound) || isWBFinishedOrInFinale()
+    // Wenn WB im Finale ist, akzeptiere auch kleinere Pools (keine weiteren WB-Verlierer)
+    if (isWBFinishedOrInFinale()) {
+      // Pool muss mindestens 3 Piloten haben für ein Heat
+      return newLoserPool.size >= 3
+    }
+    
+    // Sonst: Pool muss erwartete Größe erreicht haben
+    return newLoserPool.size >= expectedPoolSize
   }
 
   // ===== HELPER: Prüft ob LB-Runde N abgeschlossen ist =====
@@ -561,8 +613,10 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   const updatedWbNoActiveHeats = updatedPendingWBHeats.length === 0 && updatedActiveWBHeats.length === 0
   const updatedWbFinaleExists = updatedHeats.some(h => h.bracketType === 'winner' && h.isFinale)
   
+  // WB Finale wenn: 3-4 Piloten im Pool und keine pending/active WB-Heats
   const updatedCanGenerateWBFinale = !updatedWbFinaleExists &&
-                                     newWinnerPool.size === POOL_THRESHOLDS.MIN_FOR_FINALE &&
+                                     newWinnerPool.size >= POOL_THRESHOLDS.MIN_FOR_FINALE &&
+                                     newWinnerPool.size <= POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT &&
                                      updatedWbNoActiveHeats &&
                                      isQualificationComplete
   
@@ -618,24 +672,86 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   // 1. Quali abgeschlossen ist
   // 2. Die entsprechende WB-Runde abgeschlossen ist (damit alle WB-Verlierer im Pool sind)
   // 3. Alle LB-Heats der aktuellen Runde abgeschlossen sind
+  // 4. Pool hat die erwartete Größe erreicht (Pool-Aggregation)
   // WICHTIG: LB-Runde N wartet auf WB-Runde N, damit die WB-Verlierer ins LB kommen!
   if (isQualificationComplete && canGenerateLBHeats()) {
     const lbRoundNumber = getCurrentRound('loser')
     
-    // Generate as many heats as possible for this round
-    while (newLoserPool.size >= POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT) {
-      const pilots = Array.from(newLoserPool).slice(0, 4)
-      const lbHeat: Heat = {
-        id: `${HEAT_ID_PREFIXES.LB_HEAT}${crypto.randomUUID()}`,
-        heatNumber: updatedHeats.length + 1,
-        pilotIds: pilots,
-        status: 'pending',
-        bracketType: 'loser',
-        roundNumber: lbRoundNumber
+    // BATCH-GENERIERUNG: Alle Heats dieser Runde gleichzeitig generieren
+    // Berechne optimale Verteilung von 4er- und 3er-Heats
+    const poolArray = Array.from(newLoserPool)
+    const poolSize = poolArray.length
+    
+    if (poolSize >= 3) {
+      // Berechne Heat-Verteilung: Maximiere 4er-Heats, Rest als 3er-Heats
+      let fourPlayerHeats = Math.floor(poolSize / 4)
+      let remaining = poolSize - (fourPlayerHeats * 4)
+      let threePlayerHeats = 0
+      
+      // Wenn Rest 1 oder 2 ist, konvertiere einen 4er-Heat zu 3er-Heats
+      if (remaining === 1 && fourPlayerHeats > 0) {
+        // 4 + 1 = 5 → 3 + 3 - 1 = nicht möglich, also 4 + 3 - 2 extra
+        // Besser: einen 4er wegnehmen → 5 Piloten → nicht durch 3 teilbar
+        // Lösung: 2x 4er → 1x 4er + 1 = 5, nicht gut
+        // Bei Rest 1: Nimm einen 4er weg → 5 Piloten → nicht teilbar
+        // Besser: 2 4er wegnehmen → 9 Piloten → 3x 3er
+        fourPlayerHeats -= 2
+        remaining = poolSize - (fourPlayerHeats * 4)
+        threePlayerHeats = Math.floor(remaining / 3)
+      } else if (remaining === 2 && fourPlayerHeats > 0) {
+        // Rest 2: Nimm einen 4er weg → 6 Piloten → 2x 3er
+        fourPlayerHeats -= 1
+        remaining = poolSize - (fourPlayerHeats * 4)
+        threePlayerHeats = Math.floor(remaining / 3)
+      } else if (remaining === 0) {
+        // Perfekt durch 4 teilbar
+        threePlayerHeats = 0
+      } else {
+        // remaining === 3 → perfekt für einen 3er-Heat
+        threePlayerHeats = 1
       }
-      updatedHeats = [...updatedHeats, lbHeat]
-      generatedHeats.push(lbHeat)
-      pilots.forEach(p => newLoserPool.delete(p))
+      
+      // Edge case: Wenn fourPlayerHeats negativ wurde
+      if (fourPlayerHeats < 0) {
+        fourPlayerHeats = 0
+        threePlayerHeats = Math.floor(poolSize / 3)
+      }
+      
+      let cursor = 0
+      
+      // Generiere alle 4er-Heats
+      for (let i = 0; i < fourPlayerHeats; i++) {
+        const pilots = poolArray.slice(cursor, cursor + 4)
+        cursor += 4
+        const lbHeat: Heat = {
+          id: `${HEAT_ID_PREFIXES.LB_HEAT}${crypto.randomUUID()}`,
+          heatNumber: updatedHeats.length + 1,
+          pilotIds: pilots,
+          status: 'pending',
+          bracketType: 'loser',
+          roundNumber: lbRoundNumber
+        }
+        updatedHeats = [...updatedHeats, lbHeat]
+        generatedHeats.push(lbHeat)
+        pilots.forEach(p => newLoserPool.delete(p))
+      }
+      
+      // Generiere alle 3er-Heats
+      for (let i = 0; i < threePlayerHeats; i++) {
+        const pilots = poolArray.slice(cursor, cursor + 3)
+        cursor += 3
+        const lbHeat: Heat = {
+          id: `${HEAT_ID_PREFIXES.LB_HEAT}${crypto.randomUUID()}`,
+          heatNumber: updatedHeats.length + 1,
+          pilotIds: pilots,
+          status: 'pending',
+          bracketType: 'loser',
+          roundNumber: lbRoundNumber
+        }
+        updatedHeats = [...updatedHeats, lbHeat]
+        generatedHeats.push(lbHeat)
+        pilots.forEach(p => newLoserPool.delete(p))
+      }
     }
   }
   
@@ -645,10 +761,15 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   const updatedActiveLBHeats = updatedHeats.filter(h => h.bracketType === 'loser' && h.status === 'active')
   const updatedLbNoActiveHeats = updatedPendingLBHeats.length === 0 && updatedActiveLBHeats.length === 0
   
-  if (wbReadyForGrandFinale && !lbFinaleExists &&
-      newLoserPool.size === POOL_THRESHOLDS.MIN_FOR_FINALE &&
-      updatedLbNoActiveHeats) {
-    // LB Finale (genau 3 pilots - Top 2 kommen weiter, 1 wird eliminiert)
+  // LB Finale wenn: 3-4 Piloten im Pool und WB ready für Grand Finale
+  const canGenerateLBFinale = wbReadyForGrandFinale && 
+                               !lbFinaleExists &&
+                               newLoserPool.size >= POOL_THRESHOLDS.MIN_FOR_FINALE &&
+                               newLoserPool.size <= POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT &&
+                               updatedLbNoActiveHeats
+                               
+  if (canGenerateLBFinale) {
+    // LB Finale (3-4 pilots - Top 2 kommen weiter ins Grand Finale)
     const lbRoundNumber = getCurrentRound('loser')
     const pilots = Array.from(newLoserPool)
     const lbFinale: Heat = {
