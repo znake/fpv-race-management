@@ -150,6 +150,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         ],
         loserPool: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'],
         tournamentPhase: 'running',
+        isQualificationComplete: true, // WICHTIG: LB Heats werden erst nach Quali generiert
         heats: createMinimalHeats({ hasActiveWBHeats: true })
       })
     })
@@ -213,7 +214,10 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
     })
 
     it('should return null when canGenerateLBHeat is false', () => {
-      useTournamentStore.setState({ loserPool: ['p1', 'p2'] }) // Only 2 pilots
+      useTournamentStore.setState({ 
+        loserPool: ['p1', 'p2'],
+        isQualificationComplete: true // Quali ist abgeschlossen, aber nur 2 Piloten
+      })
       
       const { generateLBHeat } = useTournamentStore.getState()
       const result = generateLBHeat()
@@ -415,6 +419,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
           { id: 'p8', name: 'Pilot 8', imageUrl: '' },
         ],
         tournamentPhase: 'running',
+        isQualificationComplete: true, // WICHTIG: LB Heats werden erst nach Quali generiert
         lastCompletedBracketType: null,
       })
     })
@@ -514,6 +519,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         ],
         loserPool: ['p1', 'p2'],
         tournamentPhase: 'running',
+        isQualificationComplete: true, // WICHTIG: LB Heats werden erst nach Quali generiert
         heats: createMinimalHeats({ hasActiveWBHeats: true })
       })
       
@@ -541,6 +547,7 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
         // 2 pilots already waiting in pool
         loserPool: ['p5', 'p6'],
         tournamentPhase: 'running',
+        isQualificationComplete: true, // WICHTIG: LB Heats werden erst nach Quali generiert
         heats: [
           {
             id: 'lb-heat-1',

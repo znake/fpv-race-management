@@ -540,8 +540,10 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
   const wbReadyForGrandFinale = wbFinaleCompleted || wbDirectQualifiedPilots.length === 2
 
-  // Generate LB Heats - nur wenn alle LB-Heats der aktuellen Runde abgeschlossen sind
-  if (canGenerateNewHeats('loser')) {
+  // Generate LB Heats - nur wenn Quali abgeschlossen UND alle LB-Heats der aktuellen Runde abgeschlossen sind
+  // WICHTIG: Analog zu WB muss auch LB auf isQualificationComplete warten!
+  // Sonst werden LB Heats während der Quali generiert und blockieren spätere Generierung.
+  if (isQualificationComplete && canGenerateNewHeats('loser')) {
     const lbRoundNumber = getCurrentRound('loser')
     
     // Generate as many heats as possible for this round
