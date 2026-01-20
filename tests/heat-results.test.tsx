@@ -232,16 +232,24 @@ describe('Heat Results - submitHeatResults()', () => {
     it('getNextHeat should return undefined when no pending heats', () => {
       const result = setupRunningTournament(8)
       
-      // Complete all heats
-      while (result.current.getActiveHeat()) {
+      // Complete all heats with safety limit to prevent infinite loops
+      let iterations = 0
+      const maxIterations = 50
+      
+      while (result.current.getActiveHeat() && iterations < maxIterations) {
         const activeHeat = result.current.getActiveHeat()!
         
+        // Create rankings for ALL pilots to properly progress tournament
+        const rankings = activeHeat.pilotIds.map((pilotId, index) => ({
+          pilotId,
+          rank: (index + 1) as 1 | 2 | 3 | 4
+        }))
+        
         act(() => {
-          result.current.submitHeatResults(activeHeat.id, [
-            { pilotId: activeHeat.pilotIds[0], rank: 1 },
-            { pilotId: activeHeat.pilotIds[1], rank: 2 }
-          ])
+          result.current.submitHeatResults(activeHeat.id, rankings)
         })
+        
+        iterations++
       }
       
       const nextHeat = result.current.getNextHeat()
