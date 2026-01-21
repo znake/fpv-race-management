@@ -14,7 +14,7 @@ describe('Heat Results - submitHeatResults()', () => {
   })
 
   describe('Core Ranking Logic', () => {
-    it('should save rankings to heat results', () => {
+    it('should save rankings to heat results and auto-complete missing pilots', () => {
       const result = setupRunningTournament(12)
       
       const activeHeat = result.current.getActiveHeat()
@@ -36,10 +36,14 @@ describe('Heat Results - submitHeatResults()', () => {
       expect(completedHeat).toBeDefined()
       expect(completedHeat!.status).toBe('completed')
       expect(completedHeat!.results).toBeDefined()
-      expect(completedHeat!.results!.rankings).toEqual(rankings)
+      // Rankings should be auto-completed for all pilots in the heat
+      expect(completedHeat!.results!.rankings.length).toBe(pilotIds.length)
+      // First two should be as submitted
+      expect(completedHeat!.results!.rankings[0]).toEqual(rankings[0])
+      expect(completedHeat!.results!.rankings[1]).toEqual(rankings[1])
     })
 
-    it('should accept minimum 2 rankings', () => {
+    it('should accept minimum 2 rankings and auto-complete missing pilots', () => {
       const result = setupRunningTournament(12)
       
       const activeHeat = result.current.getActiveHeat()
@@ -55,7 +59,11 @@ describe('Heat Results - submitHeatResults()', () => {
       })
       
       const completedHeat = result.current.heats.find(h => h.id === activeHeat!.id)
-      expect(completedHeat!.results!.rankings.length).toBe(2)
+      // All pilots should have rankings (auto-completed with ranks 3+4)
+      expect(completedHeat!.results!.rankings.length).toBe(pilotIds.length)
+      // Verify the first two are as submitted
+      expect(completedHeat!.results!.rankings[0]).toEqual({ pilotId: pilotIds[0], rank: 1 })
+      expect(completedHeat!.results!.rankings[1]).toEqual({ pilotId: pilotIds[1], rank: 2 })
     })
 
     it('should accept full 4 rankings', () => {

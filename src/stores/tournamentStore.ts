@@ -577,10 +577,38 @@ export const useTournamentStore = create<TournamentState>()(
         let newPhase: TournamentPhase = 'running'
         let newIsQualificationComplete = get().isQualificationComplete
 
+        // Auto-complete rankings: If not all pilots have rankings, assign remaining pilots to bottom ranks
+        // This ensures all pilots are processed even if user only selected top 1-2 places
+        let completeRankings = [...rankings]
+        const rankedPilotIds = new Set(rankings.map(r => r.pilotId))
+        const unrankedPilots = heat.pilotIds.filter(id => !rankedPilotIds.has(id))
+        
+        if (unrankedPilots.length > 0) {
+          // Find the next available rank (after the highest assigned rank)
+          const usedRanks = new Set(rankings.map(r => r.rank))
+          const availableRanks = ([3, 4] as const).filter(r => !usedRanks.has(r))
+          
+          // Assign unranked pilots to bottom ranks
+          unrankedPilots.forEach((pilotId, index) => {
+            if (index < availableRanks.length) {
+              completeRankings.push({ pilotId, rank: availableRanks[index] })
+            }
+          })
+          
+          // Update the heat results with complete rankings
+          updatedHeats[heatIndex] = {
+            ...updatedHeats[heatIndex],
+            results: {
+              rankings: completeRankings,
+              completedAt: new Date().toISOString()
+            }
+          }
+        }
+
         // Story 1.6: Use extracted processRankingsByBracket function
         if (!isGrandFinale) {
           const rankingResult = processRankingsByBracket({
-            rankings,
+            rankings: completeRankings,
             bracketType,
             winnerPilots: newWinnerPilots,
             loserPilots: newLoserPilots,
