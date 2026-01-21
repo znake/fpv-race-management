@@ -21,8 +21,6 @@ export function App() {
   const confirmHeatAssignment = useTournamentStore((state) => state.confirmHeatAssignment)
   const cancelHeatAssignment = useTournamentStore((state) => state.cancelHeatAssignment)
   const submitHeatResults = useTournamentStore((state) => state.submitHeatResults)
-  const getActiveHeat = useTournamentStore((state) => state.getActiveHeat)
-  const getNextHeat = useTournamentStore((state) => state.getNextHeat)
   const resetTournament = useTournamentStore((state) => state.resetTournament)
   const deleteAllPilots = useTournamentStore((state) => state.deleteAllPilots)
   const resetAll = useTournamentStore((state) => state.resetAll)
@@ -35,11 +33,6 @@ export function App() {
   const [showDeleteAllPilotsDialog, setShowDeleteAllPilotsDialog] = useState(false)
   const [showResetAllDialog, setShowResetAllDialog] = useState(false)
   
-  // Callback when heat is completed - scroll to active heat (no tab switch needed)
-  const handleHeatComplete = useCallback(() => {
-    // Stay on turnier tab - the scroll is handled by BracketTree
-  }, [])
-  
   // Callback for starting a new tournament after completion
   const handleNewTournament = useCallback(() => {
     setShowResetTournamentDialog(true)
@@ -47,6 +40,9 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-void to-night text-chrome font-ui relative">
+      {/* FPVOOE Logo Watermark - hinter dem Content */}
+      <div className="logo-watermark" />
+      
       {/* Synthwave Grid Background */}
       <div className="synthwave-grid" />
       
@@ -251,10 +247,7 @@ export function App() {
             <BracketTree 
               pilots={pilots}
               tournamentPhase={tournamentPhase}
-              activeHeat={getActiveHeat()}
-              nextHeat={getNextHeat()}
               onSubmitResults={submitHeatResults}
-              onHeatComplete={handleHeatComplete}
               onNewTournament={handleNewTournament}
             />
             

@@ -33,6 +33,14 @@ export interface UseZoomPanOptions {
 }
 
 /**
+ * Options for centerOnElement function
+ */
+export interface CenterOnElementOptions {
+  targetScale?: number  // Default: 2.0
+  duration?: number     // Default: 500ms
+}
+
+/**
  * UseZoomPan Return Interface
  */
 export interface UseZoomPanReturn {
@@ -41,9 +49,11 @@ export interface UseZoomPanReturn {
   wrapperRef: RefObject<HTMLDivElement>
   isPanning: boolean
   isDragging: boolean
+  isAnimating: boolean
   zoomIn: () => void
   zoomOut: () => void
   reset: () => void
+  centerOnElement: (element: HTMLElement, options?: CenterOnElementOptions) => void
 }
 
 /**
@@ -63,16 +73,18 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   } = options
 
   const [state, setState] = useState<ZoomPanState>({
-    scale: 1,
+    scale: 1.5,
     translateX: 0,
     translateY: 0
   })
 
   const [isPanning, setIsPanning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   /**
    * AC2: Zoom to specific point (e.g., mouse position)
@@ -220,9 +232,85 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
    * AC7: Reset function
    */
   const reset = useCallback(() => {
-    setState({ scale: 1, translateX: 0, translateY: 0 })
-    onScaleChange?.(1)
+    setState({ scale: 1.5, translateX: 0, translateY: 0 })
+    onScaleChange?.(1.5)
   }, [onScaleChange])
+
+  /**
+   * Center on a specific element with smooth animation
+   * Used to auto-focus on the next active heat after submitting results
+   */
+  const centerOnElement = useCallback((element: HTMLElement, options: CenterOnElementOptions = {}) => {
+    const { targetScale = 2.0, duration = 500 } = options
+    
+    const wrapper = wrapperRef.current
+    const container = containerRef.current
+    if (!wrapper || !container) return
+
+    // Clear any existing animation timeout
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current)
+    }
+
+    // Get wrapper dimensions (viewport)
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const viewportCenterX = wrapperRect.width / 2
+    const viewportCenterY = wrapperRect.height / 2
+
+    // Get element position relative to container (in unscaled coordinates)
+    const elementRect = element.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+
+    // Calculate element center in current scaled space
+    const elementCenterXScaled = elementRect.left - containerRect.left + elementRect.width / 2
+    const elementCenterYScaled = elementRect.top - containerRect.top + elementRect.height / 2
+
+    // Convert to unscaled coordinates
+    const elementCenterX = elementCenterXScaled / state.scale
+    const elementCenterY = elementCenterYScaled / state.scale
+
+    // Calculate new translation to center the element
+    // The element center in scaled space should be at viewport center
+    const clampedScale = Math.max(minScale, Math.min(maxScale, targetScale))
+    const newTranslateX = viewportCenterX - elementCenterX * clampedScale
+    const newTranslateY = viewportCenterY - elementCenterY * clampedScale
+
+    // Start animation
+    setIsAnimating(true)
+
+    // Update state (CSS transition will handle the animation)
+    setState({
+      scale: clampedScale,
+      translateX: newTranslateX,
+      translateY: newTranslateY
+    })
+
+    onScaleChange?.(clampedScale)
+
+    // End animation after duration
+    animationTimeoutRef.current = setTimeout(() => {
+      setIsAnimating(false)
+    }, duration)
+  }, [state.scale, minScale, maxScale, onScaleChange])
+
+  // Cleanup animation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Cancel animation if user starts panning
+  useEffect(() => {
+    if (isPanning && isAnimating) {
+      setIsAnimating(false)
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+    }
+  }, [isPanning, isAnimating])
 
   return {
     state,
@@ -230,8 +318,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     wrapperRef,
     isPanning,
     isDragging,
+    isAnimating,
     zoomIn,
     zoomOut,
-    reset
+    reset,
+    centerOnElement
   }
 }

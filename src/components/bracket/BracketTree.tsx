@@ -3,7 +3,6 @@ import { useTournamentStore } from '../../stores/tournamentStore'
 import type { Pilot, Heat, TournamentPhase } from '../../types'
 import { HeatDetailModal } from '../heat-detail-modal'
 import { PlacementEntryModal } from '../placement-entry-modal'
-import { ActiveHeatView } from '../active-heat-view'
 import { VictoryCeremony } from '../victory-ceremony'
 import { cn } from '../../lib/utils'
 
@@ -17,7 +16,6 @@ import { calculateBracketDimensions } from '../../lib/bracket-layout-calculator'
 // Import heat box components
 import { GrandFinaleSection } from './sections/GrandFinaleSection'
 import { SVGConnectorLines } from './SVGConnectorLines'
-import { BracketLegend } from './BracketLegend'
 
 import { QualiSection } from './sections/QualiSection'
 import { WinnerBracketSection } from './sections/WinnerBracketSection'
@@ -26,10 +24,7 @@ import { LoserBracketSection } from './sections/LoserBracketSection'
 interface BracketTreeProps {
   pilots: Pilot[]
   tournamentPhase: TournamentPhase
-  activeHeat?: Heat
-  nextHeat?: Heat
   onSubmitResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
-  onHeatComplete?: () => void
   onNewTournament?: () => void
 }
 
@@ -54,18 +49,12 @@ interface BracketTreeProps {
 export function BracketTree({
   pilots,
   tournamentPhase,
-  activeHeat,
-  nextHeat,
   onSubmitResults,
-  onHeatComplete,
   onNewTournament
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
-  const winnerPilots = useTournamentStore(state => state.winnerPilots)
-  // Task 4: Check if qualification is complete (for conditional ActiveHeatView rendering)
-  const isQualificationComplete = useTournamentStore(state => state.isQualificationComplete)
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -74,25 +63,20 @@ export function BracketTree({
     wrapperRef: zoomWrapperRef,
     isPanning,
     isDragging,
+    isAnimating,
     zoomIn,
     zoomOut,
-    reset
+    reset,
+    centerOnElement
   } = useZoomPan()
-
-  // Story 10-2: Check if WB has pending/active heats using Store method
-  // Note: hasActiveWBHeats wird in späteren Stories (z.B. für LB-Steuerung) verwendet
-  void useTournamentStore(state => state.hasActiveWBHeats())
   
-  // Unused but kept for potential future use
-  void winnerPilots
+  // Get store action for finding next active heat
+  const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
 
-  // Ref for auto-scroll to active heat
-  const activeHeatRef = useRef<HTMLDivElement>(null)
-
-  // Story 11-2: Refs for SVG connector lines (now replaced by zoomContainerRef)
+  // Refs for SVG connector lines - maps heat IDs to their DOM elements
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
 
-  // US-14.7: Refs for WB and LB Finals for dynamic positioning
+  // Refs for WB and LB Finals - used for SVG connector lines to Grand Finale
   const wbFinaleRef = useRef<HTMLDivElement | null>(null)
   const lbFinaleRef = useRef<HTMLDivElement | null>(null)
   
@@ -120,30 +104,6 @@ export function BracketTree({
       }
     }
   }, [heats, placementHeat])
-
-  // Auto-scroll to active heat after heat completion
-  const scrollToActiveHeat = useCallback(() => {
-    activeHeatRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    })
-  }, [])
-
-  // Handle heat completion: scroll to active heat
-  const handleHeatCompleteInternal = useCallback(() => {
-    // Small delay to allow state update before scrolling
-    setTimeout(() => {
-      scrollToActiveHeat()
-    }, 100)
-    onHeatComplete?.()
-  }, [scrollToActiveHeat, onHeatComplete])
-
-  // Scroll to active heat when it changes
-  useEffect(() => {
-    if (activeHeat && tournamentPhase === 'running') {
-      scrollToActiveHeat()
-    }
-  }, [activeHeat?.id, tournamentPhase, scrollToActiveHeat])
 
   const handleHeatClick = (heatId: string) => {
     const heat = heats.find(h => h.id === heatId)
@@ -243,18 +203,6 @@ export function BracketTree({
   // LB heats are now handled by LoserBracketSection using fullBracketStructure.loserBracket
   void lbHeats
 
-  // Render Qualification Section (separate, horizontal)
-  const renderQualificationSection = () => {
-    return (
-      <QualiSection
-        qualiHeats={qualiHeats}
-        pilots={pilots}
-        onHeatClick={handleHeatClick}
-        registerHeatRef={registerHeatRef}
-      />
-    )
-  }
-
   // Calculate dimensions using new calculator
   const { containerWidth, wbColumnWidth, lbColumnWidth } = useMemo(() => 
     calculateBracketDimensions(pilots.length),
@@ -262,15 +210,12 @@ export function BracketTree({
   )
 
   /**
-   * US-14-REWRITE: Render WB + LB side-by-side in bracket-columns-wrapper
+   * Unified Canvas: Alles in einem zoom/pan-baren Container
    * 
    * Layout (vertikal):
-   * - Quali oben (horizontal) - rendered separately
-   * - bracket-columns-wrapper: WB links + LB rechts (gap: 40px)
-   * - Grand Finale unten (mittig) - rendered separately
-   * 
-   * AC2: WB links, LB rechts (side-by-side mit gap: 40px)
-   * AC3: Column-Headers mit korrektem Styling
+   * 1. QualiSection oben (horizontal)
+   * 2. WB + LB side-by-side (bracket-columns-wrapper)
+   * 3. Grand Finale unten (mittig)
    */
   const renderBracketColumnsWrapper = () => (
     <div
@@ -290,14 +235,18 @@ export function BracketTree({
       <div
         ref={zoomContainerRef}
         id="bracket-container"
-        className="bracket-tree"
+        className={cn(
+          'bracket-tree',
+          'zoom-container',
+          isAnimating && 'animating'
+        )}
         style={{
           transform: `translate(${zoomState.translateX}px, ${zoomState.translateY}px) scale(${zoomState.scale})`,
           transformOrigin: '0 0',
-          width: `${containerWidth}px` // US-14-COMBINED Task 1.3
+          width: `${containerWidth}px`
         }}
       >
-        {/* SVG Overlay für WB Verbindungslinien (nur WB, nicht LB) */}
+        {/* SVG Overlay für Verbindungslinien */}
         <SVGConnectorLines
           heats={heats}
           containerRef={zoomContainerRef}
@@ -305,9 +254,17 @@ export function BracketTree({
           scale={zoomState.scale}
         />
         
-        {/* US-14-REWRITE: WB + LB side-by-side wrapper */}
+        {/* 1. QUALIFICATION SECTION (horizontal, oben) */}
+        <QualiSection
+          qualiHeats={qualiHeats}
+          pilots={pilots}
+          onHeatClick={handleHeatClick}
+          registerHeatRef={registerHeatRef}
+        />
+        
+        {/* 2. WB + LB side-by-side */}
         <div className="bracket-columns-wrapper">
-          {/* WB Column (links) - Phase 2.1: structure Prop entfernt */}
+          {/* WB Column (links) */}
           <WinnerBracketSection
             heats={heats}
             pilots={pilots}
@@ -322,7 +279,7 @@ export function BracketTree({
             columnWidth={wbColumnWidth}
           />
           
-          {/* LB Column (rechts) - Phase 2.2: structure Prop entfernt */}
+          {/* LB Column (rechts) */}
           <LoserBracketSection
             heats={heats}
             pilots={pilots}
@@ -337,6 +294,15 @@ export function BracketTree({
             columnWidth={lbColumnWidth}
           />
         </div>
+        
+        {/* 3. GRAND FINALE SECTION (unten, mittig) */}
+        <GrandFinaleSection
+          grandFinaleHeat={grandFinale || null}
+          pilots={pilots}
+          heats={heats}
+          onHeatClick={handleHeatClick}
+          registerHeatRef={registerHeatRef}
+        />
       </div>
     </div>
   )
@@ -356,11 +322,7 @@ export function BracketTree({
           <h3 className="font-display text-beamer-name text-steel text-center mb-4">
             Turnierverlauf
           </h3>
-          {renderQualificationSection()}
           {renderBracketColumnsWrapper()}
-          
-          {/* Story 11-7: Bracket Legend */}
-          <BracketLegend />
         </div>
 
         {/* Heat Detail Modal */}
@@ -379,38 +341,8 @@ export function BracketTree({
 
   return (
     <div className="bracket-container">
-      {/* 1. ACTIVE HEAT Section - only during qualification phase (before isQualificationComplete) */}
-      {/* After qualification, the PlacementEntryModal in the bracket is used instead */}
-      {tournamentPhase === 'running' && !isQualificationComplete && activeHeat && (
-        <div ref={activeHeatRef} className="mb-8">
-          <ActiveHeatView
-            heat={activeHeat}
-            nextHeat={nextHeat}
-            pilots={pilots}
-            onSubmitResults={onSubmitResults}
-            onHeatComplete={handleHeatCompleteInternal}
-          />
-        </div>
-      )}
-
-      {/* 2. QUALIFICATION SECTION (separate, horizontal) */}
-      {renderQualificationSection()}
-
-      {/* 3. WB/LB BRACKET TREE */}
+      {/* Unified Canvas: Quali + WB/LB + Grand Finale - alles zoombar/panbar */}
       {renderBracketColumnsWrapper()}
-
-      {/* 4. GRAND FINALE SECTION (US-14.7) */}
-      <GrandFinaleSection
-        grandFinaleHeat={grandFinale || null}
-        pilots={pilots}
-        heats={heats}
-        wbFinaleRef={wbFinaleRef}
-        lbFinaleRef={lbFinaleRef}
-        onHeatClick={handleHeatClick}
-      />
-
-      {/* 5. BRACKET LEGEND (Story 11-7) */}
-      <BracketLegend />
 
       {/* US-14.8: Zoom Indicator */}
       <ZoomIndicator
@@ -440,6 +372,18 @@ export function BracketTree({
           onSubmitResults={(heatId, rankings) => {
             onSubmitResults(heatId, rankings)
             setPlacementHeat(null)
+            
+            // Auto-center on next active heat after a short delay
+            // (wait for state update and DOM render)
+            setTimeout(() => {
+              const nextActiveHeat = getActiveHeat()
+              if (nextActiveHeat) {
+                const element = heatRefsMap.current.get(nextActiveHeat.id)
+                if (element) {
+                  centerOnElement(element, { targetScale: 2.0 })
+                }
+              }
+            }, 150)
           }}
         />
       )}

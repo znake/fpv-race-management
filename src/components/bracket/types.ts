@@ -1,4 +1,3 @@
-import type React from 'react'
 import type { Heat, Pilot } from '../../types'
 
 // Phase 4: Bracket-Structure-Generator entfernt
@@ -46,14 +45,13 @@ export interface FilledBracketHeatBoxProps {
   actualHeat?: Heat
 }
 
-// US-14.7: GrandFinaleSectionProps with dynamic positioning
+// GrandFinaleSectionProps - now using CSS-based centering
 export interface GrandFinaleSectionProps {
   grandFinaleHeat: Heat | null
   pilots: Pilot[]
   heats: Heat[] // For bracketOrigin lookup
-  wbFinaleRef: React.RefObject<HTMLDivElement>
-  lbFinaleRef: React.RefObject<HTMLDivElement>
   onHeatClick: (heatId: string) => void
+  registerHeatRef?: (heatId: string, element: HTMLDivElement | null) => void
 }
 
 // Grand Finale Heat Box

@@ -32,10 +32,10 @@ export function GrandFinaleHeatBox({
       className={cn(
         'heat-box gf',
         onClick && 'clickable',
-        // Live heat styling: clickable with animated orange border
-        isActive && 'heat-live-border shadow-glow-orange'
+        // Live heat styling: clickable with animated pink border
+        isActive && 'heat-live-border shadow-glow-pink'
       )}
-      id="grand-finale"
+      id={heat.id}
       data-testid="grand-finale-heat"
       onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
