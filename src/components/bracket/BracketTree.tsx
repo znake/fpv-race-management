@@ -380,7 +380,7 @@ export function BracketTree({
               if (nextActiveHeat) {
                 const element = heatRefsMap.current.get(nextActiveHeat.id)
                 if (element) {
-                  centerOnElement(element, { targetScale: 2.0 })
+                  centerOnElement(element, { targetScale: 3.0 })
                 }
               }
             }, 150)

@@ -27,7 +27,7 @@ export interface ZoomPanState {
  */
 export interface UseZoomPanOptions {
   minScale?: number  // Default: 0.25
-  maxScale?: number  // Default: 3.0
+  maxScale?: number  // Default: 5.0
   step?: number      // Default: 0.15
   onScaleChange?: (scale: number) => void
 }
@@ -36,7 +36,7 @@ export interface UseZoomPanOptions {
  * Options for centerOnElement function
  */
 export interface CenterOnElementOptions {
-  targetScale?: number  // Default: 2.0
+  targetScale?: number  // Default: 3.0
   duration?: number     // Default: 500ms
 }
 
@@ -67,7 +67,7 @@ export interface UseZoomPanReturn {
 export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   const {
     minScale = 0.25,
-    maxScale = 3.0,
+    maxScale = 5.0,
     step = 0.15,
     onScaleChange
   } = options
@@ -241,7 +241,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
    * Used to auto-focus on the next active heat after submitting results
    */
   const centerOnElement = useCallback((element: HTMLElement, options: CenterOnElementOptions = {}) => {
-    const { targetScale = 2.0, duration = 500 } = options
+    const { targetScale = 3.0, duration = 500 } = options
     
     const wrapper = wrapperRef.current
     const container = containerRef.current
