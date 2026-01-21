@@ -4,7 +4,7 @@
 
 Eine spezialisierte Web-App zur Durchführung von FPV-Drohnenrennen-Turnieren, entwickelt für die FPVOOE (FPV Austria/OOE) Racing Community. Optimiert für Beamer-Präsentation bei Live-Events mit Synthwave-Design und animierten visuellen Effekten.
 
-![Bracket-Visualisierung](../dist/images/Bracket-Visualisierung.png)
+![Bracket-Visualisierung](./images/Bracket-Visualisierung.png)
 
 ---
 
@@ -80,7 +80,7 @@ Unterstützte Spalten: `Name`, `Bild-URL` (oder `imageUrl`), `Instagram` (option
 - **Duplikaterkennung** - Warnung bei doppelten Namen (case-insensitive)
 - **Ausgeschieden markieren** - Piloten während des Turniers als "dropped out" markieren
 
-![Pilotenmanagement](../dist/images/Pilotenmanagement.png)
+![Pilotenmanagement](./images/Pilotenmanagement.png)
 
 ---
 
@@ -111,7 +111,7 @@ In der **Heat-Zuweisung** vor Turnierstart:
 - **Shuffle-Funktion** - Piloten zufällig neu verteilen
 - **Validierung** - Warnung bei zu vollen (>4) oder leeren Heats
 
-![Heataufteilung](../dist/images/Heataufteilung.png)
+![Heataufteilung](./images/Heataufteilung.png)
 
 ---
 
@@ -184,7 +184,7 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 - Alle Piloten müssen eine eindeutige Platzierung haben
 - Keine doppelten Platzierungen erlaubt
 
-![Platzierungen eingeben](../dist/images/Platzierungen.png)
+![Platzierungen eingeben](./images/Platzierungen.png)
 
 #### Phase 4: Grand Finale
 
@@ -192,7 +192,7 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 - 4 Finalisten kämpfen um den Sieg
 - Bei Rematch-Bedingung wird automatisch ein weiterer Heat erstellt
 
-![Finale](../dist/images/Finale.png)
+![Finale](./images/Finale.png)
 
 #### Phase 5: Siegerehrung
 
@@ -200,7 +200,7 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 - Gold/Silber/Bronze/Cyan Styling mit Animationen
 - **"Neues Turnier"** Button zum Zurücksetzen
 
-![Siegerehrung](../dist/images/Sigerehrung.png)
+![Siegerehrung](./images/Sigerehrung.png)
 
 ---
 
