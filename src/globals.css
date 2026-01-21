@@ -25,7 +25,7 @@
     --chrome: #e0e0e0;
     --steel: #888888;
     --quali-blue: #00bfff;
-    --live-orange: #ff6b00;
+    --live-pink: #ff0080;
     
     /* Glow Effects */
     --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
@@ -34,7 +34,7 @@
     --glow-green: 0 0 10px rgba(57, 255, 20, 0.4);
     --glow-red: 0 0 10px rgba(255, 7, 58, 0.4);
     --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
-    --glow-orange: 0 0 20px rgba(255, 107, 0, 0.6);
+    --glow-pink-live: 0 0 30px rgba(255, 0, 128, 0.7);
     
     /* Legacy shadcn variables */
     --background: 240 10% 3.9%;
@@ -64,6 +64,17 @@
   * {
     @apply border-border;
   }
+  
+  /* Hide scrollbars globally but allow scrolling */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
   body {
     @apply bg-void text-chrome;
     font-family: 'Space Grotesk', sans-serif;
@@ -104,6 +115,46 @@
     z-index: 0;
   }
 
+  /* FPVOOE Logo - Perspektivisch im Grid */
+  .synthwave-grid::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    width: 450px;
+    height: 450px;
+    transform: translateX(-50%) perspective(500px) rotateX(55deg);
+    background-image: url('/images/fpvooe-logo.webp');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.10;
+    filter: 
+      drop-shadow(0 0 25px rgba(255, 42, 109, 0.4))
+      drop-shadow(0 0 50px rgba(5, 217, 232, 0.25));
+    pointer-events: none;
+  }
+
+  /* FPVOOE Logo - Hinter dem Content-Bereich (Bracket Trees etc.) */
+  .logo-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    transform: translate(-50%, -50%);
+    background-image: url('/images/fpvooe-logo.webp');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.06;
+    filter: 
+      drop-shadow(0 0 40px rgba(255, 42, 109, 0.3))
+      drop-shadow(0 0 80px rgba(5, 217, 232, 0.2));
+    pointer-events: none;
+    z-index: 0;
+  }
+
   /* Qualification Section (Story 14.2) */
   .quali-section {
     margin-bottom: 35px;
@@ -123,7 +174,7 @@
     gap: 12px;
     justify-content: center;
     flex-wrap: nowrap;
-    overflow-x: auto;
+    overflow-x: hidden;
   }
 
   .flow-indicator {
@@ -217,7 +268,7 @@
   /* Beamer-spezifischer Container für Brackets */
   .bracket-beamer-container {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: hidden;
     padding-bottom: 20px;
   }
 
@@ -292,9 +343,9 @@
     50% { box-shadow: 0 0 40px rgba(5, 217, 232, 0.7); }
   }
 
-  @keyframes glow-pulse-orange {
-    0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.6); }
-    50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.9); }
+  @keyframes glow-pulse-pink {
+    0%, 100% { box-shadow: 0 0 30px rgba(255, 0, 128, 0.7); }
+    50% { box-shadow: 0 0 50px rgba(255, 0, 128, 1.0); }
   }
 
   /* Live Heat - Animated Dashed Border */
@@ -306,24 +357,24 @@
   .heat-live {
     position: relative;
     border-color: transparent !important;
-    animation: glow-pulse-orange 1.5s ease-in-out infinite;
+    animation: glow-pulse-pink 1.5s ease-in-out infinite;
   }
 
   .heat-live::before {
     content: '';
     position: absolute;
-    inset: -3px;
-    border-radius: 11px;
+    inset: -8px;
+    border-radius: 14px;
     background: 
       linear-gradient(var(--night-light), var(--night-light)) padding-box,
       repeating-linear-gradient(
         90deg,
-        var(--live-orange) 0px,
-        var(--live-orange) 8px,
+        var(--live-pink) 0px,
+        var(--live-pink) 8px,
         transparent 8px,
         transparent 16px
       ) border-box;
-    border: 3px solid transparent;
+    border: 8px solid transparent;
     animation: rotate-border 3s linear infinite;
     z-index: -1;
   }
@@ -337,18 +388,18 @@
   .heat-live-border::before {
     content: '';
     position: absolute;
-    inset: -4px;
-    border-radius: 12px;
-    padding: 3px;
+    inset: -10px;
+    border-radius: 16px;
+    padding: 10px;
     background: conic-gradient(
       from var(--angle),
-      var(--live-orange) 0deg,
+      var(--live-pink) 0deg,
       transparent 60deg,
-      var(--live-orange) 120deg,
+      var(--live-pink) 120deg,
       transparent 180deg,
-      var(--live-orange) 240deg,
+      var(--live-pink) 240deg,
       transparent 300deg,
-      var(--live-orange) 360deg
+      var(--live-pink) 360deg
     );
     -webkit-mask: 
       linear-gradient(#fff 0 0) content-box, 
@@ -388,12 +439,23 @@
     border-radius: 12px;
     padding: 25px;
     position: relative;
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: hidden;
     min-height: 600px;
     /* Full-width Container - passt sich ans Fenster an */
     width: 100%;
     min-width: 0;
+  }
+
+  /* FPVOOE Logo-Watermark im Bracket-Container */
+  .bracket-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('/images/fpvooe-logo.webp') center center / 1000px no-repeat;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 12px;
   }
 
   /* US-14-REWRITE: Main Bracket Layout - WB + LB side-by-side */
@@ -838,8 +900,8 @@
     box-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
   }
 
-  .shadow-glow-orange {
-    box-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
+  .shadow-glow-pink {
+    box-shadow: 0 0 30px rgba(255, 0, 128, 0.7);
   }
 
   /* ========================================
@@ -986,9 +1048,7 @@
     z-index: 2;
   }
 
-  .grand-finale-section.positioned {
-    align-items: flex-start;
-  }
+  /* Unified Canvas: GF wird nun über CSS zentriert statt JS-Positionierung */
 
   .gf-content {
     display: flex;
@@ -1079,7 +1139,7 @@
       ======================================== */
   /* AC1: Zoom-Wrapper Container */
   .zoom-wrapper {
-    overflow: auto;
+    overflow: hidden;
     position: relative;
     cursor: default;
     min-height: 1000px; /* Ensure enough space for scrolling */
@@ -1093,6 +1153,18 @@
   .zoom-wrapper.panning:active,
   .zoom-wrapper.dragging {
     cursor: grabbing;
+  }
+
+  /* Auto-Center Animation for next active heat */
+  .zoom-container.animating {
+    transition: transform 500ms ease-out;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .zoom-container.animating {
+      transition: none;
+    }
   }
 
   /* AC4 + AC5 + AC6: Zoom-Indicator Fixed (bottom-right) */
