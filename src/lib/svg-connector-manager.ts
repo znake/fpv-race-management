@@ -266,6 +266,12 @@ export class ConnectorManager {
 
     const toPos = this.getRelativePosition(toElement)
 
+    // Grand Finale: Draw symmetrical paths that meet at a common junction point
+    if (conn.isGrandFinale && conn.fromIds.length === 2) {
+      this.drawSymmetricalGrandFinaleConnections(conn.fromIds, toPos, conn.type)
+      return
+    }
+
     // Für jede Quelle einen Pfad zum Ziel erstellen
     conn.fromIds.forEach(fromId => {
       const fromElement = document.getElementById(fromId)
@@ -273,6 +279,61 @@ export class ConnectorManager {
 
       const fromPos = this.getRelativePosition(fromElement)
       const path = this.createPath(fromPos, toPos, conn.type)
+      this.svg!.appendChild(path)
+    })
+  }
+
+  /**
+   * Draw symmetrical Grand Finale connections from WB and LB Finale
+   * Both lines go down to the same Y level, then horizontally to meet at the GF center
+   */
+  private drawSymmetricalGrandFinaleConnections(
+    fromIds: string[], 
+    toPos: Position, 
+    type: ConnectionType
+  ): void {
+    // Get positions of both source elements
+    const positions: { id: string; pos: Position; element: HTMLElement }[] = []
+    
+    for (const fromId of fromIds) {
+      const fromElement = document.getElementById(fromId)
+      if (!fromElement) continue
+      positions.push({
+        id: fromId,
+        pos: this.getRelativePosition(fromElement),
+        element: fromElement
+      })
+    }
+
+    if (positions.length < 2) {
+      // Fallback: draw individual paths if we don't have both sources
+      positions.forEach(({ pos }) => {
+        const path = this.createPath(pos, toPos, type)
+        this.svg!.appendChild(path)
+      })
+      return
+    }
+
+    // Calculate the common junction Y position
+    // Use a point that is 50px above the Grand Finale top for better text readability
+    const junctionY = toPos.top - 50
+    const endX = toPos.centerX
+    const endY = toPos.top
+
+    // Draw path for each source
+    positions.forEach(({ pos }) => {
+      const startX = pos.centerX
+      const startY = pos.bottom
+      
+      // Path: down to junction Y, horizontal to GF center X, then down to GF
+      const d = `M ${startX} ${startY} L ${startX} ${junctionY} L ${endX} ${junctionY} L ${endX} ${endY}`
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      path.setAttribute('d', d)
+      path.setAttribute('fill', 'none')
+      path.setAttribute('stroke-linecap', 'round')
+      path.setAttribute('stroke-linejoin', 'round')
+      this.applyStyle(path, type)
       this.svg!.appendChild(path)
     })
   }
