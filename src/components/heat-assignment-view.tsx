@@ -75,13 +75,33 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4 mb-8">
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
         <button
           onClick={handleShuffle}
           className="bg-night border-2 border-neon-cyan text-neon-cyan px-6 py-3 rounded-lg font-semibold hover:bg-neon-cyan/10 transition-colors"
         >
           🔀 Neu mischen
         </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setShowCancelDialog(true)}
+            className="text-steel hover:text-chrome transition-colors px-6 py-3 font-ui"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={hasInvalidHeats}
+            className={cn(
+              "bg-neon-pink text-void px-8 py-4 rounded-xl font-bold text-lg transition-all",
+              hasInvalidHeats
+                ? "opacity-50 cursor-not-allowed"
+                : "shadow-glow-pink hover:shadow-[0_0_30px_rgba(255,42,109,0.7)]"
+            )}
+          >
+            Aufteilung bestätigen
+          </button>
+        </div>
       </div>
 
       {/* Validation Warnings */}
@@ -124,27 +144,7 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
         </div>
       </DndContext>
 
-      {/* Footer Actions */}
-      <div className="flex justify-center gap-4 pt-6 border-t border-steel/30">
-        <button
-          onClick={() => setShowCancelDialog(true)}
-          className="text-steel hover:text-chrome transition-colors px-6 py-3 font-ui"
-        >
-          Abbrechen
-        </button>
-        <button
-          onClick={onConfirm}
-          disabled={hasInvalidHeats}
-          className={cn(
-            "bg-neon-pink text-void px-8 py-4 rounded-xl font-bold text-lg transition-all",
-            hasInvalidHeats
-              ? "opacity-50 cursor-not-allowed"
-              : "shadow-glow-pink hover:shadow-[0_0_30px_rgba(255,42,109,0.7)]"
-          )}
-        >
-          Aufteilung bestätigen
-        </button>
-      </div>
+
 
       {/* Cancel Confirmation Dialog */}
       <Modal
