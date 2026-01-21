@@ -23,6 +23,3 @@ export { PoolDisplay } from './PoolDisplay'
 // SVG Lines (Story 11-2)
 export { SVGConnectorLines, getHeatConnections } from './SVGConnectorLines'
 export type { ConnectorLine } from './SVGConnectorLines'
-
-// Legend (Story 11-7)
-export { BracketLegend } from './BracketLegend'
