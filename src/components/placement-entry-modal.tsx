@@ -204,23 +204,23 @@ export function PlacementEntryModal({
     return `${pilot.name}${hasRank ? `, aktuell Rang ${rank}` : ''}, klicken um ${actionHint}`
   }
 
-  // Grid columns: 3 for 3 pilots, 2 for 4 pilots
-  const gridCols = heatPilots.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+  // Grid columns: always horizontal - 3 or 4 columns based on pilot count
+  const gridCols = heatPilots.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      size="xl"
+      size="full"
       closeOnEscape={rankings.size === 0} // Only close on Escape if no rankings (otherwise reset)
       data-testid="placement-entry-modal"
     >
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="font-display text-4xl text-chrome tracking-wider mb-2">
+      <div className="text-center mb-10">
+        <h2 className="font-display text-5xl text-chrome tracking-wider mb-3">
           {getHeatName()}
         </h2>
-        <p className="font-ui text-lg text-steel">
+        <p className="font-ui text-2xl text-steel">
           Klicke auf die Piloten um Platzierungen zu vergeben
         </p>
       </div>
@@ -256,8 +256,8 @@ export function PlacementEntryModal({
               {/* Rank Badge */}
               {hasRank && (
                 <div className={`
-                  absolute -top-3 -right-3 w-14 h-14 rounded-full
-                  flex items-center justify-center font-display text-2xl text-void
+                  absolute -top-4 -right-4 w-16 h-16 rounded-full
+                  flex items-center justify-center font-display text-3xl text-void
                   rank-badge-animate
                   ${getRankBadgeClass(rank)}
                 `}>
@@ -265,9 +265,9 @@ export function PlacementEntryModal({
                 </div>
               )}
 
-              {/* Pilot Photo - 160px (2x larger for beamer) */}
-              <div className="relative mb-4 mx-auto w-[160px] h-[160px]">
-                <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta">
+              {/* Pilot Photo - 220px (larger for beamer visibility) */}
+              <div className="relative mb-6 mx-auto w-[220px] h-[220px]">
+                <div className="w-[220px] h-[220px] rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta">
                   <img
                     src={pilot.imageUrl}
                     alt={pilot.name}
@@ -281,13 +281,13 @@ export function PlacementEntryModal({
               </div>
 
               {/* Pilot Name */}
-              <div className="font-display text-2xl font-bold text-chrome mb-1 truncate">
+              <div className="font-display text-3xl font-bold text-chrome mb-2 truncate">
                 {pilot.name}
               </div>
 
               {/* Instagram Handle */}
               {pilot.instagramHandle && (
-                <div className="font-ui text-base text-steel truncate">
+                <div className="font-ui text-xl text-steel truncate">
                   {pilot.instagramHandle}
                 </div>
               )}
@@ -297,13 +297,13 @@ export function PlacementEntryModal({
       </div>
 
       {/* Action Area */}
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-5 mt-10">
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={!isFinishEnabled || isSubmitting}
           data-testid="submit-placement-btn"
-          className="btn-primary text-2xl px-12 py-4"
+          className="btn-primary text-3xl px-16 py-5"
         >
           Fertig
         </button>
@@ -313,14 +313,14 @@ export function PlacementEntryModal({
           <button
             onClick={resetRankings}
             data-testid="reset-rankings-btn"
-            className="font-ui text-base text-steel hover:text-neon-cyan transition-colors"
+            className="font-ui text-xl text-steel hover:text-neon-cyan transition-colors"
           >
             Zurücksetzen
           </button>
         )}
 
         {/* Status Text */}
-        <p className="font-ui text-base text-steel">
+        <p className="font-ui text-xl text-steel">
           {rankings.size === 0 && 'Klicke auf einen Piloten für Rang 1'}
           {rankings.size === 1 && minRankingsRequired === 2 && 'Mindestens 2 Ränge für Fertig'}
           {rankings.size >= minRankingsRequired && rankings.size < heatPilots.length && `${rankings.size}/${heatPilots.length} Ränge vergeben`}
@@ -329,8 +329,8 @@ export function PlacementEntryModal({
       </div>
 
       {/* Keyboard Shortcuts Help */}
-      <div className="mt-6 text-center">
-        <p className="font-ui text-sm text-steel/60">
+      <div className="mt-8 text-center">
+        <p className="font-ui text-lg text-steel/60">
           1-4 = Direkter Rang | Escape = Reset
         </p>
       </div>
