@@ -11,6 +11,24 @@ export interface ConnectorLine {
 }
 
 /**
+ * Find WB Finale: either marked with isFinale, or the single heat in the highest round
+ */
+function findWBFinale(heats: Heat[]): Heat | undefined {
+  let wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
+  if (!wbFinale) {
+    const wbHeats = heats.filter(h => h.bracketType === 'winner')
+    if (wbHeats.length > 0) {
+      const maxRound = Math.max(...wbHeats.map(h => h.roundNumber ?? 1))
+      const heatsInMaxRound = wbHeats.filter(h => (h.roundNumber ?? 1) === maxRound)
+      if (heatsInMaxRound.length === 1) {
+        wbFinale = heatsInMaxRound[0]
+      }
+    }
+  }
+  return wbFinale
+}
+
+/**
  * Find LB Finale: either marked with isFinale, or the single heat in the highest round
  */
 function findLBFinale(heats: Heat[]): Heat | undefined {
@@ -34,11 +52,11 @@ function findLBFinale(heats: Heat[]): Heat | undefined {
 export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
   const connections: ConnectorLine[] = []
   
-  const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
+  const wbFinale = findWBFinale(heats)
   const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
   const lbFinale = findLBFinale(heats)
   
-  const wbHeats = heats.filter(h => h.bracketType === 'winner' && !h.isFinale && h.status === 'completed')
+  const wbHeats = heats.filter(h => h.bracketType === 'winner' && h.id !== wbFinale?.id && h.status === 'completed')
   
   if (wbFinale) {
     wbHeats.forEach((heat) => {
@@ -133,8 +151,8 @@ export function SVGConnectorLines({
     manager.clearConnections()
     
     // Group WB Heats by round
-    const wbHeats = heats.filter(h => h.bracketType === 'winner' && !h.isFinale)
-    const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
+    const wbFinale = findWBFinale(heats)
+    const wbHeats = heats.filter(h => h.bracketType === 'winner' && h.id !== wbFinale?.id)
     const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
     const lbFinale = findLBFinale(heats)
 
