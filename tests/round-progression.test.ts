@@ -256,28 +256,37 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
     describe('2.6: WB Finale oder Direct-Qualify wenn nur 2-3 Piloten übrig', () => {
       it('sollte bei 2 Piloten im WB Direct-Qualify nutzen (kein WB Finale)', () => {
         // 8 Piloten → 4 Quali-Gewinner → 1 WB Heat → 2 Gewinner = Direct-Qualify (kein Finale nötig!)
+        // WICHTIG: Der korrekte Ablauf ist: Quali → WB R1 → LB R1 → Direct-Qualify
+        // WB Direct-Qualify kann erst passieren wenn LB R1 abgeschlossen ist!
         const result = setupTournamentWithCompletedQuali(8)
         
-        // WB Heats abschließen
-        let wbHeats = result.current.heats.filter(h => 
-          h.bracketType === 'winner' && !h.isFinale && h.status !== 'completed'
-        )
-        
+        // Alle Heats abschließen (WB und LB) bis Direct-Qualify erreicht wird
         let iterations = 0
-        while (wbHeats.length > 0 && iterations < 10) {
-          const heat = wbHeats[0]
-          const rankings: Ranking[] = heat.pilotIds.map((pilotId, index) => ({
+        while (iterations < 20) {
+          // Prüfe ob Direct-Qualify bereits erreicht wurde
+          const wbFinalists = Object.entries(result.current.pilotBracketStates)
+            .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+          
+          if (wbFinalists.length === 2) break // Ziel erreicht
+          
+          // Finde nächsten pending/active Heat (WB oder LB, nicht Finale)
+          const nextHeat = result.current.heats.find(h => 
+            (h.bracketType === 'winner' || h.bracketType === 'loser') &&
+            !h.isFinale &&
+            (h.status === 'pending' || h.status === 'active')
+          )
+          
+          if (!nextHeat) break // Keine Heats mehr
+          
+          const rankings: Ranking[] = nextHeat.pilotIds.map((pilotId, index) => ({
             pilotId,
             rank: (index + 1) as 1 | 2 | 3 | 4
           }))
           
           act(() => {
-            result.current.submitHeatResults(heat.id, rankings)
+            result.current.submitHeatResults(nextHeat.id, rankings)
           })
           
-          wbHeats = result.current.heats.filter(h => 
-            h.bracketType === 'winner' && !h.isFinale && h.status !== 'completed'
-          )
           iterations++
         }
         

@@ -614,16 +614,25 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   const updatedWbFinaleExists = updatedHeats.some(h => h.bracketType === 'winner' && h.isFinale)
   
   // WB Finale wenn: 3-4 Piloten im Pool und keine pending/active WB-Heats
+  // WICHTIG: WB Finale darf erst generiert werden wenn die entsprechende LB-Runde abgeschlossen ist!
+  // Beispiel: Nach WB R2 muss zuerst LB R2 kommen, dann erst WB Finale
+  // Die WB Finale-Runde ist getCurrentRound('winner'), also muss LB Runde (wbFinaleRound - 1) abgeschlossen sein
+  const wbFinaleRoundNumber = getCurrentRound('winner')
+  const requiredLBRound = wbFinaleRoundNumber - 1
+  const requiredLBRoundComplete = requiredLBRound <= 0 || isLBRoundComplete(requiredLBRound)
+  
   const updatedCanGenerateWBFinale = !updatedWbFinaleExists &&
                                      newWinnerPool.size >= POOL_THRESHOLDS.MIN_FOR_FINALE &&
                                      newWinnerPool.size <= POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT &&
                                      updatedWbNoActiveHeats &&
-                                     isQualificationComplete
+                                     isQualificationComplete &&
+                                     requiredLBRoundComplete
   
   const updatedCanDirectQualifyWB = !updatedWbFinaleExists &&
                                     newWinnerPool.size === POOL_THRESHOLDS.DIRECT_QUALIFY_COUNT &&
                                     updatedWbNoActiveHeats &&
-                                    isQualificationComplete
+                                    isQualificationComplete &&
+                                    requiredLBRoundComplete
   
   if (updatedCanGenerateWBFinale) {
     // Generate WB Finale (genau 3 pilots - Top 2 kommen weiter)

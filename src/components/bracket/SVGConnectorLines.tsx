@@ -11,6 +11,24 @@ export interface ConnectorLine {
 }
 
 /**
+ * Find LB Finale: either marked with isFinale, or the single heat in the highest round
+ */
+function findLBFinale(heats: Heat[]): Heat | undefined {
+  let lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
+  if (!lbFinale) {
+    const lbHeats = heats.filter(h => h.bracketType === 'loser')
+    if (lbHeats.length > 0) {
+      const maxRound = Math.max(...lbHeats.map(h => h.roundNumber ?? 1))
+      const heatsInMaxRound = lbHeats.filter(h => (h.roundNumber ?? 1) === maxRound)
+      if (heatsInMaxRound.length === 1) {
+        lbFinale = heatsInMaxRound[0]
+      }
+    }
+  }
+  return lbFinale
+}
+
+/**
  * Legacy-Funktion für Rückwärtskompatibilität und Tests
  */
 export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
@@ -18,7 +36,7 @@ export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
   
   const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
   const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
-  const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
+  const lbFinale = findLBFinale(heats)
   
   const wbHeats = heats.filter(h => h.bracketType === 'winner' && !h.isFinale && h.status === 'completed')
   
@@ -117,8 +135,8 @@ export function SVGConnectorLines({
     // Group WB Heats by round
     const wbHeats = heats.filter(h => h.bracketType === 'winner' && !h.isFinale)
     const wbFinale = heats.find(h => h.bracketType === 'winner' && h.isFinale)
-    const lbFinale = heats.find(h => h.bracketType === 'loser' && h.isFinale)
     const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
+    const lbFinale = findLBFinale(heats)
 
     const heatsByRound = new Map<number, Heat[]>()
     wbHeats.forEach(heat => {
