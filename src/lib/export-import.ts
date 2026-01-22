@@ -245,6 +245,23 @@ export function importJSON(jsonString: string): boolean {
 }
 
 /**
+ * Formats a heat name for display (e.g., "LB-R1", "LB-Finale")
+ */
+function formatHeatNameShort(heat: Heat): string {
+  if (heat.bracketType === 'grand_finale' || heat.bracketType === 'finale') {
+    return 'Grand Finale'
+  } else if (heat.bracketType === 'winner') {
+    const round = heat.roundNumber || 1
+    return heat.isFinale ? 'WB-Finale' : `WB-R${round}`
+  } else if (heat.bracketType === 'loser') {
+    const round = heat.roundNumber || 1
+    return heat.isFinale ? 'LB-Finale' : `LB-R${round}`
+  } else {
+    return 'Quali'
+  }
+}
+
+/**
  * Gets pilot status for CSV export
  */
 function getPilotStatus(
@@ -252,9 +269,9 @@ function getPilotStatus(
   heats: Heat[],
   isCompleted: boolean
 ): string {
-  // Check if pilot is dropped out
+  // Check if pilot is dropped out (manually withdrawn)
   if (pilot.droppedOut || pilot.status === 'withdrawn') {
-    return 'Ausgeschieden'
+    return 'Zurückgezogen'
   }
   
   // Check if tournament is completed - find placement
@@ -279,16 +296,11 @@ function getPilotStatus(
     return 'Noch nicht gestartet'
   }
   
-  // Check if eliminated (lost in LB)
-  const lbHeats = pilotHeats.filter(h => h.bracketType === 'loser')
-  for (const lbHeat of lbHeats) {
-    if (lbHeat.results) {
-      const ranking = lbHeat.results.rankings.find(r => r.pilotId === pilot.id)
-      // In LB, rank 3+ means eliminated
-      if (ranking && ranking.rank >= 3) {
-        return 'Ausgeschieden'
-      }
-    }
+  // Check if eliminated (lost in LB) - use findEliminationHeat for consistency
+  const eliminationHeat = findEliminationHeat(pilot, heats)
+  if (eliminationHeat) {
+    const heatName = formatHeatNameShort(eliminationHeat)
+    return `Ausgeschieden (${heatName})`
   }
   
   return 'Aktiv'
@@ -439,9 +451,165 @@ function escapeCSVField(value: string): string {
 }
 
 /**
+ * Represents an elimination phase for ranking calculation
+ */
+interface EliminationPhase {
+  bracketType: 'loser'
+  roundNumber: number
+  isFinale: boolean
+}
+
+/**
+ * Finds the heat in which a pilot was eliminated (ranked 3+ in LB)
+ * Returns null if pilot is still active or was never in LB
+ */
+function findEliminationHeat(pilot: Pilot, heats: Heat[]): Heat | null {
+  // Find LB heats where the pilot ranked 3 or worse (eliminated)
+  const eliminationHeats = heats.filter(h =>
+    h.bracketType === 'loser' &&
+    h.status === 'completed' &&
+    h.pilotIds.includes(pilot.id) &&
+    h.results?.rankings.some(r => r.pilotId === pilot.id && r.rank >= 3)
+  )
+
+  if (eliminationHeats.length === 0) return null
+
+  // Return the heat with the highest round number (latest elimination)
+  return eliminationHeats.sort((a, b) => (b.roundNumber ?? 0) - (a.roundNumber ?? 0))[0]
+}
+
+/**
+ * Gets the elimination phase from a heat
+ */
+function getEliminationPhase(heat: Heat): EliminationPhase {
+  return {
+    bracketType: 'loser',
+    roundNumber: heat.roundNumber ?? 1,
+    isFinale: heat.isFinale ?? false
+  }
+}
+
+/**
+ * Collects all elimination phases and counts how many pilots were eliminated in each
+ */
+function collectEliminationCounts(heats: Heat[]): Map<string, { phase: EliminationPhase; count: number }> {
+  const counts = new Map<string, { phase: EliminationPhase; count: number }>()
+
+  const lbHeats = heats.filter(h => h.bracketType === 'loser' && h.status === 'completed')
+
+  for (const heat of lbHeats) {
+    if (!heat.results) continue
+
+    // Count pilots eliminated in this heat (rank 3+)
+    const eliminatedInHeat = heat.results.rankings.filter(r => r.rank >= 3).length
+
+    if (eliminatedInHeat === 0) continue
+
+    const phase = getEliminationPhase(heat)
+    const key = phase.isFinale ? 'lb-finale' : `lb-r${phase.roundNumber}`
+
+    const existing = counts.get(key)
+    if (existing) {
+      existing.count += eliminatedInHeat
+    } else {
+      counts.set(key, { phase, count: eliminatedInHeat })
+    }
+  }
+
+  return counts
+}
+
+/**
+ * Calculates the placement group bounds for a pilot eliminated in a specific phase
+ * 
+ * The algorithm works by counting eliminations from "best" to "worst":
+ * - Grand Finale: Places 1-4
+ * - LB Finale (rank 3+): Next places after Grand Finale
+ * - Earlier LB rounds: Progressively worse places
+ */
+function calculateGroupBounds(
+  eliminationPhase: EliminationPhase,
+  heats: Heat[],
+  allPilots: Pilot[]
+): { start: number; end: number } {
+  const activePilots = allPilots.filter(p => !p.droppedOut && p.status !== 'withdrawn')
+  const totalPilots = activePilots.length
+
+  // Collect all elimination phases with counts
+  const eliminationCounts = collectEliminationCounts(heats)
+
+  // Sort phases from best (highest round/finale) to worst (lowest round)
+  const sortedPhases = Array.from(eliminationCounts.values()).sort((a, b) => {
+    // Finale comes first (best placement for eliminated)
+    if (a.phase.isFinale && !b.phase.isFinale) return -1
+    if (!a.phase.isFinale && b.phase.isFinale) return 1
+    // Higher round number = better placement
+    return b.phase.roundNumber - a.phase.roundNumber
+  })
+
+  // Start after Grand Finale (places 1-4)
+  let currentPosition = 5
+
+  for (const { phase, count } of sortedPhases) {
+    const matchesPhase =
+      phase.isFinale === eliminationPhase.isFinale &&
+      phase.roundNumber === eliminationPhase.roundNumber
+
+    if (matchesPhase) {
+      return {
+        start: currentPosition,
+        end: currentPosition + count - 1
+      }
+    }
+
+    currentPosition += count
+  }
+
+  // Fallback: should not happen, but return remaining range
+  return { start: currentPosition, end: totalPilots }
+}
+
+/**
+ * Calculates the placement group for a pilot
+ * 
+ * Returns:
+ * - "1", "2", "3", "4" for Grand Finale participants (exact placement)
+ * - "5-6", "7-8", etc. for eliminated pilots (group based on elimination round)
+ * - "" (empty) for still active pilots
+ */
+function getPlacementGroup(
+  pilot: Pilot,
+  heats: Heat[],
+  allPilots: Pilot[],
+  placementMap?: Map<string, number>
+): string {
+  // 1. Top 4 from Grand Finale - return exact placement
+  if (placementMap?.has(pilot.id)) {
+    return String(placementMap.get(pilot.id))
+  }
+
+  // 2. Find the heat where this pilot was eliminated
+  const eliminationHeat = findEliminationHeat(pilot, heats)
+  if (!eliminationHeat) {
+    // Pilot is still active or never participated in LB
+    return ''
+  }
+
+  // 3. Calculate placement group based on elimination phase
+  const eliminationPhase = getEliminationPhase(eliminationHeat)
+  const groupBounds = calculateGroupBounds(eliminationPhase, heats, allPilots)
+
+  // 4. Format as range (or single number if start === end)
+  if (groupBounds.start === groupBounds.end) {
+    return String(groupBounds.start)
+  }
+  return `${groupBounds.start}-${groupBounds.end}`
+}
+
+/**
  * Generates CSV export from tournament state
  * 
- * Columns: Pilot, Status, Platzierung, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
+ * Columns: Pilot, Status, Platzierung, Ranggruppe, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
  */
 export interface CSVExportOptions {
   top4?: Top4Pilots | null
@@ -466,12 +634,13 @@ export function generateCSVExport(
   const placementMap = buildPlacementMap(options.top4)
   
   // Header row
-  const header = 'Pilot,Status,Platzierung,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
+  const header = 'Pilot,Status,Platzierung,Ranggruppe,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
   
   // Data rows
   const rows = pilots.map(pilot => {
     const status = getPilotStatus(pilot, heats, isCompleted)
     const placement = getPilotPlacement(pilot, heats, placementMap)
+    const placementGroup = getPlacementGroup(pilot, heats, pilots, placementMap)
     const bracket = getPilotBracket(pilot, heats)
     const heatsFlown = getHeatsFlown(pilot, heats)
     const results = formatHeatResults(pilot, heats)
@@ -481,6 +650,7 @@ export function generateCSVExport(
       escapeCSVField(pilot.name),
       escapeCSVField(status),
       placement,
+      placementGroup,
       escapeCSVField(bracket),
       String(heatsFlown),
       escapeCSVField(results),
