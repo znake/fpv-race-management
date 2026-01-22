@@ -33,12 +33,19 @@ export function Header({ onResetAll, activeTab, onTabChange }: HeaderProps) {
     <header className="bg-night border-b-2 border-neon-pink shadow-glow-pink px-8 py-4 flex justify-between items-center">
       {/* Logo - Beamer-optimiert (min 36px) */}
       <h1 className="font-display text-beamer-heat tracking-widest">
-        <span className="text-neon-cyan">#</span>
-        <span className="bg-gradient-to-r from-neon-pink to-neon-magenta bg-clip-text text-transparent">
-          FPVOOE
-        </span>
-        <span className="text-steel"> - </span>
-        <span className="text-chrome">Racing Management</span>
+        <a 
+          href="https://fpvooe.com/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:opacity-80 transition-opacity"
+        >
+          <span className="text-neon-cyan">#</span>
+          <span className="bg-gradient-to-r from-neon-pink to-neon-magenta bg-clip-text text-transparent">
+            FPVOOE
+          </span>
+          <span className="text-steel"> - </span>
+          <span className="text-chrome">Racing Management</span>
+        </a>
       </h1>
       
       {/* Centered Tab Navigation */}
