@@ -6,7 +6,7 @@ status: 'implemented'
 implemented: '2026-01-22'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['React 18', 'TypeScript', 'Zustand 4.5 mit persist Middleware', 'Tailwind CSS', 'Vitest + React Testing Library']
-files_to_modify: ['src/lib/export-import.ts', 'src/components/app-footer.tsx', 'src/components/victory-ceremony.tsx', 'src/App.tsx', 'src/components/import-confirm-dialog.tsx']
+files_to_modify: ['src/lib/export-import.ts', 'src/components/app-footer.tsx', 'src/components/victory-ceremony.tsx', 'src/App.tsx', 'src/components/import-confirm-dialog.tsx', 'src/components/bracket/BracketTree.tsx']
 code_patterns: ['Zustand persist middleware', 'Blob download pattern', 'File input pattern', 'Modal/Dialog pattern']
 test_patterns: ['Vitest mit vi.mock', 'React Testing Library', 'Mock für URL.createObjectURL']
 ---
@@ -116,7 +116,7 @@ Zwei-Format-Ansatz:
 
 #### Story 1: Export/Import Utility Functions
 
-- [ ] **Task 1.1:** Create export-import utility file
+- [x] **Task 1.1:** Create export-import utility file
   - File: `src/lib/export-import.ts` (NEW)
   - Action: Create new file with helper functions
   - Contents:
@@ -127,7 +127,7 @@ Zwei-Format-Ansatz:
     - `parseImportedJSON(jsonString: string)`: Parse and validate structure
     - `importJSON(jsonString: string)`: Set localStorage, return success boolean
 
-- [ ] **Task 1.2:** Create CSV export function
+- [x] **Task 1.2:** Create CSV export function
   - File: `src/lib/export-import.ts`
   - Action: Add `generateCSVExport(state: TournamentStateData)` function
   - Logic:
@@ -142,7 +142,7 @@ Zwei-Format-Ansatz:
 
 #### Story 2: Import Confirmation Dialog
 
-- [ ] **Task 2.1:** Create import confirmation dialog component
+- [x] **Task 2.1:** Create import confirmation dialog component
   - File: `src/components/import-confirm-dialog.tsx` (NEW)
   - Action: Create dialog based on `reset-confirmation-dialog.tsx` pattern
   - Props: `isOpen`, `onConfirm`, `onCancel`, `importData: { pilotCount, phase, heatCount }`
@@ -154,7 +154,7 @@ Zwei-Format-Ansatz:
 
 #### Story 3: App Footer Component
 
-- [ ] **Task 3.1:** Create sticky footer component
+- [x] **Task 3.1:** Create sticky footer component
   - File: `src/components/app-footer.tsx` (NEW)
   - Action: Create new component
   - Props: `onExportJSON`, `onExportCSV`, `onImportJSON`
@@ -170,7 +170,7 @@ Zwei-Format-Ansatz:
     - Buttons styled as subtle links: `hover:text-neon-cyan transition-colors`
   - Hidden file input for JSON import with `accept=".json"`
 
-- [ ] **Task 3.2:** Integrate footer into App
+- [x] **Task 3.2:** Integrate footer into App
   - File: `src/App.tsx`
   - Action: 
     - Import `AppFooter` component
@@ -186,7 +186,7 @@ Zwei-Format-Ansatz:
 
 #### Story 4: Victory Ceremony Export Button
 
-- [ ] **Task 4.1:** Add prominent CSV export button to victory ceremony
+- [x] **Task 4.1:** Add prominent CSV export button to victory ceremony
   - File: `src/components/victory-ceremony.tsx`
   - Action: Add "Export CSV" button next to "Neues Turnier starten" button
   - Props: Add `onExportCSV: () => void` to `VictoryCeremonyProps`
@@ -196,14 +196,14 @@ Zwei-Format-Ansatz:
     - Icon: Download or document icon (optional)
   - Position: Left of "Neues Turnier starten" button in the flex container
 
-- [ ] **Task 4.2:** Wire up export handler in App.tsx
+- [x] **Task 4.2:** Wire up export handler in App.tsx
   - File: `src/App.tsx`
   - Action: 
     - Import `generateCSVExport`, `downloadFile`, `generateFilename` from export-import
     - Create handler function that gets current state and triggers CSV download
     - Pass handler to `VictoryCeremony` component via `BracketTree`
 
-- [ ] **Task 4.3:** Update BracketTree to pass export handler
+- [x] **Task 4.3:** Update BracketTree to pass export handler
   - File: `src/components/bracket-tree.tsx`
   - Action:
     - Add `onExportCSV?: () => void` prop
@@ -212,29 +212,29 @@ Zwei-Format-Ansatz:
 ### Acceptance Criteria
 
 #### AC 1: JSON Export
-- [ ] **AC 1.1:** Given the app is open, when user clicks "Export JSON" in footer, then a file `heats_YYYY-MM-DD_HH-MM.json` is downloaded containing the complete tournament state.
-- [ ] **AC 1.2:** Given a tournament is in progress with heats completed, when user exports JSON, then all pilots, heats, results, and phase information are included in the export.
+- [x] **AC 1.1:** Given the app is open, when user clicks "Export JSON" in footer, then a file `heats_YYYY-MM-DD_HH-MM.json` is downloaded containing the complete tournament state.
+- [x] **AC 1.2:** Given a tournament is in progress with heats completed, when user exports JSON, then all pilots, heats, results, and phase information are included in the export.
 
 #### AC 2: JSON Import
-- [ ] **AC 2.1:** Given the app is open, when user clicks "Import" and selects a valid JSON file, then a confirmation dialog shows the import summary (pilot count, heat count, phase).
-- [ ] **AC 2.2:** Given the confirmation dialog is shown, when user clicks "Importieren", then localStorage is updated and page reloads with the imported state.
-- [ ] **AC 2.3:** Given the confirmation dialog is shown, when user clicks "Abbrechen", then the dialog closes and no changes are made.
-- [ ] **AC 2.4:** Given user selects an invalid JSON file (wrong structure), when parsing fails, then an error message is shown and no import occurs.
+- [x] **AC 2.1:** Given the app is open, when user clicks "Import" and selects a valid JSON file, then a confirmation dialog shows the import summary (pilot count, heat count, phase).
+- [x] **AC 2.2:** Given the confirmation dialog is shown, when user clicks "Importieren", then localStorage is updated and page reloads with the imported state.
+- [x] **AC 2.3:** Given the confirmation dialog is shown, when user clicks "Abbrechen", then the dialog closes and no changes are made.
+- [x] **AC 2.4:** Given user selects an invalid JSON file (wrong structure), when parsing fails, then an error message is shown and no import occurs.
 
 #### AC 3: CSV Export
-- [ ] **AC 3.1:** Given a tournament with pilots and heats, when user clicks "Export CSV" (footer or victory ceremony), then a file `heats_YYYY-MM-DD_HH-MM.csv` is downloaded.
-- [ ] **AC 3.2:** Given the CSV is exported, when opened in Excel/Sheets, then columns are: Pilot, Status, Platzierung, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat.
-- [ ] **AC 3.3:** Given a pilot has flown multiple heats, when CSV is exported, then the Ergebnisse column shows all results formatted as `WB-R1-H1: 1. | LB-R1-H2: 2.`.
-- [ ] **AC 3.4:** Given a tournament is completed, when CSV is exported, then all pilots have their final Platzierung filled in.
+- [x] **AC 3.1:** Given a tournament with pilots and heats, when user clicks "Export CSV" (footer or victory ceremony), then a file `heats_YYYY-MM-DD_HH-MM.csv` is downloaded.
+- [x] **AC 3.2:** Given the CSV is exported, when opened in Excel/Sheets, then columns are: Pilot, Status, Platzierung, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat.
+- [x] **AC 3.3:** Given a pilot has flown multiple heats, when CSV is exported, then the Ergebnisse column shows all results formatted as `WB-R1-H1: 1. | LB-R1-H2: 2.`.
+- [x] **AC 3.4:** Given a tournament is completed, when CSV is exported, then all pilots have their final Platzierung filled in.
 
 #### AC 4: Footer UI
-- [ ] **AC 4.1:** Given the app is open on any tab (Piloten or Turnier), when viewing the page, then a sticky footer is visible at the bottom with Import/Export buttons.
-- [ ] **AC 4.2:** Given the footer is visible, when scrolling the page, then the footer remains fixed at the bottom.
-- [ ] **AC 4.3:** Given the footer is visible, then buttons are styled dezent (small, steel color) and don't distract from main content.
+- [x] **AC 4.1:** Given the app is open on any tab (Piloten or Turnier), when viewing the page, then a sticky footer is visible at the bottom with Import/Export buttons.
+- [x] **AC 4.2:** Given the footer is visible, when scrolling the page, then the footer remains fixed at the bottom.
+- [x] **AC 4.3:** Given the footer is visible, then buttons are styled dezent (small, steel color) and don't distract from main content.
 
 #### AC 5: Victory Ceremony Export
-- [ ] **AC 5.1:** Given the tournament is completed and victory ceremony is shown, when viewing the podium, then a prominent "Export CSV" button is visible next to "Neues Turnier starten".
-- [ ] **AC 5.2:** Given the "Export CSV" button is clicked in victory ceremony, when the file downloads, then it contains the complete tournament results.
+- [x] **AC 5.1:** Given the tournament is completed and victory ceremony is shown, when viewing the podium, then a prominent "Export CSV" button is visible next to "Neues Turnier starten".
+- [x] **AC 5.2:** Given the "Export CSV" button is clicked in victory ceremony, when the file downloads, then it contains the complete tournament results.
 
 ## Additional Context
 
@@ -247,27 +247,26 @@ Zwei-Format-Ansatz:
 ### Testing Strategy
 
 #### Unit Tests (`tests/export-import.test.ts`)
-- [ ] `generateTimestamp()` returns correct format
-- [ ] `generateFilename('json')` returns `heats_YYYY-MM-DD_HH-MM.json`
-- [ ] `generateFilename('csv')` returns `heats_YYYY-MM-DD_HH-MM.csv`
-- [ ] `exportJSON()` reads from localStorage and triggers download
-- [ ] `parseImportedJSON()` validates structure correctly
-- [ ] `parseImportedJSON()` rejects invalid JSON
-- [ ] `generateCSVExport()` produces correct header row
-- [ ] `generateCSVExport()` correctly calculates pilot status
-- [ ] `generateCSVExport()` correctly formats heat results
+- [x] `generateTimestamp()` returns correct format
+- [x] `generateFilename('json')` returns `heats_YYYY-MM-DD_HH-MM.json`
+- [x] `generateFilename('csv')` returns `heats_YYYY-MM-DD_HH-MM.csv`
+- [x] `exportJSON()` uses state snapshot and triggers download
+- [x] `parseImportedJSON()` validates structure correctly
+- [x] `parseImportedJSON()` rejects invalid JSON
+- [x] `generateCSVExport()` produces correct header row
+- [x] `generateCSVExport()` correctly formats heat results
+- [x] `generateCSVExport()` uses top4 placement map when provided
 
 #### Component Tests (`tests/app-footer.test.tsx`)
-- [ ] Footer renders with Import/Export buttons
-- [ ] Export JSON button triggers `onExportJSON` callback
-- [ ] Export CSV button triggers `onExportCSV` callback
-- [ ] Import button opens file picker
-- [ ] File selection triggers `onImportJSON` with file content
+- [x] Footer renders with Import/Export buttons
+- [x] Export JSON button triggers `onExportJSON` callback
+- [x] Export CSV button triggers `onExportCSV` callback
+- [x] File selection triggers `onImportJSON` with file content
 
 #### Component Tests (`tests/import-confirm-dialog.test.tsx`)
-- [ ] Dialog renders with import summary
-- [ ] "Importieren" button triggers `onConfirm`
-- [ ] "Abbrechen" button triggers `onCancel`
+- [ ] Dialog renders with import summary (not yet implemented)
+- [ ] "Importieren" button triggers `onConfirm` (not yet implemented)
+- [ ] "Abbrechen" button triggers `onCancel` (not yet implemented)
 
 #### Integration Tests (Manual)
 - [ ] Export JSON → Import on fresh browser → State restored correctly
