@@ -35,7 +35,7 @@ export function OnDeckPreview({ heat, pilots }: OnDeckPreviewProps) {
             {/* Small Photo - min 48px (AC3) */}
             <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta flex-shrink-0">
               <img
-                src={pilot.imageUrl}
+                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={`Foto von ${pilot.name}`}
                 className="w-full h-full object-cover"
                 loading="lazy"

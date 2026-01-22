@@ -269,7 +269,7 @@ export function PlacementEntryModal({
               <div className="relative mb-6 mx-auto w-[220px] h-[220px]">
                 <div className="w-[220px] h-[220px] rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta">
                   <img
-                    src={pilot.imageUrl}
+                    src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                     alt={pilot.name}
                     className="w-full h-full object-cover"
                     loading="lazy"

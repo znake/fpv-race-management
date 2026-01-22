@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '../../../lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
 import type { FilledBracketHeatBoxProps } from '../types'
 
 /**
@@ -116,10 +117,10 @@ export function FilledBracketHeatBox({
               {/* Pilot-Avatar */}
               <img 
                 className="pilot-avatar"
-                src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
+                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={pilot.name}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                 }}
               />
               {/* Pilot-Name */}

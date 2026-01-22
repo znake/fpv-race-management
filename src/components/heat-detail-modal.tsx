@@ -51,7 +51,7 @@ export function HeatDetailModal({
             <div key={pilotId} className="flex items-center gap-4 p-3 bg-void rounded-xl">
               {/* Pilot Image */}
               <img
-                src={pilot?.imageUrl}
+                src={pilot?.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={pilot?.name}
                 className="w-16 h-16 rounded-full object-cover border-2 border-steel"
                 onError={(e) => {

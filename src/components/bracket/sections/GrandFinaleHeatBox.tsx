@@ -1,5 +1,6 @@
 import { getPilotBracketOrigin } from '../../../lib/bracket-logic'
 import { cn } from '../../../lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
 import type { GrandFinaleHeatBoxProps } from '../types'
 
 /**
@@ -60,13 +61,13 @@ export function GrandFinaleHeatBox({
             {/* AC9: Pilot-Avatar */}
             <img
               className="pilot-avatar"
-              src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
+              src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
               alt={pilot.name}
               style={{
                 borderColor: origin === 'wb' ? 'var(--winner-green)' : 'var(--loser-red)'
               }}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
+                (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
               }}
             />
 

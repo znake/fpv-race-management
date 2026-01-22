@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '../../lib/utils';
+import { FALLBACK_PILOT_IMAGE } from '../../lib/ui-helpers';
 
 interface PilotAvatarProps {
   imageUrl?: string;
@@ -36,20 +37,12 @@ export function PilotAvatar({
         className
       )}
     >
-      {showFallback ? (
-        <div className="w-full h-full bg-gradient-to-br from-neon-pink to-cyber-cyan flex items-center justify-center">
-          <span className="text-white font-bold">
-            {name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-      ) : (
-        <img
-          src={imageUrl}
+      <img
+          src={showFallback ? FALLBACK_PILOT_IMAGE : imageUrl}
           alt={name}
           className="w-full h-full object-cover"
           onError={() => setImgError(true)}
         />
-      )}
     </div>
   );
 }

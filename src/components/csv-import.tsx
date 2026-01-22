@@ -6,9 +6,9 @@ import { Modal } from './ui/modal'
 import type { CSVImportResult, CSVImportState, DuplicatePilot } from '../types/csv'
 
 interface CSVImportProps {
-  onImport: (pilots: Array<{ name: string; imageUrl: string; instagramHandle?: string }>) => void
+  onImport: (pilots: Array<{ name: string; imageUrl?: string; instagramHandle?: string }>) => void
   onCancel: () => void
-  existingPilots?: Array<{ id: string; name: string; imageUrl: string; instagramHandle?: string }>
+  existingPilots?: Array<{ id: string; name: string; imageUrl?: string; instagramHandle?: string }>
 }
 
 export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImportProps) {
@@ -82,7 +82,7 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
 
       // Validate with Zod schema
       const validationErrors: typeof result.errors = []
-      const validPilots: Array<{ name: string; imageUrl: string; instagramHandle?: string }> = []
+      const validPilots: Array<{ name: string; imageUrl?: string; instagramHandle?: string }> = []
 
       for (let i = 0; i < result.pilots.length; i++) {
         const pilot = result.pilots[i]
@@ -113,7 +113,7 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
 
       // Check for duplicates
       const duplicates: DuplicatePilot[] = []
-      const uniquePilots: Array<{ name: string; imageUrl: string; instagramHandle?: string }> = []
+      const uniquePilots: Array<{ name: string; imageUrl?: string; instagramHandle?: string }> = []
 
       for (const pilot of validPilots) {
         const existing = existingPilots.find(existing =>

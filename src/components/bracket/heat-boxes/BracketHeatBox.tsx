@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '../../../lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
 import type { BracketHeatBoxProps } from '../types'
 
 /**
@@ -124,10 +125,10 @@ export function BracketHeatBox({
               {/* AC9: Pilot-Avatar */}
               <img 
                 className="pilot-avatar"
-                src={pilot.imageUrl || `https://i.pravatar.cc/150?u=${pilot.id}`}
+                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={pilot.name}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${pilot.id}`
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                 }}
               />
               {/* AC10: Pilot-Name */}

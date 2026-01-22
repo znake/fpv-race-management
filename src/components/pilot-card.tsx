@@ -98,7 +98,7 @@ export function PilotCard({
 
   const handleCancel = () => {
     setEditName(pilot.name)
-    setEditImageUrl(pilot.imageUrl)
+    setEditImageUrl(pilot.imageUrl || '')
     setEditInstagramHandle(pilot.instagramHandle || '')
     setIsEditing(false)
     setValidationErrors([])
@@ -227,7 +227,7 @@ export function PilotCard({
               />
             ) : (
               <img
-                src={pilot.imageUrl}
+                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                 alt={pilot.name}
                 className="w-full h-full object-cover"
                 loading="lazy"
