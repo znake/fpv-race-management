@@ -218,8 +218,10 @@ export function BracketTree({
    * 1. QualiSection oben (horizontal)
    * 2. WB + LB side-by-side (bracket-columns-wrapper)
    * 3. Grand Finale unten (mittig)
+   * 
+   * @param disableConnectors - If true, skip SVG connector line updates (used during victory ceremony)
    */
-  const renderBracketColumnsWrapper = () => (
+  const renderBracketColumnsWrapper = (disableConnectors = false) => (
     <div
       ref={zoomWrapperRef}
       className={cn(
@@ -254,6 +256,7 @@ export function BracketTree({
           containerRef={zoomContainerRef}
           heatRefs={heatRefsMap.current}
           scale={zoomState.scale}
+          disabled={disableConnectors}
         />
         
         {/* 1. QUALIFICATION SECTION (horizontal, oben) */}
@@ -321,11 +324,12 @@ export function BracketTree({
         />
 
         {/* Still show bracket below for reference - Beamer-optimiert */}
+        {/* Disable SVG connector updates to prevent visual glitches with VictoryCeremony overlay */}
         <div className="mt-8 opacity-75">
           <h3 className="font-display text-beamer-name text-steel text-center mb-4">
             Turnierverlauf
           </h3>
-          {renderBracketColumnsWrapper()}
+          {renderBracketColumnsWrapper(true)}
         </div>
 
         {/* Heat Detail Modal */}

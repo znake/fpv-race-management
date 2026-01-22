@@ -95,6 +95,8 @@ interface SVGConnectorLinesProps {
   containerRef: React.RefObject<HTMLDivElement | null>
   heatRefs: Map<string, HTMLDivElement | null>
   scale?: number
+  /** When true, skip all drawing operations (used during victory ceremony overlay) */
+  disabled?: boolean
 }
 
 /**
@@ -109,12 +111,16 @@ export function SVGConnectorLines({
   heats,
   containerRef: _containerRef,
   heatRefs: _heatRefs,
-  scale = 1
+  scale = 1,
+  disabled = false
 }: SVGConnectorLinesProps) {
   const managerRef = useRef<ConnectorManager | null>(null)
 
   // Initialize ConnectorManager
   useEffect(() => {
+    // Skip initialization if disabled (e.g., during victory ceremony)
+    if (disabled) return
+    
     // Wait for DOM to be ready
     const timer = setTimeout(() => {
       if (!managerRef.current) {
@@ -133,15 +139,16 @@ export function SVGConnectorLines({
         managerRef.current = null
       }
     }
-  }, []) // Run once on mount
+  }, [disabled]) // Re-run if disabled changes
 
   // Handle Scale
   useEffect(() => {
+    if (disabled) return
     if (managerRef.current) {
       managerRef.current.setScale(scale)
       managerRef.current.debouncedRedraw()
     }
-  }, [scale])
+  }, [scale, disabled])
 
   // Update Connections Logic
   const updateConnections = () => {
@@ -212,12 +219,13 @@ export function SVGConnectorLines({
 
   // Update when heats change
   useEffect(() => {
+    if (disabled) return
     // Debounce heat updates slightly
     const timer = setTimeout(() => {
         updateConnections()
     }, 50)
     return () => clearTimeout(timer)
-  }, [heats])
+  }, [heats, disabled])
 
   return (
     <svg
