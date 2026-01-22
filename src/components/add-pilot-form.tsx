@@ -75,11 +75,13 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
       </div>
       
       <div className="space-y-3">
-        <Label htmlFor="imageUrl" className="text-chrome text-lg font-semibold">Bild URL</Label>
+        <Label htmlFor="imageUrl" className="text-chrome text-lg font-semibold">
+          Bild URL <span className="text-steel font-normal">(optional)</span>
+        </Label>
         <Input 
           id="imageUrl" 
           {...form.register('imageUrl')} 
-          placeholder="https://example.com/pilot.jpg"
+          placeholder="https://example.com/pilot.jpg (leer = Trollface)"
           className="bg-night/50 border-steel text-chrome placeholder:text-steel focus:border-neon-pink focus:shadow-glow-pink font-ui" 
         />
         {form.formState.errors.imageUrl && (

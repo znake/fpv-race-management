@@ -99,7 +99,7 @@ interface TournamentState {
   grandFinaleRematchPending: boolean
 
   // Pilot management actions
-  addPilot: (input: { name: string; imageUrl: string; instagramHandle?: string }) => boolean
+  addPilot: (input: { name: string; imageUrl?: string; instagramHandle?: string }) => boolean
   updatePilot: (id: string, updates: { name?: string; imageUrl?: string; instagramHandle?: string }) => boolean
   deletePilot: (id: string) => boolean
   markPilotAsDroppedOut: (id: string) => boolean

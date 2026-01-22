@@ -3,7 +3,7 @@ import { z } from 'zod'
 export interface Pilot {
   id: string
   name: string
-  imageUrl: string
+  imageUrl?: string
   instagramHandle?: string
   status?: 'active' | 'withdrawn'
   droppedOut?: boolean // @deprecated - use status instead
@@ -18,7 +18,7 @@ const instagramHandleSchema = z.string()
 
 export const pilotSchema = z.object({
   name: z.string().min(3, 'Name muss mindestens 3 Zeichen haben'),
-  imageUrl: z.string().url('Ungültige Bild-URL'),
+  imageUrl: z.string().url('Ungültige Bild-URL').optional().or(z.literal('')),
   instagramHandle: instagramHandleSchema,
 })
 
@@ -33,8 +33,12 @@ export const csvImportSchema = z.object({
     .max(50, 'Name darf maximal 50 Zeichen haben')
     .transform(val => val.normalize('NFC').trim()),
   imageUrl: z.string()
-    .url('Ungültige Bild-URL')
-    .transform(val => val.trim()),
+    .optional()
+    .transform(val => {
+      if (!val || val.trim() === '') return ''
+      return val.trim()
+    })
+    .refine(val => !val || val === '' || /^https?:\/\/.+/.test(val), 'Ungültige Bild-URL'),
   instagramHandle: z.string()
     .optional()
     .transform(val => {

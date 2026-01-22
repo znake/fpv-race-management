@@ -7,7 +7,7 @@ import { useRef } from 'react'
  */
 interface OptimisticPilotUpdate {
   name: string
-  imageUrl: string
+  imageUrl?: string
 }
 
 export function usePilots() {
@@ -59,7 +59,7 @@ export function usePilots() {
     return success
   }
 
-  const importPilots = async (csvPilots: Array<{ name: string; imageUrl: string; instagramHandle?: string }>) => {
+  const importPilots = async (csvPilots: Array<{ name: string; imageUrl?: string; instagramHandle?: string }>) => {
     // Performance NFR: <5s für 60 Piloten
     const startTime = performance.now()
     let successCount = 0

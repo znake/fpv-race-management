@@ -1,15 +1,29 @@
 import type { Ranking } from './schemas'
 
 /**
- * Inline SVG data URL for offline-first fallback pilot image
+ * Inline SVG data URL for offline-first fallback pilot image (Trollface)
  * No external dependencies - works completely offline
  */
 export const FALLBACK_PILOT_IMAGE = `data:image/svg+xml,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
-  <rect width="150" height="150" fill="#0d0221"/>
-  <circle cx="75" cy="55" r="30" fill="#ff2a6d"/>
-  <ellipse cx="75" cy="130" rx="45" ry="35" fill="#ff2a6d"/>
-  <text x="75" y="60" font-family="sans-serif" font-size="24" fill="#0d0221" text-anchor="middle">?</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180">
+  <rect width="200" height="180" fill="#ffffff"/>
+  <!-- Head outline -->
+  <ellipse cx="100" cy="90" rx="80" ry="70" fill="#ffffff" stroke="#000000" stroke-width="3"/>
+  <!-- Left eye -->
+  <ellipse cx="65" cy="70" rx="18" ry="12" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+  <circle cx="70" cy="70" r="5" fill="#000000"/>
+  <!-- Right eye (raised eyebrow look) -->
+  <ellipse cx="135" cy="65" rx="18" ry="12" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+  <circle cx="140" cy="65" r="5" fill="#000000"/>
+  <!-- Raised eyebrow -->
+  <path d="M115 45 Q135 35, 160 50" fill="none" stroke="#000000" stroke-width="3"/>
+  <!-- Nose -->
+  <path d="M100 75 L95 95 L105 95" fill="none" stroke="#000000" stroke-width="2"/>
+  <!-- Trollface grin -->
+  <path d="M45 105 Q55 145, 100 150 Q145 145, 160 110" fill="#ffffff" stroke="#000000" stroke-width="3"/>
+  <path d="M55 115 L60 125 L70 115 L80 125 L90 115 L100 125 L110 115 L120 125 L130 115 L140 125 L145 115" fill="none" stroke="#000000" stroke-width="2"/>
+  <!-- Chin wrinkles -->
+  <path d="M70 140 Q100 155, 130 140" fill="none" stroke="#000000" stroke-width="1"/>
 </svg>
 `)}`
 

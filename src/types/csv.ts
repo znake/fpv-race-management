@@ -24,9 +24,9 @@ export interface CSVImportError {
 export interface DuplicatePilot {
   row: number
   name: string
-  imageUrl: string
+  imageUrl?: string
   instagramHandle?: string
-  existingPilot: { id: string; name: string; imageUrl: string; instagramHandle?: string }
+  existingPilot: { id: string; name: string; imageUrl?: string; instagramHandle?: string }
   action: 'pending' | 'skip' | 'merge'
 }
 
