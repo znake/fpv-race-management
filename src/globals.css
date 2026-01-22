@@ -443,7 +443,8 @@
     padding: 25px;
     position: relative;
     overflow: hidden;
-    min-height: 600px;
+    /* Responsive height: fills available viewport space */
+    min-height: calc(100vh - 200px);
     /* Full-width Container - passt sich ans Fenster an */
     width: 100%;
     min-width: 0;
@@ -1145,7 +1146,8 @@
     overflow: hidden;
     position: relative;
     cursor: default;
-    min-height: 1000px; /* Ensure enough space for scrolling */
+    /* Responsive height: fills available space, min 400px */
+    min-height: max(400px, calc(100vh - 280px));
     /* AC8: Prevent browser zoom/scroll gestures - handled by JS */
     touch-action: none;
     /* Prevent text selection during pan */
@@ -1167,8 +1169,8 @@
   /* Touch device optimizations */
   @media (pointer: coarse) {
     .zoom-wrapper {
-      /* Slightly larger touch targets */
-      min-height: 800px;
+      /* Responsive height for touch devices */
+      min-height: max(400px, calc(100vh - 280px));
     }
   }
 

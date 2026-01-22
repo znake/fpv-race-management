@@ -289,18 +289,6 @@ export function App() {
               onNewTournament={handleNewTournament}
               onExportCSV={handleExportCSV}
             />
-            
-            {/* Turnier zurücksetzen Button - nur wenn Turnier läuft */}
-            {tournamentPhase !== 'setup' && tournamentPhase !== 'completed' && (
-              <div className="mt-8 pt-6 border-t border-steel/20 text-center">
-                <button
-                  onClick={() => setShowResetTournamentDialog(true)}
-                  className="bg-night border-2 border-loser-red text-loser-red px-5 py-3 min-h-[48px] rounded-lg text-beamer-body hover:bg-loser-red/10 transition-colors"
-                >
-                  Turnier zurücksetzen
-                </button>
-              </div>
-            )}
           </div>
         )
       )}
@@ -397,6 +385,8 @@ export function App() {
         onExportJSON={handleExportJSON}
         onExportCSV={handleExportCSV}
         onImportJSON={handleImportJSON}
+        onResetTournament={() => setShowResetTournamentDialog(true)}
+        showResetButton={tournamentPhase !== 'setup' && tournamentPhase !== 'completed'}
       />
     </div>
   )

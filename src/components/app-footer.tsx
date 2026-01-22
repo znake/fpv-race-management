@@ -11,12 +11,16 @@ interface AppFooterProps {
   onExportJSON: () => void
   onExportCSV: () => void
   onImportJSON: (fileContent: string) => void
+  onResetTournament?: () => void
+  showResetButton?: boolean
 }
 
 export function AppFooter({
   onExportJSON,
   onExportCSV,
-  onImportJSON
+  onImportJSON,
+  onResetTournament,
+  showResetButton = false
 }: AppFooterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -52,28 +56,44 @@ export function AppFooter({
         aria-label="JSON-Datei auswählen"
       />
 
-      <div className="flex justify-end gap-4 text-xs">
-        <button
-          onClick={handleImportClick}
-          className="text-steel hover:text-neon-cyan transition-colors"
-          aria-label="Turnier importieren"
-        >
-          Import
-        </button>
-        <button
-          onClick={onExportJSON}
-          className="text-steel hover:text-neon-cyan transition-colors"
-          aria-label="Als JSON exportieren"
-        >
-          Export JSON
-        </button>
-        <button
-          onClick={onExportCSV}
-          className="text-steel hover:text-neon-cyan transition-colors"
-          aria-label="Als CSV exportieren"
-        >
-          Export CSV
-        </button>
+      <div className="flex justify-between items-center text-xs">
+        {/* Left side: Reset button (only shown during active tournament) */}
+        <div>
+          {showResetButton && onResetTournament && (
+            <button
+              onClick={onResetTournament}
+              className="text-loser-red hover:text-loser-red/80 transition-colors"
+              aria-label="Turnier zurücksetzen"
+            >
+              Turnier zurücksetzen
+            </button>
+          )}
+        </div>
+
+        {/* Right side: Import/Export buttons */}
+        <div className="flex gap-4">
+          <button
+            onClick={handleImportClick}
+            className="text-steel hover:text-neon-cyan transition-colors"
+            aria-label="Turnier importieren"
+          >
+            Import
+          </button>
+          <button
+            onClick={onExportJSON}
+            className="text-steel hover:text-neon-cyan transition-colors"
+            aria-label="Als JSON exportieren"
+          >
+            Export JSON
+          </button>
+          <button
+            onClick={onExportCSV}
+            className="text-steel hover:text-neon-cyan transition-colors"
+            aria-label="Als CSV exportieren"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
     </footer>
   )
