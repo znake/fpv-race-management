@@ -34,10 +34,10 @@ export function AppFooter({
     } catch (error) {
       console.error('Error reading file:', error)
       alert('Fehler beim Lesen der Datei.')
+    } finally {
+      // Reset input so same file can be selected again
+      e.target.value = ''
     }
-
-    // Reset input so same file can be selected again
-    e.target.value = ''
   }
 
   return (

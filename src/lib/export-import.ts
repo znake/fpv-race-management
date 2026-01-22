@@ -5,7 +5,7 @@
  * Story 1: Core utility functions for JSON/CSV export and JSON import
  */
 
-import type { TournamentStateData, Heat, Pilot } from '../types'
+import type { TournamentStateData, Heat, Pilot, Top4Pilots, TournamentPhase } from '../types'
 
 // localStorage key used by Zustand persist middleware
 const STORAGE_KEY = 'tournament-storage'
@@ -42,20 +42,54 @@ export function downloadFile(content: string, filename: string, mimeType: string
   URL.revokeObjectURL(link.href)
 }
 
+export interface TournamentStateSnapshotInput {
+  pilots: Pilot[]
+  tournamentStarted: boolean
+  tournamentPhase: TournamentPhase
+  heats: Heat[]
+  currentHeatIndex: number
+  winnerPilots: string[]
+  loserPilots: string[]
+  eliminatedPilots: string[]
+  loserPool: string[]
+  grandFinalePool: string[]
+  isQualificationComplete: boolean
+  isWBFinaleComplete: boolean
+  isLBFinaleComplete: boolean
+  isGrandFinaleComplete: boolean
+  lastCompletedBracketType: 'winner' | 'loser' | 'qualifier' | null
+}
+
+export function createTournamentStateSnapshot(
+  state: TournamentStateSnapshotInput
+): TournamentStateData {
+  return {
+    pilots: state.pilots,
+    tournamentStarted: state.tournamentStarted,
+    tournamentPhase: state.tournamentPhase,
+    heats: state.heats,
+    currentHeatIndex: state.currentHeatIndex,
+    winnerPilots: state.winnerPilots,
+    loserPilots: state.loserPilots,
+    eliminatedPilots: state.eliminatedPilots,
+    loserPool: state.loserPool,
+    grandFinalePool: state.grandFinalePool,
+    isQualificationComplete: state.isQualificationComplete,
+    isWBFinaleComplete: state.isWBFinaleComplete,
+    isLBFinaleComplete: state.isLBFinaleComplete,
+    isGrandFinaleComplete: state.isGrandFinaleComplete,
+    lastCompletedBracketType: state.lastCompletedBracketType
+  }
+}
+
 /**
  * Exports complete tournament state as JSON file
- * Reads directly from localStorage (Zustand persist storage)
+ * Uses current in-memory state snapshot
  */
-export function exportJSON(): void {
-  const storageData = localStorage.getItem(STORAGE_KEY)
-  
-  if (!storageData) {
-    alert('Keine Turnierdaten zum Exportieren gefunden.')
-    return
-  }
-  
+export function exportJSON(state: TournamentStateData): void {
+  const payload = JSON.stringify({ state, version: 0 })
   const filename = generateFilename('json')
-  downloadFile(storageData, filename, 'application/json')
+  downloadFile(payload, filename, 'application/json')
 }
 
 /**
@@ -66,6 +100,56 @@ export interface ParsedImportData {
   pilotCount: number
   heatCount: number
   phase: string
+}
+
+function isValidTournamentPhase(value: unknown): value is TournamentPhase {
+  return (
+    value === 'setup' ||
+    value === 'heat-assignment' ||
+    value === 'running' ||
+    value === 'finale' ||
+    value === 'completed'
+  )
+}
+
+function isValidHeatStatus(value: unknown): value is Heat['status'] {
+  return value === 'pending' || value === 'active' || value === 'completed'
+}
+
+function isValidHeat(heat: unknown): heat is Heat {
+  if (!heat || typeof heat !== 'object') return false
+  const candidate = heat as Heat
+  const hasValidBracketType =
+    candidate.bracketType === undefined ||
+    candidate.bracketType === 'loser' ||
+    candidate.bracketType === 'grand_finale' ||
+    candidate.bracketType === 'qualification' ||
+    candidate.bracketType === 'winner' ||
+    candidate.bracketType === 'finale'
+
+  if (typeof candidate.id !== 'string') return false
+  if (typeof candidate.heatNumber !== 'number') return false
+  if (!Array.isArray(candidate.pilotIds)) return false
+  if (!isValidHeatStatus(candidate.status)) return false
+  if (!hasValidBracketType) return false
+
+  if (candidate.results?.rankings) {
+    const rankingsValid = candidate.results.rankings.every((ranking) => {
+      return (
+        typeof ranking.pilotId === 'string' &&
+        (ranking.rank === 1 || ranking.rank === 2 || ranking.rank === 3 || ranking.rank === 4)
+      )
+    })
+    if (!rankingsValid) return false
+  }
+
+  return true
+}
+
+function isValidPilot(pilot: unknown): pilot is Pilot {
+  if (!pilot || typeof pilot !== 'object') return false
+  const candidate = pilot as Pilot
+  return typeof candidate.id === 'string' && typeof candidate.name === 'string'
 }
 
 /**
@@ -83,15 +167,34 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
     if (!state.pilots || !Array.isArray(state.pilots)) {
       throw new Error('Ungültige Struktur: pilots Array fehlt')
     }
-    
+
     if (!state.heats || !Array.isArray(state.heats)) {
       throw new Error('Ungültige Struktur: heats Array fehlt')
+    }
+
+    if (typeof state.tournamentStarted !== 'boolean') {
+      throw new Error('Ungültige Struktur: tournamentStarted fehlt')
+    }
+
+    if (typeof state.currentHeatIndex !== 'number') {
+      throw new Error('Ungültige Struktur: currentHeatIndex fehlt')
+    }
+
+    if (!state.pilots.every(isValidPilot)) {
+      throw new Error('Ungültige Struktur: pilots fehlerhaft')
+    }
+
+    if (!state.heats.every(isValidHeat)) {
+      throw new Error('Ungültige Struktur: heats fehlerhaft')
     }
     
     // Extract summary
     const pilotCount = state.pilots.length
     const heatCount = state.heats.length
-    const phase = state.tournamentPhase || 'setup'
+    const phaseValue = state.tournamentPhase ?? 'setup'
+    if (!isValidTournamentPhase(phaseValue)) {
+      throw new Error('Ungültige Struktur: tournamentPhase fehlerhaft')
+    }
     
     // Map phase to German label
     const phaseLabels: Record<string, string> = {
@@ -106,7 +209,7 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
       rawData: jsonString,
       pilotCount,
       heatCount,
-      phase: phaseLabels[phase] || phase
+      phase: phaseLabels[phaseValue] || phaseValue
     }
   } catch (error) {
     console.error('JSON Import Parse Error:', error)
@@ -232,7 +335,15 @@ function getPilotBracket(pilot: Pilot, heats: Heat[]): string {
 /**
  * Gets pilot's placement (1-4 or -)
  */
-function getPilotPlacement(pilot: Pilot, heats: Heat[]): string {
+function getPilotPlacement(
+  pilot: Pilot,
+  heats: Heat[],
+  placementMap?: Map<string, number>
+): string {
+  if (placementMap?.has(pilot.id)) {
+    return String(placementMap.get(pilot.id))
+  }
+
   const grandFinale = heats.find(h => 
     (h.bracketType === 'grand_finale' || h.bracketType === 'finale') &&
     h.status === 'completed'
@@ -257,8 +368,8 @@ function getHeatsFlown(pilot: Pilot, heats: Heat[]): number {
 
 /**
  * Formats heat results for a pilot
- * Example: "WB-R1-H1: 1. | LB-R1-H2: 2."
- */
+  * Example: "WB-R1-H1: 1. | LB-R1-H2: 2."
+  */
 function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
   const pilotHeats = heats
     .filter(h => h.pilotIds.includes(pilot.id) && h.status === 'completed' && h.results)
@@ -273,13 +384,13 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
     // Format heat name
     let heatName: string
     if (heat.bracketType === 'grand_finale' || heat.bracketType === 'finale') {
-      heatName = 'GF'
+      heatName = `GF-H${heat.heatNumber}`
     } else if (heat.bracketType === 'winner') {
       const round = heat.roundNumber || 1
-      heatName = heat.isFinale ? 'WB-F' : `WB-R${round}`
+      heatName = heat.isFinale ? `WB-F-H${heat.heatNumber}` : `WB-R${round}-H${heat.heatNumber}`
     } else if (heat.bracketType === 'loser') {
       const round = heat.roundNumber || 1
-      heatName = heat.isFinale ? 'LB-F' : `LB-R${round}`
+      heatName = heat.isFinale ? `LB-F-H${heat.heatNumber}` : `LB-R${round}-H${heat.heatNumber}`
     } else {
       heatName = `Q-H${heat.heatNumber}`
     }
@@ -294,10 +405,12 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
  * Gets next pending heat for a pilot
  */
 function getNextHeat(pilot: Pilot, heats: Heat[]): string {
-  const nextHeat = heats.find(h => 
-    h.pilotIds.includes(pilot.id) && 
-    (h.status === 'pending' || h.status === 'active')
-  )
+  const nextHeat = heats
+    .filter(h =>
+      h.pilotIds.includes(pilot.id) &&
+      (h.status === 'pending' || h.status === 'active')
+    )
+    .sort((a, b) => a.heatNumber - b.heatNumber)[0]
   
   if (!nextHeat) return '-'
   
@@ -330,9 +443,27 @@ function escapeCSVField(value: string): string {
  * 
  * Columns: Pilot, Status, Platzierung, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
  */
-export function generateCSVExport(state: TournamentStateData): string {
+export interface CSVExportOptions {
+  top4?: Top4Pilots | null
+}
+
+function buildPlacementMap(top4?: Top4Pilots | null): Map<string, number> | undefined {
+  if (!top4) return undefined
+  const placementMap = new Map<string, number>()
+  if (top4.place1?.id) placementMap.set(top4.place1.id, 1)
+  if (top4.place2?.id) placementMap.set(top4.place2.id, 2)
+  if (top4.place3?.id) placementMap.set(top4.place3.id, 3)
+  if (top4.place4?.id) placementMap.set(top4.place4.id, 4)
+  return placementMap.size > 0 ? placementMap : undefined
+}
+
+export function generateCSVExport(
+  state: TournamentStateData,
+  options: CSVExportOptions = {}
+): string {
   const { pilots, heats, tournamentPhase } = state
   const isCompleted = tournamentPhase === 'completed'
+  const placementMap = buildPlacementMap(options.top4)
   
   // Header row
   const header = 'Pilot,Status,Platzierung,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
@@ -340,7 +471,7 @@ export function generateCSVExport(state: TournamentStateData): string {
   // Data rows
   const rows = pilots.map(pilot => {
     const status = getPilotStatus(pilot, heats, isCompleted)
-    const placement = getPilotPlacement(pilot, heats)
+    const placement = getPilotPlacement(pilot, heats, placementMap)
     const bracket = getPilotBracket(pilot, heats)
     const heatsFlown = getHeatsFlown(pilot, heats)
     const results = formatHeatResults(pilot, heats)
@@ -363,8 +494,8 @@ export function generateCSVExport(state: TournamentStateData): string {
 /**
  * Exports tournament state as CSV file
  */
-export function exportCSV(state: TournamentStateData): void {
-  const csvContent = generateCSVExport(state)
+export function exportCSV(state: TournamentStateData, options: CSVExportOptions = {}): void {
+  const csvContent = generateCSVExport(state, options)
   const filename = generateFilename('csv')
   downloadFile(csvContent, filename, 'text/csv;charset=utf-8')
 }

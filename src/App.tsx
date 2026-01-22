@@ -11,12 +11,13 @@ import { AppFooter } from './components/app-footer'
 import { ImportConfirmDialog } from './components/import-confirm-dialog'
 import { usePilots } from './hooks/usePilots'
 import { useTournamentStore } from './stores/tournamentStore'
-import { 
-  exportJSON, 
-  exportCSV, 
-  parseImportedJSON, 
+import {
+  exportJSON,
+  exportCSV,
+  parseImportedJSON,
   importJSON,
-  type ParsedImportData 
+  createTournamentStateSnapshot,
+  type ParsedImportData
 } from './lib/export-import'
 
 type Tab = 'piloten' | 'turnier'
@@ -53,29 +54,16 @@ export function App() {
 
   // Export/Import handlers
   const handleExportJSON = useCallback(() => {
-    exportJSON()
+    const state = useTournamentStore.getState()
+    const snapshot = createTournamentStateSnapshot(state)
+    exportJSON(snapshot)
   }, [])
 
   const handleExportCSV = useCallback(() => {
-    // Get current state from store for CSV export
     const state = useTournamentStore.getState()
-    exportCSV({
-      pilots: state.pilots,
-      heats: state.heats,
-      tournamentPhase: state.tournamentPhase,
-      tournamentStarted: state.tournamentStarted,
-      currentHeatIndex: state.currentHeatIndex,
-      winnerPilots: state.winnerPilots,
-      loserPilots: state.loserPilots,
-      eliminatedPilots: state.eliminatedPilots,
-      loserPool: state.loserPool,
-      grandFinalePool: state.grandFinalePool,
-      isQualificationComplete: state.isQualificationComplete,
-      isWBFinaleComplete: state.isWBFinaleComplete,
-      isLBFinaleComplete: state.isLBFinaleComplete,
-      isGrandFinaleComplete: state.isGrandFinaleComplete,
-      lastCompletedBracketType: state.lastCompletedBracketType
-    })
+    const snapshot = createTournamentStateSnapshot(state)
+    const top4 = state.tournamentPhase === 'completed' ? state.getTop4Pilots() : null
+    exportCSV(snapshot, { top4 })
   }, [])
 
   const handleImportJSON = useCallback((fileContent: string) => {
