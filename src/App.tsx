@@ -97,7 +97,11 @@ export function App() {
       <div className="synthwave-grid" />
       
       {/* Header */}
-      <Header onResetAll={() => setShowResetAllDialog(true)} />
+      <Header 
+        onResetAll={() => setShowResetAllDialog(true)} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       
       {/* Tournament Status Bar - Phase-dependent */}
       {tournamentStarted && (
@@ -169,22 +173,6 @@ export function App() {
         </div>
       )}
 
-      {/* Tabs */}
-      <nav className="tabs">
-        <button
-          onClick={() => setActiveTab('piloten')}
-          className={`tab ${activeTab === 'piloten' ? 'active' : ''}`}
-        >
-          PILOTEN
-        </button>
-        <button
-          onClick={() => setActiveTab('turnier')}
-          className={`tab ${activeTab === 'turnier' ? 'active' : ''}`}
-        >
-          TURNIER
-        </button>
-      </nav>
-      
       {/* Main Content - Beamer-optimiert */}
       <main className="main-content overflow-x-hidden max-w-none">
 

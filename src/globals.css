@@ -1197,7 +1197,7 @@
   /* AC4 + AC5 + AC6: Zoom-Indicator Fixed (bottom-right) */
   .zoom-indicator {
     position: fixed;
-    bottom: 20px;
+    bottom: 60px;
     right: 20px;
     background: var(--night);
     border: 1px solid var(--neon-cyan);

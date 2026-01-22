@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 
+type Tab = 'piloten' | 'turnier'
+
 interface HeaderProps {
   onResetAll?: () => void
+  activeTab?: Tab
+  onTabChange?: (tab: Tab) => void
 }
 
-export function Header({ onResetAll }: HeaderProps) {
+export function Header({ onResetAll, activeTab, onTabChange }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -29,18 +33,42 @@ export function Header({ onResetAll }: HeaderProps) {
     <header className="bg-night border-b-2 border-neon-pink shadow-glow-pink px-8 py-4 flex justify-between items-center">
       {/* Logo - Beamer-optimiert (min 36px) */}
       <h1 className="font-display text-beamer-heat tracking-widest">
+        <span className="text-neon-cyan">#</span>
         <span className="bg-gradient-to-r from-neon-pink to-neon-magenta bg-clip-text text-transparent">
-          FPV RACING
-        </span>{' '}
-        <span className="text-neon-cyan">HEATS</span>
+          FPVOOE
+        </span>
+        <span className="text-steel"> - </span>
+        <span className="text-chrome">Racing Management</span>
       </h1>
       
-      {/* Right side: Club Name + Menu - Beamer-optimiert */}
+      {/* Centered Tab Navigation */}
+      {activeTab && onTabChange && (
+        <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-1">
+          <button
+            onClick={() => onTabChange('piloten')}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+              activeTab === 'piloten'
+                ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/50'
+                : 'text-steel hover:text-chrome hover:bg-night-light'
+            }`}
+          >
+            PILOTEN
+          </button>
+          <button
+            onClick={() => onTabChange('turnier')}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+              activeTab === 'turnier'
+                ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50'
+                : 'text-steel hover:text-chrome hover:bg-night-light'
+            }`}
+          >
+            TURNIER
+          </button>
+        </nav>
+      )}
+      
+      {/* Right side: Menu - Beamer-optimiert */}
       <div className="flex items-center gap-4">
-        <div className="text-steel text-beamer-caption">
-          FPV Oberösterreich
-        </div>
-
         {/* Settings Menu */}
         <div className="relative" ref={menuRef}>
           <button
