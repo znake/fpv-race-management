@@ -7,8 +7,17 @@ import { TournamentStartDialog } from './components/tournament-start-dialog'
 import { HeatAssignmentView } from './components/heat-assignment-view'
 import { BracketTree } from './components/bracket-tree'
 import { ResetConfirmationDialog } from './components/reset-confirmation-dialog'
+import { AppFooter } from './components/app-footer'
+import { ImportConfirmDialog } from './components/import-confirm-dialog'
 import { usePilots } from './hooks/usePilots'
 import { useTournamentStore } from './stores/tournamentStore'
+import { 
+  exportJSON, 
+  exportCSV, 
+  parseImportedJSON, 
+  importJSON,
+  type ParsedImportData 
+} from './lib/export-import'
 
 type Tab = 'piloten' | 'turnier'
 
@@ -33,13 +42,66 @@ export function App() {
   const [showDeleteAllPilotsDialog, setShowDeleteAllPilotsDialog] = useState(false)
   const [showResetAllDialog, setShowResetAllDialog] = useState(false)
   
+  // Import dialog state
+  const [showImportDialog, setShowImportDialog] = useState(false)
+  const [pendingImportData, setPendingImportData] = useState<ParsedImportData | null>(null)
+  
   // Callback for starting a new tournament after completion
   const handleNewTournament = useCallback(() => {
     setShowResetTournamentDialog(true)
   }, [])
 
+  // Export/Import handlers
+  const handleExportJSON = useCallback(() => {
+    exportJSON()
+  }, [])
+
+  const handleExportCSV = useCallback(() => {
+    // Get current state from store for CSV export
+    const state = useTournamentStore.getState()
+    exportCSV({
+      pilots: state.pilots,
+      heats: state.heats,
+      tournamentPhase: state.tournamentPhase,
+      tournamentStarted: state.tournamentStarted,
+      currentHeatIndex: state.currentHeatIndex,
+      winnerPilots: state.winnerPilots,
+      loserPilots: state.loserPilots,
+      eliminatedPilots: state.eliminatedPilots,
+      loserPool: state.loserPool,
+      grandFinalePool: state.grandFinalePool,
+      isQualificationComplete: state.isQualificationComplete,
+      isWBFinaleComplete: state.isWBFinaleComplete,
+      isLBFinaleComplete: state.isLBFinaleComplete,
+      isGrandFinaleComplete: state.isGrandFinaleComplete,
+      lastCompletedBracketType: state.lastCompletedBracketType
+    })
+  }, [])
+
+  const handleImportJSON = useCallback((fileContent: string) => {
+    const parsed = parseImportedJSON(fileContent)
+    if (parsed) {
+      setPendingImportData(parsed)
+      setShowImportDialog(true)
+    } else {
+      alert('Ungültige JSON-Datei. Bitte eine gültige Heats-Export-Datei auswählen.')
+    }
+  }, [])
+
+  const handleConfirmImport = useCallback(() => {
+    if (pendingImportData) {
+      importJSON(pendingImportData.rawData)
+      // Note: importJSON triggers page reload, so no cleanup needed
+    }
+  }, [pendingImportData])
+
+  const handleCancelImport = useCallback(() => {
+    setShowImportDialog(false)
+    setPendingImportData(null)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-void to-night text-chrome font-ui relative">
+    <div className="min-h-screen bg-gradient-to-b from-void to-night text-chrome font-ui relative pb-12">
       {/* FPVOOE Logo Watermark - hinter dem Content */}
       <div className="logo-watermark" />
       
@@ -249,6 +311,7 @@ export function App() {
               tournamentPhase={tournamentPhase}
               onSubmitResults={submitHeatResults}
               onNewTournament={handleNewTournament}
+              onExportCSV={handleExportCSV}
             />
             
             {/* Turnier zurücksetzen Button - nur wenn Turnier läuft */}
@@ -338,6 +401,27 @@ export function App() {
           onCancel={() => setShowResetAllDialog(false)}
         />
       )}
+
+      {/* Import Confirmation Dialog */}
+      {showImportDialog && pendingImportData && (
+        <ImportConfirmDialog
+          isOpen={showImportDialog}
+          importData={{
+            pilotCount: pendingImportData.pilotCount,
+            heatCount: pendingImportData.heatCount,
+            phase: pendingImportData.phase
+          }}
+          onConfirm={handleConfirmImport}
+          onCancel={handleCancelImport}
+        />
+      )}
+
+      {/* App Footer with Export/Import buttons */}
+      <AppFooter
+        onExportJSON={handleExportJSON}
+        onExportCSV={handleExportCSV}
+        onImportJSON={handleImportJSON}
+      />
     </div>
   )
 }

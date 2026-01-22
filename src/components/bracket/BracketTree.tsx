@@ -26,6 +26,7 @@ interface BracketTreeProps {
   tournamentPhase: TournamentPhase
   onSubmitResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
   onNewTournament?: () => void
+  onExportCSV?: () => void
 }
 
 /**
@@ -50,7 +51,8 @@ export function BracketTree({
   pilots,
   tournamentPhase,
   onSubmitResults,
-  onNewTournament
+  onNewTournament,
+  onExportCSV
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
@@ -315,6 +317,7 @@ export function BracketTree({
         <VictoryCeremony
           top4={top4}
           onNewTournament={onNewTournament}
+          onExportCSV={onExportCSV}
         />
 
         {/* Still show bracket below for reference - Beamer-optimiert */}

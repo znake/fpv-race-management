@@ -17,6 +17,7 @@ import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 interface VictoryCeremonyProps {
   top4: Top4Pilots
   onNewTournament: () => void
+  onExportCSV?: () => void
 }
 
 /**
@@ -128,7 +129,7 @@ function PodiumCard({
  *   [2. PLATZ]  [3. PLATZ]  (left, right)
  *        [4. PLATZ]      (center, bottom, smallest)
  */
-export function VictoryCeremony({ top4, onNewTournament }: VictoryCeremonyProps) {
+export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryCeremonyProps) {
   return (
     <section 
       className="victory-ceremony bg-void border-4 border-gold rounded-3xl p-8 shadow-glow-gold"
@@ -158,8 +159,17 @@ export function VictoryCeremony({ top4, onNewTournament }: VictoryCeremonyProps)
         </div>
       </div>
       
-      {/* New Tournament Button */}
-      <div className="mt-10 flex justify-center">
+      {/* Action Buttons */}
+      <div className="mt-10 flex justify-center gap-4">
+        {onExportCSV && (
+          <button
+            onClick={onExportCSV}
+            className="bg-neon-cyan text-void font-ui text-lg px-8 py-4 rounded-xl hover:scale-105 transition-transform"
+            data-testid="export-csv-button"
+          >
+            Export CSV
+          </button>
+        )}
         <button
           onClick={onNewTournament}
           className="btn-primary bg-neon-pink text-void font-ui text-lg px-8 py-4 rounded-xl hover:scale-105 transition-transform"
