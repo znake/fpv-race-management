@@ -389,9 +389,9 @@
   .heat-live-border::before {
     content: '';
     position: absolute;
-    inset: -10px;
+    inset: -7px;
     border-radius: 16px;
-    padding: 10px;
+    padding: 7px;
     background: conic-gradient(
       from var(--angle),
       var(--live-pink) 0deg,
