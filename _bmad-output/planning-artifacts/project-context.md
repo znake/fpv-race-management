@@ -1,8 +1,9 @@
 # FPV Racing Heats - Projekt-Kontext Dokumentation
 
-**Datum:** 2025-12-13  
-**Autor:** Mary (Business Analyst)  
+**Datum:** 2026-01-22  
+**Autor:** Paige (Technical Writer)  
 **Projekt:** FPV Racing Heats - Turnier-Management-App  
+**Status:** Feature-Complete MVP
 
 ---
 
@@ -10,8 +11,16 @@
 
 **FPV Racing Heats** ist eine browserbasierte Single-Page-Application für die Verwaltung von FPV-Drohnen-Turnieren mit Double-Elimination-Format. Die App ist als "digitale Magnettafel" konzipiert und ermöglicht es Organisatoren, Piloten zu verwalten, Heats durchzuführen und Brackets zu visualisieren - alles ohne Server, Accounts oder Einarbeitung.
 
-### Aktuelle Implementierungsphase
-Die App befindet sich aktuell in der **MVP-Implementierungsphase** mit fokussierten Features für die Pilotenverwaltung und CSV-Import. Das Turnier-Management (Heats, Brackets) ist als nächstes Feature geplant.
+### Aktueller Status
+
+Die App ist **Feature-Complete** und umfasst:
+- Vollständige Pilotenverwaltung mit CSV-Import
+- Double-Elimination-Bracket mit dynamischer Heat-Generierung
+- Winner Bracket, Loser Bracket und Grand Finale
+- Rematch-Logik für faire Finalrunden
+- Drag & Drop Heat-Zuweisung
+- Export/Import von Turnierdaten (JSON/CSV)
+- Synthwave-Design optimiert für Beamer-Präsentation
 
 ---
 
@@ -21,98 +30,128 @@ Die App befindet sich aktuell in der **MVP-Implementierungsphase** mit fokussier
 |-------------|------|
 | **Projekt-Typ** | Web Application (SPA) |
 | **Domain** | Community/Event-Tool |
-| **Komplexität** | Low-Medium |
-| **Projekt-Kontext** | Greenfield |
+| **Komplexität** | Medium |
+| **Projekt-Kontext** | Greenfield (Feature-Complete) |
 | **Zielgruppe** | FPV Oberösterreich (Orga-Team, Piloten, Zuschauer) |
-| **Technologie-Stack** | React + TypeScript + Vite + Tailwind CSS + Zustand |
+| **Technologie-Stack** | React 18 + TypeScript + Vite + Tailwind CSS + Zustand |
 
 ---
 
 ## Technische Architektur
 
 ### Core Stack
-- **Frontend Framework:** React 18.3.1 mit TypeScript
-- **Build Tool:** Vite 5.4.8
-- **Styling:** Tailwind CSS 3.4.14 mit Custom Synthwave-Theme
-- **State Management:** Zustand 4.5.5 mit localStorage Persistenz
-- **Form Handling:** React Hook Form 7.52.2 mit Zod Validation
-- **Testing:** Vitest 2.1.4 + React Testing Library
+
+| Kategorie | Technologie | Version |
+|-----------|-------------|---------|
+| **Frontend Framework** | React | 18.3.1 |
+| **Sprache** | TypeScript | 5.5.4 |
+| **Build Tool** | Vite | 5.4.8 |
+| **Styling** | Tailwind CSS | 3.4.14 |
+| **State Management** | Zustand | 4.5.5 |
+| **Form Handling** | React Hook Form + Zod | 7.52.2 / 3.23.8 |
+| **Drag & Drop** | @dnd-kit | 6.3.1 |
+| **CSV Parsing** | PapaParse | 5.5.3 |
+| **Testing** | Vitest + Testing Library | 2.1.4 |
 
 ### Architektur-Muster
+
 - **SPA-Architektur:** Client-side Rendering ohne Backend
 - **Offline-First:** localStorage für Datenpersistenz
-- **Component-Based:** Modulare React-Komponenten
-- **State Management:** Zentralisiert mit Zustand Store
+- **Single Source of Truth:** `heats[]` Array als einzige Datenquelle
+- **Pool-basierte Heat-Generierung:** Dynamische WB/LB-Heats on-demand
+- **Component-Based:** Modulare React-Komponenten mit Custom Hooks
+
+### Architektur-Diagramm
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Browser                              │
+├─────────────────────────────────────────────────────────────┤
+│  App.tsx                                                     │
+│  ├── Header + AppFooter (Export/Import)                      │
+│  ├── Piloten-Tab                                            │
+│  │   ├── PilotCard[]                                        │
+│  │   ├── AddPilotForm                                       │
+│  │   └── CSVImport                                          │
+│  └── Turnier-Tab                                            │
+│      ├── HeatAssignmentView (Drag & Drop)                   │
+│      └── BracketTree                                        │
+│          ├── QualiSection                                   │
+│          ├── WinnerBracketSection                           │
+│          ├── LoserBracketSection                            │
+│          ├── GrandFinaleSection                             │
+│          ├── PlacementEntryModal                            │
+│          └── VictoryCeremony                                │
+├─────────────────────────────────────────────────────────────┤
+│  tournamentStore (Zustand)                                   │
+│  ├── pilots[]                                               │
+│  ├── heats[] (Single Source of Truth)                       │
+│  ├── winnerPilots[] / loserPool[]                           │
+│  └── Phase Flags                                            │
+├─────────────────────────────────────────────────────────────┤
+│  localStorage (tournament-storage)                           │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Codebase-Analyse
+## Implementierte Features
 
-### Projektstruktur
-```
-app/
-├── src/
-│   ├── components/          # React Komponenten
-│   │   ├── ui/             # Basis UI Komponenten (Button, Input, Label)
-│   │   ├── add-pilot-form.tsx
-│   │   ├── bracket-tree.tsx
-│   │   ├── csv-import.tsx
-│   │   ├── header.tsx
-│   │   ├── heat-box.tsx
-│   │   └── pilot-card.tsx
-│   ├── hooks/              # Custom React Hooks
-│   │   └── usePilots.ts
-│   ├── lib/                # Utility Bibliotheken
-│   │   ├── schemas.ts      # Zod Validation Schemas
-│   │   └── utils.ts        # Helper Funktionen
-│   ├── stores/             # Zustand State Management
-│   │   └── tournamentStore.ts
-│   ├── types/              # TypeScript Type Definitions
-│   │   └── csv.ts
-│   ├── test/               # Test Setup
-│   │   └── setup.ts
-│   ├── App.tsx             # Hauptanwendung
-│   ├── globals.css         # Global Styles + Synthwave Theme
-│   └── main.tsx            # Entry Point
-├── tests/                  # Komponententests
-└── package.json
-```
+### Piloten-Verwaltung
 
-### Implementierte Features
+| Feature | Status | Beschreibung |
+|---------|--------|--------------|
+| Manuelles Hinzufügen | ✅ | Name, Bild-URL, Instagram (optional) |
+| CSV-Import | ✅ | Drag & Drop, Vorlage downloadbar |
+| Bearbeiten/Löschen | ✅ | Vor Turnierstart |
+| Duplikaterkennung | ✅ | Case-insensitive Warnung |
+| Dropped Out | ✅ | Piloten während Turnier markieren |
+| 7-60 Piloten | ✅ | Validierte Grenzen |
 
-#### ✅ Piloten-Verwaltung (US 1.1-1.3)
-- **PilotCard Komponente:** Visuelle Darstellung mit Editier/Lösch-Funktionen
-- **AddPilotForm:** Formular für manuelle Piloteneingabe mit Validation
-- **usePilots Hook:** Zentrale Business-Logik für Piloten-CRUD-Operationen
-- **TournamentStore:** Zustand-basiertes State Management mit Persistenz
+### Turnier-Durchführung
 
-#### ✅ CSV-Import (US 1.2)
-- **CSVImport Komponente:** Drag-and-Drop Interface mit Fortschrittsanzeige
-- **Validierung:** Zod-Schema Validierung mit Fehlerbehandlung
-- **Duplikat-Management:** Erkennung und Auflösung von Duplikaten
-- **Performance:** Optimiert für große Dateien mit debounced Updates
+| Feature | Status | Beschreibung |
+|---------|--------|--------------|
+| Automatische Heat-Aufteilung | ✅ | 3er/4er Heats optimiert |
+| Drag & Drop Zuweisung | ✅ | Piloten zwischen Heats verschieben |
+| Shuffle-Funktion | ✅ | Zufällige Neuverteilung |
+| Double-Elimination | ✅ | Winner + Loser Bracket |
+| Pool-basierte Generierung | ✅ | Heats on-demand erstellt |
+| WB/LB Synchronisation | ✅ | Faire Reihenfolge garantiert |
 
-#### ✅ Synthwave Branding (US 2.1)
-- **Farbschema:** Neon-Pink, Neon-Cyan, Gold mit Dark Theme
-- **Animationen:** Glow-Effekte, Pulse-Animationen, Hover-States
-- **Typography:** Space Grotesk Font mit Display/UI Varianten
-- **Responsive Design:** Beamer-optimierte Darstellung
+### Bracket-Visualisierung
 
-#### ✅ Pixel-Perfect Design (US 2.2)
-- **120px Piloten-Fotos:** Runde Bilder mit Gradient-Fallback
-- **Grid-Layout:** Responsive Grid für Piloten-Karten
-- **Border Radius:** Konsistente 16px Ecken
-- **Spacing:** Systematisches 4px Grid System
+| Feature | Status | Beschreibung |
+|---------|--------|--------------|
+| Interaktives Bracket | ✅ | Zoom & Pan |
+| Farbcodierung | ✅ | Cyan/Grün/Rot/Gold für Phasen |
+| Animierter Rahmen | ✅ | Orange Border für aktiven Heat |
+| SVG Connector Lines | ✅ | Visuelle Verbindungen |
+| Inline-Platzierungseingabe | ✅ | Click-to-Rank im Modal |
 
-#### ✅ Animierte Auswahl (US 2.3)
-- **Rank Badges:** Animierte Platzierungs-Anzeigen
-- **Glow-Effekte:** Rang-spezifische Leuchteffekte
-- **Hover-States:** Smooth Transitions und Transformations
-- **Selected States:** Visuelle Feedback für Interaktionen
+### Finale
 
-### Datenmodelle
+| Feature | Status | Beschreibung |
+|---------|--------|--------------|
+| Grand Finale | ✅ | 4 Finalisten (WB Top 2 + LB Top 2) |
+| Rematch-Logik | ✅ | Bei LB-Sieg gegen WB-Champion |
+| Siegerehrung | ✅ | Podium mit Top 4 |
+| CSV-Export | ✅ | Ergebnisse exportierbar |
 
-#### Core Types
+### Export/Import
+
+| Feature | Status | Beschreibung |
+|---------|--------|--------------|
+| JSON-Export | ✅ | Kompletter Turnier-State |
+| CSV-Export | ✅ | Piloten + Ergebnisse |
+| JSON-Import | ✅ | Mit Bestätigungsdialog |
+
+---
+
+## Datenmodelle
+
+### Pilot Interface
+
 ```typescript
 interface Pilot {
   id: string
@@ -120,122 +159,163 @@ interface Pilot {
   imageUrl: string
   instagramHandle?: string
   status?: 'active' | 'withdrawn'
-  droppedOut?: boolean // @deprecated
-}
-
-interface TournamentState {
-  pilots: Pilot[]
-  tournamentStarted: boolean
 }
 ```
 
-#### Validation Schemas
-- **pilotSchema:** Name (min 3 Zeichen), Bild-URL, Instagram-Handle (optional)
-- **csvImportSchema:** Unicode-Normalisierung, automatische @-Ergänzung
-- **Performance NFRs:** <3s für Piloten-Add, <5s für CSV-Import (60 Piloten)
+### Heat Interface
+
+```typescript
+interface Heat {
+  id: string
+  heatNumber: number
+  pilotIds: string[]
+  status: 'pending' | 'active' | 'completed'
+  bracketType?: 'qualification' | 'winner' | 'loser' | 'grand_finale' | 'finale'
+  roundNumber?: number
+  roundName?: string
+  results?: {
+    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]
+    completedAt: string
+  }
+  isRematch?: boolean
+}
+```
+
+### Tournament State (Auszug)
+
+```typescript
+interface TournamentState {
+  pilots: Pilot[]
+  heats: Heat[]  // Single Source of Truth
+  tournamentPhase: 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
+  currentHeatIndex: number
+  winnerPilots: string[]
+  loserPilots: string[]
+  loserPool: string[]
+  eliminatedPilots: string[]
+  // Phase Flags
+  isQualificationComplete: boolean
+  isWBFinaleComplete: boolean
+  isLBFinaleComplete: boolean
+  isGrandFinaleComplete: boolean
+}
+```
 
 ---
 
-## User Journey Implementierung
+## Test-Abdeckung
 
-### Journey 1: Thomas (Orga-Team) ✅
-- **CSV-Import:** Implementiert mit Drag-and-Drop
-- **Piloten-Verwaltung:** Vollständige CRUD-Operationen
-- **Turnier-Start:** Button erscheint bei ≥7 Piloten
-- **Status:** Grundfunktionen implementiert, Heat-Management ausstehend
+Die Codebase enthält **16 Test-Dateien** mit Fokus auf:
 
-### Journey 2: Lisa (Pilot) 🔄
-- **Piloten-Übersicht:** Visuelle Karten mit Fotos
-- **Status-Tracking:** DroppedOut Status implementiert
-- **Bracket-Visualisierung:** Noch nicht implementiert
-- **Status:** Basisfunktionen vorhanden, Turnier-Flow ausstehend
-
-### Journey 3: Familie Huber (Zuschauer) 🔄
-- **Beamer-Optimierung:** Große Elemente, hoher Kontrast
-- **Visuelle Hierarchie:** Klare Farbcodierung
-- **Turnier-Verlauf:** Noch nicht implementiert
-- **Status:** Design-Grundlage vorhanden, Content ausstehend
+| Kategorie | Tests | Fokus |
+|-----------|-------|-------|
+| Komponenten | 4 | PilotCard, CSVImport, PlacementModal, Finale |
+| Integration | 3 | Tournament-Start, Heat-Assignment, Heat-Results |
+| Business-Logik | 6 | Pool-Management, LB-Generierung, Grand Finale |
+| Edge Cases | 3 | 8-Piloten-Flow, 32-Piloten-Sync, Rematch |
 
 ---
 
-## Quality Assurance
+## Projektstruktur
 
-### Test-Abdeckung
-- **Komponententests:** PilotCard, CSVImport, usePilots Hook
-- **Integrationstests:** CSV-Import Workflow, Piloten-CRUD
-- **Performance-Tests:** NFR-Validierung mit Performance-Monitoring
-
-### Code-Qualität
-- **TypeScript:** Strikte Typisierung mit Zod Validation
-- **ESLint:** Konfigurierte Linting-Regeln
-- **React Best Practices:** Hooks, Component Lifecycle, State Management
-- **Error Handling:** Graceful Degradation und User Feedback
-
----
-
-## Nächste Entwicklungsschritte
-
-### Phase 2: Turnier-Management (Geplant)
-1. **Heat-Management:** Heat-Erstellung, Gewinner-Auswahl, Bracket-Zuordnung
-2. **Double-Elimination Algorithmus:** Winner/Loser Bracket Logik
-3. **Bracket-Visualisierung:** Baum-Darstellung mit Farbcodierung
-4. **On-Deck Vorschau:** Nächster Heat Anzeige
-
-### Phase 3: Finale & Platzierungen (Geplant)
-1. **Finale-Flow:** Spezielle UI für Finalrunden
-2. **Platzierungs-Anzeige:** Visualisierung der Top 4
-3. **Turnier-Abschluss:** Status-Management und Export
+```
+heats/
+├── src/
+│   ├── components/        # React-Komponenten
+│   │   ├── bracket/       # Bracket-Visualisierung
+│   │   └── ui/            # Wiederverwendbare UI
+│   ├── stores/            # Zustand State Management
+│   ├── lib/               # Business-Logik & Utilities
+│   ├── hooks/             # Custom React Hooks
+│   ├── types/             # TypeScript-Definitionen
+│   └── App.tsx            # Haupt-Komponente
+├── tests/                 # Test-Dateien
+├── docs/                  # Dokumentation
+└── public/                # Statische Assets
+```
 
 ---
 
-## Risiken und Mitigation
+## User Journeys
 
-### Technische Risiken
-| Risiko | Wahrscheinlichkeit | Mitigation |
-|--------|-------------------|------------|
-| **Bracket-Algorithmus Komplexität** | Mittel | Frühzeitiger Prototyp, schrittweise Implementierung |
-| **localStorage Limit** | Niedrig | 60 Piloten ≈ 2MB, Limit 5-10MB ausreichend |
-| **Performance bei großen Events** | Mittel | Optimierung mit debouncing, lazy loading |
+### Journey 1: Organisator (Thomas)
 
-### Business Risiken
-| Risiko | Mitigation |
-|--------|------------|
-| **User Adoption** | Early Testing mit FPV OÖ, schnelle Iteration |
-| **Feature Scope Creep** | Fokus auf MVP, Post-MVP Features planen |
-| **Event-Day Reliability** | Extensives Testing, Fallback-Strategien |
+1. **CSV-Import:** Piloten aus Google Forms importieren
+2. **Turnier starten:** Heat-Aufteilung bestätigen
+3. **Heats durchführen:** Platzierungen per Click-to-Rank eingeben
+4. **Bracket verfolgen:** Automatische WB/LB-Zuordnung
+5. **Finale:** Grand Finale und Siegerehrung
+6. **Export:** Ergebnisse als CSV speichern
+
+### Journey 2: Pilot (Lisa)
+
+1. **Registrierung:** Orga fügt Piloten hinzu
+2. **Orientierung:** Eigenen Heat auf Beamer finden
+3. **Rennen:** Ergebnis wird eingetragen
+4. **Fortschritt:** Bracket-Position verfolgen
+5. **Finale:** Bei Erfolg im Grand Finale
+
+### Journey 3: Zuschauer (Familie Huber)
+
+1. **Ankunft:** Bracket auf Beamer sehen
+2. **Verständnis:** Farbcodierung erklärt WB/LB
+3. **Mitfiebern:** Aktiver Heat hervorgehoben
+4. **Finale:** Spannende Siegerehrung
 
 ---
 
-## Success Metrics
+## Quality Metrics
 
-### Technical Success
-- ✅ **Stabilität:** Keine Abstürze in aktuellen Tests
-- ✅ **Datenintegrität:** localStorage Persistenz funktioniert
-- ✅ **Performance:** NFRs für Piloten-Management erfüllt
-- 🔄 **Bracket-Korrektheit:** Noch nicht validiert
+### Erfüllte Success Criteria
 
-### User Success
-- ✅ **Setup-Zeit:** CSV-Import < 2 Minuten für 20+ Piloten
-- ✅ **Piloten-Management:** Intuitive CRUD-Operationen
-- 🔄 **Heat-Eingabe:** Noch nicht implementiert
-- 🔄 **Turnier-Flow:** Noch nicht validiert
+| Kriterium | Status | Messung |
+|-----------|--------|---------|
+| **Setup-Zeit** | ✅ | CSV-Import < 2 Minuten |
+| **Heat-Eingabe** | ✅ | < 10 Sekunden (Click-to-Rank) |
+| **Stabilität** | ✅ | Keine Abstürze in Tests |
+| **Offline-Fähigkeit** | ✅ | localStorage persistent |
+| **Bracket-Korrektheit** | ✅ | Pool-basierte Generierung validiert |
+| **Beamer-Lesbarkeit** | ✅ | Synthwave Theme optimiert |
+
+### Non-Functional Requirements
+
+| NFR | Ziel | Status |
+|-----|------|--------|
+| Initial Load | < 3s | ✅ |
+| Heat-Wechsel | < 500ms | ✅ |
+| Bracket-Update | < 200ms | ✅ |
+| Tab-Wechsel | < 300ms | ✅ |
+
+---
+
+## Mögliche Erweiterungen (Post-MVP)
+
+| Feature | Priorität | Beschreibung |
+|---------|-----------|--------------|
+| Countdown-Timer | Mittel | Automatische Heat-Ansagen |
+| Statistiken | Niedrig | Pilot-Statistiken über Events |
+| Multi-Device Sync | Niedrig | WebSocket für Live-Updates |
+| Docker Deployment | Niedrig | Einfaches Self-Hosting |
+| QR-Code für Zuschauer | Niedrig | Mobile Bracket-Ansicht |
 
 ---
 
 ## Conclusion
 
-**FPV Racing Heats** zeigt eine solide technische Grundlage mit gut implementierten Piloten-Management-Funktionen. Die Codebase ist sauber strukturiert, folgt modernen React-Best Practices und erfüllt die definierten Non-Functional Requirements für die implementierten Features.
+**FPV Racing Heats** ist eine vollständig implementierte Turnier-Management-App, die alle ursprünglichen MVP-Anforderungen erfüllt. Die Codebase ist sauber strukturiert, gut getestet und folgt modernen React-Best Practices.
 
 **Stärken:**
-- Moderne Tech-Stack mit TypeScript und Zod Validation
-- Saubere Component-Architektur mit Custom Hooks
-- Umfassendes Testing und Error Handling
-- Performance-optimierte Implementierung
+- Vollständiges Double-Elimination mit allen Edge Cases
+- Intuitive Benutzerführung (Click-to-Rank, Drag & Drop)
+- Robuste Pool-basierte Heat-Generierung
+- Export/Import für Datensicherung
+- Beamer-optimiertes Synthwave-Design
 
-**Nächste Prioritäten:**
-1. Turnier-Management (Heat-Flow, Bracket-Algorithmus)
-2. Double-Elimination Visualisierung
-3. Finale-Flow und Platzierungs-Anzeige
-4. User-Testing mit FPV OÖ
+**Nächste Schritte:**
+- Live-Testing bei FPV OÖ Events
+- User-Feedback sammeln
+- Optional: Post-MVP Features basierend auf Feedback
 
-Das Projekt ist auf einem guten Weg, die definierten MVP-Ziele zu erreichen und bietet eine solide Basis für die weiteren Entwicklungsphasen.
+---
+
+*Zuletzt aktualisiert: 2026-01-22*

@@ -97,7 +97,10 @@ deletePilot(id: string): boolean
 // Pilot als ausgefallen markieren (während Turnier)
 markPilotAsDroppedOut(id: string): boolean
 
-// Alle Piloten löschen
+// Alle Piloten löschen (setzt auch Turnier zurück)
+deleteAllPilots(): void
+
+// Legacy-Alias für deleteAllPilots
 clearAllPilots(): boolean
 ```
 

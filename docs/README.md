@@ -245,6 +245,34 @@ Klick auf abgeschlossene Heats zeigt:
 
 ---
 
+### 7. Export & Import
+
+Die App bietet Export- und Import-Funktionen im Footer-Bereich.
+
+#### Export-Optionen
+
+| Format | Inhalt | Anwendungsfall |
+|--------|--------|----------------|
+| **JSON** | Kompletter Turnier-State | Backup, Turnier-Wiederherstellung |
+| **CSV** | Piloten + Ergebnisse | Dokumentation, Weitergabe |
+
+- **JSON-Export** speichert alle Daten (Piloten, Heats, Bracket-Status)
+- **CSV-Export** erzeugt eine lesbare Tabelle mit Piloten und Platzierungen
+- In der **Siegerehrung** wird automatisch ein CSV-Export angeboten
+
+#### Import
+
+- **JSON-Import** stellt einen zuvor exportierten Turnier-Stand wieder her
+- Bestätigungsdialog zeigt Piloten-/Heat-Anzahl vor dem Import
+- Import überschreibt alle aktuellen Daten
+
+**Typischer Workflow:**
+1. Vor Event: JSON-Backup erstellen
+2. Bei Problemen: JSON-Import zur Wiederherstellung
+3. Nach Event: CSV-Export für Ergebnisliste
+
+---
+
 ## Tastenkürzel
 
 | Kürzel | Aktion |
@@ -336,4 +364,4 @@ Entwickelt für FPVOOE - FPV Austria Racing Community
 
 ---
 
-*Zuletzt aktualisiert: 2026-01-21*
+*Zuletzt aktualisiert: 2026-01-22*
