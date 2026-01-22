@@ -29,7 +29,7 @@ export function ZoomIndicator({
       <button onClick={onZoomOut} aria-label="Zoom out">−</button>
       <span className="zoom-level">{Math.round(scale * 100)}%</span>
       <button onClick={onZoomIn} aria-label="Zoom in">+</button>
-      <span className="zoom-hint">Strg/⌘+Scroll | Space+Drag</span>
+      <span className="zoom-hint">Pinch/Scroll | Drag</span>
     </div>
   )
 }

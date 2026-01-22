@@ -22,6 +22,7 @@
     --gold: #f9c80e;
     --winner-green: #39ff14;
     --loser-red: #ff073a;
+    --rank-4: #ac645e;
     --chrome: #e0e0e0;
     --steel: #888888;
     --quali-blue: #00bfff;
@@ -33,6 +34,7 @@
     --glow-gold: 0 0 15px rgba(249, 200, 14, 0.5);
     --glow-green: 0 0 10px rgba(57, 255, 20, 0.4);
     --glow-red: 0 0 10px rgba(255, 7, 58, 0.4);
+    --glow-rank-4: 0 0 20px rgba(172, 100, 94, 0.6);
     --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
     --glow-pink-live: 0 0 30px rgba(255, 0, 128, 0.7);
     
@@ -809,7 +811,7 @@
   .rank-badge.r1 { background: var(--gold); }
   .rank-badge.r2 { background: #c0c0c0; }
   .rank-badge.r3 { background: #cd7f32; }
-  .rank-badge.r4 { background: var(--neon-cyan); }
+  .rank-badge.r4 { background: var(--rank-4); }
 
   /* Heat Groups (Story 11-1) */
   .heat-group {
@@ -1144,6 +1146,30 @@
     position: relative;
     cursor: default;
     min-height: 1000px; /* Ensure enough space for scrolling */
+    /* AC8: Prevent browser zoom/scroll gestures - handled by JS */
+    touch-action: none;
+    /* Prevent text selection during pan */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* AC9: Stylus/Pen cursor - indicate pan is always available */
+  @media (pointer: fine) and (any-pointer: coarse) {
+    /* Device has both precise (stylus) and coarse (touch) input */
+    .zoom-wrapper {
+      cursor: grab;
+    }
+    .zoom-wrapper:active {
+      cursor: grabbing;
+    }
+  }
+  
+  /* Touch device optimizations */
+  @media (pointer: coarse) {
+    .zoom-wrapper {
+      /* Slightly larger touch targets */
+      min-height: 800px;
+    }
   }
 
   /* AC3: Pan-Mode Cursor */
