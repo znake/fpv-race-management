@@ -20,13 +20,13 @@ export const FALLBACK_PILOT_IMAGE = `data:image/svg+xml,${encodeURIComponent(`
  * - 1st place: Gold
  * - 2nd place: Silver
  * - 3rd place: Bronze
- * - 4th place: Neon Cyan
+ * - 4th place: Dark Red
  */
 export function getRankBadgeClasses(rank: number): string {
   if (rank === 1) return 'bg-gold text-void shadow-glow-gold'
   if (rank === 2) return 'bg-silver text-void shadow-glow-silver'
   if (rank === 3) return 'bg-bronze text-void shadow-glow-bronze'
-  return 'bg-neon-cyan text-void shadow-glow-cyan' // rank 4+
+  return 'bg-rank-4 text-void shadow-glow-rank-4' // rank 4+
 }
 
 /**
@@ -36,7 +36,7 @@ export function getRankBorderClasses(rank: number): string {
   if (rank === 1) return 'border-gold shadow-glow-gold'
   if (rank === 2) return 'border-silver shadow-glow-silver'
   if (rank === 3) return 'border-bronze shadow-glow-bronze'
-  return 'border-neon-cyan shadow-glow-cyan' // rank 4+
+  return 'border-rank-4 shadow-glow-rank-4' // rank 4+
 }
 
 /**

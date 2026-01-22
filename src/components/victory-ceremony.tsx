@@ -60,10 +60,10 @@ function PodiumCard({
       label: '3. PLATZ'
     },
     4: {
-      border: 'border-neon-cyan',
-      bg: 'bg-neon-cyan/20',
-      glow: 'shadow-glow-cyan',
-      badge: 'bg-neon-cyan text-void',
+      border: 'border-rank-4',
+      bg: 'bg-rank-4/20',
+      glow: 'shadow-glow-rank-4',
+      badge: 'bg-rank-4 text-void',
       label: '4. PLATZ'
     },
   }[place]
