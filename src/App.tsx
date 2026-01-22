@@ -103,37 +103,7 @@ export function App() {
         onTabChange={setActiveTab}
       />
       
-      {/* Tournament Status Bar - Phase-dependent */}
-      {tournamentStarted && (
-        <div className={`px-8 py-2 text-center border-b ${
-          tournamentPhase === 'heat-assignment' 
-            ? 'bg-night-light border-neon-cyan/30' 
-            : tournamentPhase === 'running'
-            ? 'bg-night-light border-gold/30'
-            : tournamentPhase === 'finale'
-            ? 'bg-night-light border-gold/50'
-            : tournamentPhase === 'completed'
-            ? 'bg-night-light border-winner-green/30'
-            : 'bg-night-light border-gold/30'
-        }`}>
-          <span className={`text-sm font-semibold ${
-            tournamentPhase === 'heat-assignment'
-              ? 'text-neon-cyan'
-              : tournamentPhase === 'running'
-              ? 'text-gold'
-              : tournamentPhase === 'finale'
-              ? 'text-gold animate-pulse'
-              : tournamentPhase === 'completed'
-              ? 'text-winner-green'
-              : 'text-gold'
-          }`}>
-            {tournamentPhase === 'heat-assignment' && 'HEAT-ZUWEISUNG'}
-            {tournamentPhase === 'running' && 'TURNIER LÄUFT'}
-            {tournamentPhase === 'finale' && 'FINALE'}
-            {tournamentPhase === 'completed' && 'TURNIER BEENDET'}
-          </span>
-        </div>
-      )}
+
       
       {/* Tournament Start Button - only visible with 7-60 pilots */}
       {!tournamentStarted && pilots.length >= 7 && pilots.length <= 60 && (
@@ -387,6 +357,7 @@ export function App() {
         onImportJSON={handleImportJSON}
         onResetTournament={() => setShowResetTournamentDialog(true)}
         showResetButton={tournamentPhase !== 'setup' && tournamentPhase !== 'completed'}
+        tournamentPhase={tournamentPhase}
       />
     </div>
   )

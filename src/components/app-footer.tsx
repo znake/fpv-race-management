@@ -7,12 +7,15 @@
 
 import { useRef } from 'react'
 
+type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
+
 interface AppFooterProps {
   onExportJSON: () => void
   onExportCSV: () => void
   onImportJSON: (fileContent: string) => void
   onResetTournament?: () => void
   showResetButton?: boolean
+  tournamentPhase?: TournamentPhase
 }
 
 export function AppFooter({
@@ -20,7 +23,8 @@ export function AppFooter({
   onExportCSV,
   onImportJSON,
   onResetTournament,
-  showResetButton = false
+  showResetButton = false,
+  tournamentPhase
 }: AppFooterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -58,7 +62,7 @@ export function AppFooter({
 
       <div className="flex justify-between items-center text-xs">
         {/* Left side: Reset button (only shown during active tournament) */}
-        <div>
+        <div className="flex-1">
           {showResetButton && onResetTournament && (
             <button
               onClick={onResetTournament}
@@ -70,8 +74,30 @@ export function AppFooter({
           )}
         </div>
 
+        {/* Center: Tournament status */}
+        <div className="flex-1 text-center">
+          {tournamentPhase && tournamentPhase !== 'setup' && (
+            <span className={`text-sm font-semibold ${
+              tournamentPhase === 'heat-assignment'
+                ? 'text-neon-cyan'
+                : tournamentPhase === 'running'
+                ? 'text-gold'
+                : tournamentPhase === 'finale'
+                ? 'text-gold animate-pulse'
+                : tournamentPhase === 'completed'
+                ? 'text-winner-green'
+                : 'text-gold'
+            }`}>
+              {tournamentPhase === 'heat-assignment' && 'HEAT-ZUWEISUNG'}
+              {tournamentPhase === 'running' && 'TURNIER LÄUFT'}
+              {tournamentPhase === 'finale' && 'FINALE'}
+              {tournamentPhase === 'completed' && 'TURNIER BEENDET'}
+            </span>
+          )}
+        </div>
+
         {/* Right side: Import/Export buttons */}
-        <div className="flex gap-4">
+        <div className="flex-1 flex gap-4 justify-end">
           <button
             onClick={handleImportClick}
             className="text-steel hover:text-neon-cyan transition-colors"
