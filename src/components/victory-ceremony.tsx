@@ -114,7 +114,7 @@ function PodiumCard({
       {/* Instagram Handle */}
       {pilot.instagramHandle && (
         <span className="text-steel text-sm mt-1">
-          @{pilot.instagramHandle}
+          {pilot.instagramHandle}
         </span>
       )}
     </div>
