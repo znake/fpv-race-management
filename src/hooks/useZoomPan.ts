@@ -98,6 +98,40 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     translateX: 0,
     translateY: 0
   })
+  
+  /**
+   * Clamp translation to ensure canvas stays partially visible
+   * Allows some overscroll but prevents complete disappearance
+   */
+  const clampTranslation = useCallback((
+    translateX: number,
+    translateY: number,
+    scale: number,
+    wrapper: HTMLElement | null,
+    container: HTMLElement | null
+  ): { translateX: number; translateY: number } => {
+    if (!wrapper || !container) return { translateX, translateY }
+    
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const containerWidth = container.scrollWidth * scale
+    const containerHeight = container.scrollHeight * scale
+    
+    // Allow canvas to move, but keep at least 100px visible on each edge
+    const minVisible = 100
+    
+    // Max translation: canvas right/bottom edge at minVisible from wrapper left/top
+    const maxTranslateX = wrapperRect.width - minVisible
+    const maxTranslateY = wrapperRect.height - minVisible
+    
+    // Min translation: canvas left/top edge at wrapper right/bottom - minVisible
+    const minTranslateX = -(containerWidth - minVisible)
+    const minTranslateY = -(containerHeight - minVisible)
+    
+    return {
+      translateX: Math.max(minTranslateX, Math.min(maxTranslateX, translateX)),
+      translateY: Math.max(minTranslateY, Math.min(maxTranslateY, translateY))
+    }
+  }, [])
 
   const [isPanning, setIsPanning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -139,15 +173,17 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
     const newTranslateX = mouseX - contentX * newScale
     const newTranslateY = mouseY - contentY * newScale
+    
+    const clamped = clampTranslation(newTranslateX, newTranslateY, newScale, wrapper, containerRef.current)
 
     setState({
       scale: newScale,
-      translateX: newTranslateX,
-      translateY: newTranslateY
+      translateX: clamped.translateX,
+      translateY: clamped.translateY
     })
 
     onScaleChange?.(newScale)
-  }, [state, minScale, maxScale, onScaleChange])
+  }, [state, minScale, maxScale, onScaleChange, clampTranslation])
 
   /**
    * AC2: Wheel Handler (Ctrl/Cmd + Scroll for Zoom, normal scroll for Pan)
@@ -170,17 +206,20 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       } else {
         // Normal two-finger scroll on trackpad → Pan
         e.preventDefault()
+        const newTranslateX = state.translateX - e.deltaX
+        const newTranslateY = state.translateY - e.deltaY
+        const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
         setState(prev => ({
           ...prev,
-          translateX: prev.translateX - e.deltaX,
-          translateY: prev.translateY - e.deltaY
+          translateX: clamped.translateX,
+          translateY: clamped.translateY
         }))
       }
     }
 
     wrapper.addEventListener('wheel', handleWheel, { passive: false })
     return () => wrapper.removeEventListener('wheel', handleWheel)
-  }, [state.scale, step, zoomAtPoint])
+  }, [state.scale, state.translateX, state.translateY, step, zoomAtPoint, clampTranslation])
   
   /**
    * AC8: Touch Event Handlers (Pinch-to-Zoom, One/Two-Finger Pan)
@@ -251,10 +290,14 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
           touchStartRef.current.hasMoved = true
           setIsTouchPanning(true)
           
+          const newTranslateX = touchStartRef.current!.translateX + dx
+          const newTranslateY = touchStartRef.current!.translateY + dy
+          const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
+          
           setState(prev => ({
             ...prev,
-            translateX: touchStartRef.current!.translateX + dx,
-            translateY: touchStartRef.current!.translateY + dy
+            translateX: clamped.translateX,
+            translateY: clamped.translateY
           }))
         }
         // If distance <= TAP_THRESHOLD, don't preventDefault - allow tap
@@ -288,10 +331,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
         const newTranslateX = pinchX - contentX * newScale + dx
         const newTranslateY = pinchY - contentY * newScale + dy
         
+        const clamped = clampTranslation(newTranslateX, newTranslateY, newScale, wrapper, containerRef.current)
+        
         setState({
           scale: newScale,
-          translateX: newTranslateX,
-          translateY: newTranslateY
+          translateX: clamped.translateX,
+          translateY: clamped.translateY
         })
         
         onScaleChange?.(newScale)
@@ -330,7 +375,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       wrapper.removeEventListener('touchend', handleTouchEnd)
       wrapper.removeEventListener('touchcancel', handleTouchEnd)
     }
-  }, [state.scale, state.translateX, state.translateY, minScale, maxScale, onScaleChange, isTouchPanning])
+  }, [state.scale, state.translateX, state.translateY, minScale, maxScale, onScaleChange, isTouchPanning, clampTranslation])
 
   /**
    * AC3: Space Key Handler for Pan-Mode
@@ -400,10 +445,13 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       if (isDragging && e.pointerId === dragStartRef.current.pointerId) {
         const dx = e.clientX - dragStartRef.current.x
         const dy = e.clientY - dragStartRef.current.y
+        const newTranslateX = dragStartRef.current.translateX + dx
+        const newTranslateY = dragStartRef.current.translateY + dy
+        const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
         setState(prev => ({
           ...prev,
-          translateX: dragStartRef.current.translateX + dx,
-          translateY: dragStartRef.current.translateY + dy
+          translateX: clamped.translateX,
+          translateY: clamped.translateY
         }))
       }
     }
@@ -431,7 +479,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       wrapper.removeEventListener('pointerup', handlePointerUp)
       wrapper.removeEventListener('pointercancel', handlePointerUp)
     }
-  }, [isPanning, isDragging, state.translateX, state.translateY])
+  }, [isPanning, isDragging, state.translateX, state.translateY, state.scale, clampTranslation])
 
   /**
    * AC5: Zoom to center (for buttons)
@@ -497,6 +545,8 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     const clampedScale = Math.max(minScale, Math.min(maxScale, targetScale))
     const newTranslateX = viewportCenterX - elementCenterX * clampedScale
     const newTranslateY = viewportCenterY - elementCenterY * clampedScale
+    
+    const clamped = clampTranslation(newTranslateX, newTranslateY, clampedScale, wrapper, container)
 
     // Start animation
     setIsAnimating(true)
@@ -504,17 +554,17 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     // Update state (CSS transition will handle the animation)
     setState({
       scale: clampedScale,
-      translateX: newTranslateX,
-      translateY: newTranslateY
+      translateX: clamped.translateX,
+      translateY: clamped.translateY
     })
 
     onScaleChange?.(clampedScale)
-
+    
     // End animation after duration
     animationTimeoutRef.current = setTimeout(() => {
       setIsAnimating(false)
     }, duration)
-  }, [state.scale, minScale, maxScale, onScaleChange])
+  }, [state.scale, minScale, maxScale, onScaleChange, clampTranslation])
 
   // Cleanup animation timeout on unmount
   useEffect(() => {
