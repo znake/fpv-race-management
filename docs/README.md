@@ -31,6 +31,35 @@ npm run dev
 
 Die App läuft unter `http://localhost:5173`
 
+### Als App installieren (PWA)
+
+Die App kann auf mobilen Geräten als Progressive Web App (PWA) installiert werden. Dadurch läuft sie im **Vollbildmodus** ohne Browser-UI (keine Adressleiste, keine Tabs).
+
+#### iOS (iPhone/iPad)
+
+1. Öffne die App in **Safari** (nicht Chrome - iOS Chrome unterstützt keine PWA-Installation)
+2. Tippe auf das **Teilen-Symbol** (Quadrat mit Pfeil nach oben)
+3. Scrolle nach unten und wähle **"Zum Home-Bildschirm"**
+4. Bestätige mit **"Hinzufügen"**
+
+Die App erscheint nun als Icon auf dem Home-Bildschirm und öffnet sich immer im Vollbildmodus.
+
+#### Android (Chrome)
+
+1. Öffne die App in **Chrome**
+2. Tippe auf das **3-Punkte-Menü** (oben rechts)
+3. Wähle **"App installieren"** oder **"Zum Startbildschirm hinzufügen"**
+4. Bestätige die Installation
+
+Die App wird installiert und kann wie eine native App gestartet werden.
+
+#### Vorteile der PWA-Installation
+
+- **Vollbildmodus** - Keine Browser-UI, mehr Platz für das Bracket
+- **Schneller Start** - Direkter Zugriff vom Home-Bildschirm
+- **Offline-fähig** - Grundfunktionen auch ohne Internet verfügbar
+- **App-Erlebnis** - Fühlt sich wie eine native App an
+
 ### NPM Scripts
 
 | Script | Beschreibung |
