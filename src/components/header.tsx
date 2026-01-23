@@ -30,9 +30,9 @@ export function Header({ onResetAll, activeTab, onTabChange }: HeaderProps) {
   }, [menuOpen])
 
   return (
-    <header className="bg-night border-b-2 border-neon-pink shadow-glow-pink px-8 py-4 flex justify-between items-center">
-      {/* Logo - Beamer-optimiert (min 36px) */}
-      <h1 className="font-display text-beamer-heat tracking-widest">
+    <header className="bg-night border-b-2 border-neon-pink shadow-glow-pink px-3 lg:px-8 py-2 lg:py-4 flex justify-between items-center gap-2">
+      {/* Logo - Responsive: kurz auf Mobile, voll auf Desktop */}
+      <h1 className="font-display text-base lg:text-beamer-heat tracking-widest shrink-0">
         <a 
           href="https://fpvooe.com/" 
           target="_blank" 
@@ -43,17 +43,17 @@ export function Header({ onResetAll, activeTab, onTabChange }: HeaderProps) {
           <span className="bg-gradient-to-r from-neon-pink to-neon-magenta bg-clip-text text-transparent">
             FPVOOE
           </span>
-          <span className="text-steel"> - </span>
-          <span className="text-chrome">Racing Management</span>
+          <span className="text-steel hidden lg:inline"> - </span>
+          <span className="text-chrome hidden lg:inline">Racing Management</span>
         </a>
       </h1>
       
-      {/* Centered Tab Navigation */}
+      {/* Centered Tab Navigation - Responsive: relativ auf Mobile, absolut zentriert auf Desktop */}
       {activeTab && onTabChange && (
-        <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-1">
+        <nav className="flex gap-1 lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2">
           <button
             onClick={() => onTabChange('piloten')}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+            className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 ${
               activeTab === 'piloten'
                 ? 'bg-neon-pink/20 text-neon-pink border border-neon-pink/50'
                 : 'text-steel hover:text-chrome hover:bg-night-light'
@@ -63,7 +63,7 @@ export function Header({ onResetAll, activeTab, onTabChange }: HeaderProps) {
           </button>
           <button
             onClick={() => onTabChange('turnier')}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+            className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 ${
               activeTab === 'turnier'
                 ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50'
                 : 'text-steel hover:text-chrome hover:bg-night-light'
