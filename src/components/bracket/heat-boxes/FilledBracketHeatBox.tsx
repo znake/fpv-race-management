@@ -62,8 +62,9 @@ export function FilledBracketHeatBox({
     bracketType === 'qualification' && 'quali',
     isGrandFinale && 'gf',
     isThreePilot && 'three-pilot',
-    // Live heat styling: clickable with animated pink border
-    isActive && 'cursor-pointer heat-live-border shadow-glow-pink'
+    // Live heat styling: clickable with animated border (cyan for LB, pink otherwise)
+    isActive && bracketType === 'loser' && 'cursor-pointer heat-live-border-cyan shadow-glow-cyan-live',
+    isActive && bracketType !== 'loser' && 'cursor-pointer heat-live-border shadow-glow-pink'
   )
 
   // Get pilot row class based on rank

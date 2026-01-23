@@ -27,6 +27,7 @@
     --steel: #888888;
     --quali-blue: #00bfff;
     --live-pink: #ff0080;
+    --live-cyan: #00e5ff;
     
     /* Glow Effects */
     --glow-pink: 0 0 20px rgba(255, 42, 109, 0.5);
@@ -37,6 +38,7 @@
     --glow-rank-4: 0 0 20px rgba(172, 100, 94, 0.6);
     --glow-blue: 0 0 10px rgba(0, 191, 255, 0.4);
     --glow-pink-live: 0 0 30px rgba(255, 0, 128, 0.7);
+    --glow-cyan-live: 0 0 30px rgba(0, 229, 255, 0.7);
     
     /* Legacy shadcn variables */
     --background: 240 10% 3.9%;
@@ -403,6 +405,40 @@
       var(--live-pink) 240deg,
       transparent 300deg,
       var(--live-pink) 360deg
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotate-border 2s linear infinite;
+    z-index: -1;
+  }
+
+  /* Cyan rotating border for Loser Bracket live heats */
+  .heat-live-border-cyan {
+    position: relative;
+    overflow: visible;
+  }
+
+  .heat-live-border-cyan::before {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border-radius: 16px;
+    padding: 7px;
+    background: conic-gradient(
+      from var(--angle),
+      var(--live-cyan) 0deg,
+      transparent 60deg,
+      var(--live-cyan) 120deg,
+      transparent 180deg,
+      var(--live-cyan) 240deg,
+      transparent 300deg,
+      var(--live-cyan) 360deg
     );
     -webkit-mask: 
       linear-gradient(#fff 0 0) content-box, 
@@ -878,6 +914,10 @@
   /* Glow Classes */
   .shadow-glow-cyan {
     box-shadow: 0 0 20px rgba(5, 217, 232, 0.5);
+  }
+
+  .shadow-glow-cyan-live {
+    box-shadow: var(--glow-cyan-live);
   }
 
   .shadow-glow-green {
