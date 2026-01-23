@@ -485,6 +485,16 @@
     width: 100%;
     min-width: 0;
   }
+  
+  /* Mobile: Maximiere Canvas - kein Rand/Padding nötig */
+  @media (max-width: 768px) {
+    .bracket-container {
+      border-radius: 0;
+      padding: 8px 0;
+      /* Nutze gesamte Viewport-Höhe minus Header */
+      min-height: calc(100vh - 120px);
+    }
+  }
 
   /* FPVOOE Logo-Watermark im Bracket-Container */
   .bracket-container::before {
@@ -1211,6 +1221,13 @@
     .zoom-wrapper {
       /* Responsive height for touch devices */
       min-height: max(400px, calc(100vh - 280px));
+    }
+  }
+  
+  /* Mobile: Maximiere zoom-wrapper Höhe */
+  @media (max-width: 768px) {
+    .zoom-wrapper {
+      min-height: calc(100vh - 140px);
     }
   }
 

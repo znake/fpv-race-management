@@ -251,7 +251,7 @@ export function App() {
             }}
           />
         ) : (
-          <div className="w-full px-4">
+          <div className="w-full px-4 md:px-4 max-md:px-0">
             <BracketTree 
               pilots={pilots}
               tournamentPhase={tournamentPhase}
