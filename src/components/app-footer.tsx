@@ -51,7 +51,7 @@ export function AppFooter({
   }
 
   return (
-    <footer className={`fixed bottom-0 left-0 right-0 bg-void/90 backdrop-blur-sm border-t border-steel/20 z-40 ${isMobile ? 'py-1.5 px-2' : 'py-2 px-4'}`}>
+    <footer className={`fixed bottom-0 left-0 right-0 bg-void/90 backdrop-blur-sm border-t border-steel/20 z-40 ${isMobile ? 'py-1.5 px-4' : 'py-2 px-4'} pb-[env(safe-area-inset-bottom,6px)]`}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
