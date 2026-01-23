@@ -322,32 +322,11 @@ export function BracketTree({
   if (tournamentPhase === 'completed' && top4 && onNewTournament) {
     return (
       <div className="bracket-container victory-mode">
-        {/* Victory Ceremony */}
         <VictoryCeremony
           top4={top4}
           onNewTournament={onNewTournament}
           onExportCSV={onExportCSV}
         />
-
-        {/* Still show bracket below for reference - Beamer-optimiert */}
-        {/* Disable SVG connector updates to prevent visual glitches with VictoryCeremony overlay */}
-        <div className="mt-8 opacity-75">
-          <h3 className="font-display text-beamer-name text-steel text-center mb-4">
-            Turnierverlauf
-          </h3>
-          {renderBracketColumnsWrapper(true)}
-        </div>
-
-        {/* Heat Detail Modal */}
-        {selectedHeatData && (
-          <HeatDetailModal
-            heat={selectedHeatData}
-            pilots={pilots}
-            isOpen={!!selectedHeat}
-            onClose={handleCloseModal}
-            onEdit={() => handleEditHeat(selectedHeatData.id)}
-          />
-        )}
       </div>
     )
   }
