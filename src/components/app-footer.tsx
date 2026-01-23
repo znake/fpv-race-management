@@ -6,6 +6,7 @@
  */
 
 import { useRef } from 'react'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
 
@@ -27,6 +28,7 @@ export function AppFooter({
   tournamentPhase
 }: AppFooterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isMobile = useIsMobile()
 
   const handleImportClick = () => {
     fileInputRef.current?.click()
@@ -49,7 +51,7 @@ export function AppFooter({
   }
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-void/90 backdrop-blur-sm border-t border-steel/20 py-2 px-4 z-40">
+    <footer className={`fixed bottom-0 left-0 right-0 bg-void/90 backdrop-blur-sm border-t border-steel/20 z-40 ${isMobile ? 'py-1.5 px-2' : 'py-2 px-4'}`}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -60,7 +62,7 @@ export function AppFooter({
         aria-label="JSON-Datei auswählen"
       />
 
-      <div className="flex justify-between items-center text-xs">
+      <div className={`flex justify-between items-center ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
         {/* Left side: Reset button (only shown during active tournament) */}
         <div className="flex-1">
           {showResetButton && onResetTournament && (
@@ -69,7 +71,7 @@ export function AppFooter({
               className="text-loser-red hover:text-loser-red/80 transition-colors"
               aria-label="Turnier zurücksetzen"
             >
-              Turnier zurücksetzen
+              {isMobile ? 'Reset' : 'Turnier zurücksetzen'}
             </button>
           )}
         </div>
@@ -77,7 +79,7 @@ export function AppFooter({
         {/* Center: Tournament status */}
         <div className="flex-1 text-center">
           {tournamentPhase && tournamentPhase !== 'setup' && (
-            <span className={`text-sm font-semibold ${
+            <span className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'} ${
               tournamentPhase === 'heat-assignment'
                 ? 'text-neon-cyan'
                 : tournamentPhase === 'running'
@@ -88,16 +90,16 @@ export function AppFooter({
                 ? 'text-winner-green'
                 : 'text-gold'
             }`}>
-              {tournamentPhase === 'heat-assignment' && 'HEAT-ZUWEISUNG'}
-              {tournamentPhase === 'running' && 'TURNIER LÄUFT'}
+              {tournamentPhase === 'heat-assignment' && (isMobile ? 'ZUWEISUNG' : 'HEAT-ZUWEISUNG')}
+              {tournamentPhase === 'running' && (isMobile ? 'LÄUFT' : 'TURNIER LÄUFT')}
               {tournamentPhase === 'finale' && 'FINALE'}
-              {tournamentPhase === 'completed' && 'TURNIER BEENDET'}
+              {tournamentPhase === 'completed' && (isMobile ? 'BEENDET' : 'TURNIER BEENDET')}
             </span>
           )}
         </div>
 
         {/* Right side: Import/Export buttons */}
-        <div className="flex-1 flex gap-4 justify-end">
+        <div className={`flex-1 flex justify-end ${isMobile ? 'gap-2' : 'gap-4'}`}>
           <button
             onClick={handleImportClick}
             className="text-steel hover:text-neon-cyan transition-colors"
@@ -110,14 +112,14 @@ export function AppFooter({
             className="text-steel hover:text-neon-cyan transition-colors"
             aria-label="Als JSON exportieren"
           >
-            Export JSON
+            {isMobile ? 'JSON' : 'Export JSON'}
           </button>
           <button
             onClick={onExportCSV}
             className="text-steel hover:text-neon-cyan transition-colors"
             aria-label="Als CSV exportieren"
           >
-            Export CSV
+            {isMobile ? 'CSV' : 'Export CSV'}
           </button>
         </div>
       </div>

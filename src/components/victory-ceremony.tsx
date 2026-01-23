@@ -13,6 +13,7 @@
 
 import type { Pilot, Top4Pilots } from '../types'
 import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 interface VictoryCeremonyProps {
   top4: Top4Pilots
@@ -25,12 +26,20 @@ interface VictoryCeremonyProps {
  */
 function PodiumCard({ 
   pilot, 
-  place 
+  place,
+  isMobile
 }: { 
   pilot: Pilot | undefined
-  place: 1 | 2 | 3 | 4 
+  place: 1 | 2 | 3 | 4
+  isMobile: boolean
 }) {
-  const sizeConfig = {
+  // Responsive sizes: smaller on mobile
+  const sizeConfig = isMobile ? {
+    1: { imageSize: 'w-24 h-24', cardPadding: 'p-3', fontSize: 'text-base' },
+    2: { imageSize: 'w-20 h-20', cardPadding: 'p-2', fontSize: 'text-sm' },
+    3: { imageSize: 'w-16 h-16', cardPadding: 'p-2', fontSize: 'text-sm' },
+    4: { imageSize: 'w-14 h-14', cardPadding: 'p-2', fontSize: 'text-xs' },
+  }[place] : {
     1: { imageSize: 'w-44 h-44', cardPadding: 'p-6', fontSize: 'text-2xl' },
     2: { imageSize: 'w-36 h-36', cardPadding: 'p-5', fontSize: 'text-xl' },
     3: { imageSize: 'w-28 h-28', cardPadding: 'p-4', fontSize: 'text-lg' },
@@ -130,41 +139,43 @@ function PodiumCard({
  *        [4. PLATZ]      (center, bottom, smallest)
  */
 export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryCeremonyProps) {
+  const isMobile = useIsMobile()
+  
   return (
     <section 
-      className="victory-ceremony bg-void border-4 border-gold rounded-3xl p-8 shadow-glow-gold"
+      className={`victory-ceremony bg-void border-4 border-gold rounded-3xl shadow-glow-gold ${isMobile ? 'p-4' : 'p-8'}`}
       data-testid="victory-ceremony"
     >
       {/* Header */}
-      <h2 className="font-display text-4xl text-gold text-center mb-8 tracking-wider">
+      <h2 className={`font-display text-gold text-center tracking-wider ${isMobile ? 'text-2xl mb-4' : 'text-4xl mb-8'}`}>
         SIEGEREHRUNG
       </h2>
       
       {/* Podium Layout */}
-      <div className="podium-grid flex flex-col items-center gap-6">
+      <div className={`podium-grid flex flex-col items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
         {/* First Place - Top Center */}
         <div className="first-place">
-          <PodiumCard pilot={top4.place1} place={1} />
+          <PodiumCard pilot={top4.place1} place={1} isMobile={isMobile} />
         </div>
         
         {/* Second and Third Place - Side by Side */}
-        <div className="second-third-place flex gap-8 justify-center">
-          <PodiumCard pilot={top4.place2} place={2} />
-          <PodiumCard pilot={top4.place3} place={3} />
+        <div className={`second-third-place flex justify-center ${isMobile ? 'gap-3' : 'gap-8'}`}>
+          <PodiumCard pilot={top4.place2} place={2} isMobile={isMobile} />
+          <PodiumCard pilot={top4.place3} place={3} isMobile={isMobile} />
         </div>
         
         {/* Fourth Place - Bottom Center */}
         <div className="fourth-place">
-          <PodiumCard pilot={top4.place4} place={4} />
+          <PodiumCard pilot={top4.place4} place={4} isMobile={isMobile} />
         </div>
       </div>
       
       {/* Action Buttons */}
-      <div className="mt-10 flex justify-center gap-4">
+      <div className={`flex justify-center ${isMobile ? 'mt-6 gap-2 flex-col items-center' : 'mt-10 gap-4'}`}>
         {onExportCSV && (
           <button
             onClick={onExportCSV}
-            className="bg-neon-cyan text-void font-ui text-lg px-8 py-4 rounded-xl hover:scale-105 transition-transform"
+            className={`bg-neon-cyan text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
             data-testid="export-csv-button"
           >
             Export CSV
@@ -172,7 +183,7 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
         )}
         <button
           onClick={onNewTournament}
-          className="btn-primary bg-neon-pink text-void font-ui text-lg px-8 py-4 rounded-xl hover:scale-105 transition-transform"
+          className={`btn-primary bg-neon-pink text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
           data-testid="new-tournament-button"
         >
           Neues Turnier starten
