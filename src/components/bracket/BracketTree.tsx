@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils'
 
 // US-14.8: Zoom & Pan
 import { useZoomPan } from '../../hooks/useZoomPan'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { ZoomIndicator } from './ZoomIndicator'
 
 // US-14.10: Layout Calculator
@@ -71,6 +72,11 @@ export function BracketTree({
     reset,
     centerOnElement
   } = useZoomPan()
+  
+  // Mobile detection for reduced zoom on auto-center
+  const isMobile = useIsMobile()
+  // Mobile gets 20% less zoom (2.4 instead of 3.0) for better overview
+  const autoFocusZoomScale = isMobile ? 2.4 : 3.0
   
   // Get store action for finding next active heat
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
@@ -387,7 +393,7 @@ export function BracketTree({
               if (nextActiveHeat) {
                 const element = heatRefsMap.current.get(nextActiveHeat.id)
                 if (element) {
-                  centerOnElement(element, { targetScale: 3.0 })
+                  centerOnElement(element, { targetScale: autoFocusZoomScale })
                 }
               }
             }, 150)
