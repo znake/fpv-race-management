@@ -1244,6 +1244,13 @@
     box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
   }
 
+  /* Hide zoom indicator on mobile devices */
+  @media (max-width: 768px) {
+    .zoom-indicator {
+      display: none;
+    }
+  }
+
   /* AC6: Zoom-Button Styling */
   .zoom-indicator button {
     background: transparent;
