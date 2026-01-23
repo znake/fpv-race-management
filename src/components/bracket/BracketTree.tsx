@@ -101,6 +101,34 @@ export function BracketTree({
   const [selectedHeat, setSelectedHeat] = useState<string | null>(null)
   // Placement Modal state (for active heats in bracket)
   const [placementHeat, setPlacementHeat] = useState<Heat | null>(null)
+  
+  // Track if initial auto-focus on tournament start has been performed
+  const hasInitialFocused = useRef(false)
+
+  // Auto-focus on first active heat when tournament starts
+  // This runs once when heats become available and centers on the first active heat
+  useEffect(() => {
+    // Only run once per tournament
+    if (hasInitialFocused.current) return
+    
+    // Wait for heats to be generated
+    if (heats.length === 0) return
+    
+    // Find the first active heat
+    const activeHeat = getActiveHeat()
+    if (!activeHeat) return
+    
+    // Small delay to ensure DOM elements are rendered and refs are registered
+    const timer = setTimeout(() => {
+      const element = heatRefsMap.current.get(activeHeat.id)
+      if (element) {
+        centerOnElement(element, { targetScale: autoFocusZoomScale })
+        hasInitialFocused.current = true
+      }
+    }, 200)
+    
+    return () => clearTimeout(timer)
+  }, [heats, getActiveHeat, centerOnElement, autoFocusZoomScale])
 
   // Lifecycle: Close placement modal if heat no longer exists
   // Note: Allow editing of both 'active' and 'completed' heats
