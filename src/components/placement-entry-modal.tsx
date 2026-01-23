@@ -3,6 +3,7 @@ import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { Modal } from './ui/modal'
 import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type PlacementEntryModalProps = {
   heat: Heat
@@ -33,6 +34,9 @@ export function PlacementEntryModal({
   const [rankings, setRankings] = useState<Map<string, number>>(new Map())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([])
+  
+  // Mobile detection for responsive layout
+  const isMobile = useIsMobile()
   
   // Ref for stable rankings.size in keyboard handler (prevents event listener churn)
   const rankingsSizeRef = useRef<number>(0)
@@ -204,8 +208,13 @@ export function PlacementEntryModal({
     return `${pilot.name}${hasRank ? `, aktuell Rang ${rank}` : ''}, klicken um ${actionHint}`
   }
 
-  // Grid columns: always horizontal - 3 or 4 columns based on pilot count
-  const gridCols = heatPilots.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
+  // Grid columns: responsive - 2 columns on mobile, 3-4 on desktop
+  const gridCols = isMobile
+    ? 'grid-cols-2'  // Mobile: 2x2 grid for better visibility
+    : heatPilots.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
+  
+  // Responsive avatar size
+  const avatarSize = isMobile ? 'w-[100px] h-[100px]' : 'w-[220px] h-[220px]'
 
   return (
     <Modal
@@ -216,17 +225,17 @@ export function PlacementEntryModal({
       data-testid="placement-entry-modal"
     >
       {/* Header */}
-      <div className="text-center mb-10">
-        <h2 className="font-display text-5xl text-chrome tracking-wider mb-3">
+      <div className={`text-center ${isMobile ? 'mb-4' : 'mb-10'}`}>
+        <h2 className={`font-display text-chrome tracking-wider ${isMobile ? 'text-2xl mb-1' : 'text-5xl mb-3'}`}>
           {getHeatName()}
         </h2>
-        <p className="font-ui text-2xl text-steel">
+        <p className={`font-ui text-steel ${isMobile ? 'text-sm' : 'text-2xl'}`}>
           Klicke auf die Piloten um Platzierungen zu vergeben
         </p>
       </div>
 
       {/* Pilot Cards Grid */}
-      <div className={`grid ${gridCols} gap-6 mb-8`}>
+      <div className={`grid ${gridCols} ${isMobile ? 'gap-3 mb-4' : 'gap-6 mb-8'}`}>
         {heatPilots.map((pilot, index) => {
           const rank = rankings.get(pilot.id)
           const hasRank = rank !== undefined
@@ -243,10 +252,11 @@ export function PlacementEntryModal({
 
               className={`
                 relative bg-night text-center cursor-pointer
-                border-2 rounded-xl p-6
+                border-2 rounded-xl
                 transition-all duration-200 ease-out
                 focus:outline-none focus:ring-2 focus:ring-neon-cyan/50
                 hover:-translate-y-0.5
+                ${isMobile ? 'p-3' : 'p-6'}
                 ${hasRank 
                   ? getRankBorderClasses(rank!)
                   : 'border-steel hover:border-neon-cyan'
@@ -256,18 +266,19 @@ export function PlacementEntryModal({
               {/* Rank Badge */}
               {hasRank && (
                 <div className={`
-                  absolute -top-4 -right-4 w-16 h-16 rounded-full
-                  flex items-center justify-center font-display text-3xl text-void
+                  absolute rounded-full
+                  flex items-center justify-center font-display text-void
                   rank-badge-animate
+                  ${isMobile ? '-top-2 -right-2 w-10 h-10 text-xl' : '-top-4 -right-4 w-16 h-16 text-3xl'}
                   ${getRankBadgeClass(rank)}
                 `}>
                   {rank}
                 </div>
               )}
 
-              {/* Pilot Photo - 220px (larger for beamer visibility) */}
-              <div className="relative mb-6 mx-auto w-[220px] h-[220px]">
-                <div className="w-[220px] h-[220px] rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta">
+              {/* Pilot Photo - responsive size */}
+              <div className={`relative mx-auto ${isMobile ? 'mb-3' : 'mb-6'} ${avatarSize}`}>
+                <div className={`${avatarSize} rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta`}>
                   <img
                     src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                     alt={pilot.name}
@@ -281,13 +292,13 @@ export function PlacementEntryModal({
               </div>
 
               {/* Pilot Name */}
-              <div className="font-display text-3xl font-bold text-chrome mb-2 truncate">
+              <div className={`font-display font-bold text-chrome truncate ${isMobile ? 'text-base mb-1' : 'text-3xl mb-2'}`}>
                 {pilot.name}
               </div>
 
               {/* Instagram Handle */}
               {pilot.instagramHandle && (
-                <div className="font-ui text-xl text-steel truncate">
+                <div className={`font-ui text-steel truncate ${isMobile ? 'text-sm' : 'text-xl'}`}>
                   {pilot.instagramHandle}
                 </div>
               )}
@@ -297,13 +308,13 @@ export function PlacementEntryModal({
       </div>
 
       {/* Action Area */}
-      <div className="flex flex-col items-center gap-5 mt-10">
+      <div className={`flex flex-col items-center ${isMobile ? 'gap-3 mt-4' : 'gap-5 mt-10'}`}>
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={!isFinishEnabled || isSubmitting}
           data-testid="submit-placement-btn"
-          className="btn-primary text-3xl px-16 py-5"
+          className={`btn-primary ${isMobile ? 'text-lg px-10 py-3' : 'text-3xl px-16 py-5'}`}
         >
           Fertig
         </button>
@@ -313,14 +324,14 @@ export function PlacementEntryModal({
           <button
             onClick={resetRankings}
             data-testid="reset-rankings-btn"
-            className="font-ui text-xl text-steel hover:text-neon-cyan transition-colors"
+            className={`font-ui text-steel hover:text-neon-cyan transition-colors ${isMobile ? 'text-sm' : 'text-xl'}`}
           >
             Zurücksetzen
           </button>
         )}
 
         {/* Status Text */}
-        <p className="font-ui text-xl text-steel">
+        <p className={`font-ui text-steel ${isMobile ? 'text-sm' : 'text-xl'}`}>
           {rankings.size === 0 && 'Klicke auf einen Piloten für Rang 1'}
           {rankings.size === 1 && minRankingsRequired === 2 && 'Mindestens 2 Ränge für Fertig'}
           {rankings.size >= minRankingsRequired && rankings.size < heatPilots.length && `${rankings.size}/${heatPilots.length} Ränge vergeben`}
@@ -328,12 +339,14 @@ export function PlacementEntryModal({
         </p>
       </div>
 
-      {/* Keyboard Shortcuts Help */}
-      <div className="mt-8 text-center">
-        <p className="font-ui text-lg text-steel/60">
-          1-4 = Direkter Rang | Escape = Reset
-        </p>
-      </div>
+      {/* Keyboard Shortcuts Help - hide on mobile */}
+      {!isMobile && (
+        <div className="mt-8 text-center">
+          <p className="font-ui text-lg text-steel/60">
+            1-4 = Direkter Rang | Escape = Reset
+          </p>
+        </div>
+      )}
     </Modal>
   )
 }

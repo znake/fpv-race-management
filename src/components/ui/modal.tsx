@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { cn } from '../../lib/utils';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface ModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function Modal({
   'data-testid': dataTestId,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Escape key handler
   useEffect(() => {
@@ -65,9 +67,14 @@ export function Modal({
       <div
         ref={modalRef}
         className={cn(
-          'bg-void-light border border-cyber-cyan/30 rounded-2xl p-6',
+          'bg-void-light border border-cyber-cyan/30 rounded-2xl',
           'shadow-glow-cyan',
-          sizeClasses[size]
+          // Mobile: full width/height for better usability
+          isMobile && size === 'full' 
+            ? 'w-[95vw] max-h-[90vh] overflow-y-auto p-4' 
+            : cn(sizeClasses[size], 'p-6'),
+          // Mobile: smaller padding for non-full modals
+          isMobile && size !== 'full' && 'p-4'
         )}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
