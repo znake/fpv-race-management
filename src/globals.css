@@ -258,9 +258,9 @@
     opacity: 0.5;
   }
 
-  /* Main Content - Beamer-optimiert für 1920x1080 */
+  /* Main Content - Edge-to-Edge Design */
   .main-content {
-    padding: 32px;
+    padding: 0;
     position: relative;
     z-index: 1;
   }
@@ -268,13 +268,6 @@
   /* max-w-none überschreibt max-width wenn nötig (für Bracket full-width) */
   .main-content.max-w-none {
     max-width: none;
-  }
-  
-  /* Mobile: Kein Padding für maximale Canvas-Fläche */
-  @media (max-width: 768px) {
-    .main-content {
-      padding: 0;
-    }
   }
 
   /* Beamer-spezifischer Container für Brackets */
@@ -477,31 +470,19 @@
   }
 
   /* Bracket Container (Story 4.3 + Story 11-1) */
-  /* AC1: Unified container ohne getrennte Sections */
-  /* AC4: Horizontales Scrolling bei Bedarf */
-  /* AC5: Mindesthöhe 600px für Beamer */
+  /* Edge-to-Edge Design - maximale Canvas-Fläche */
   .bracket-container {
     background: var(--night);
-    border-radius: 12px;
-    padding: 25px;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
     position: relative;
     overflow: hidden;
-    /* Responsive height: fills available viewport space */
-    min-height: calc(100vh - 200px);
-    /* Full-width Container - passt sich ans Fenster an */
+    /* Responsive height: fills available viewport space minus header/footer */
+    min-height: calc(100vh - 90px);
+    /* Full-width Container */
     width: 100%;
     min-width: 0;
-  }
-  
-  /* Mobile: Maximiere Canvas - kein Rand/Padding nötig */
-  @media (max-width: 768px) {
-    .bracket-container {
-      border-radius: 0;
-      padding: 0;
-      margin: 0;
-      /* Nutze gesamte Viewport-Höhe minus Header und Footer */
-      min-height: calc(100vh - 90px);
-    }
   }
 
   /* FPVOOE Logo-Watermark im Bracket-Container */
@@ -513,7 +494,6 @@
     opacity: 0.08;
     pointer-events: none;
     z-index: 1;
-    border-radius: 12px;
   }
 
   /* US-14-REWRITE: Main Bracket Layout - WB + LB side-by-side */
@@ -1199,13 +1179,13 @@
   /* ========================================
       US-14.8: ZOOM & PAN
       ======================================== */
-  /* AC1: Zoom-Wrapper Container */
+  /* AC1: Zoom-Wrapper Container - Edge-to-Edge */
   .zoom-wrapper {
     overflow: hidden;
     position: relative;
     cursor: default;
-    /* Responsive height: fills available space, min 400px */
-    min-height: max(400px, calc(100vh - 280px));
+    /* Full height: fills available space minus header/footer */
+    min-height: calc(100vh - 90px);
     /* AC8: Prevent browser zoom/scroll gestures - handled by JS */
     touch-action: none;
     /* Prevent text selection during pan */
@@ -1221,21 +1201,6 @@
     }
     .zoom-wrapper:active {
       cursor: grabbing;
-    }
-  }
-  
-  /* Touch device optimizations */
-  @media (pointer: coarse) {
-    .zoom-wrapper {
-      /* Responsive height for touch devices */
-      min-height: max(400px, calc(100vh - 280px));
-    }
-  }
-  
-  /* Mobile: Maximiere zoom-wrapper Höhe - volle Fläche nutzen */
-  @media (max-width: 768px) {
-    .zoom-wrapper {
-      min-height: calc(100vh - 90px);
     }
   }
 
