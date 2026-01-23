@@ -321,7 +321,7 @@ export function BracketTree({
   // Tournament Completed State - Show Victory Ceremony
   if (tournamentPhase === 'completed' && top4 && onNewTournament) {
     return (
-      <div className="bracket-container">
+      <div className="bracket-container victory-mode">
         {/* Victory Ceremony */}
         <VictoryCeremony
           top4={top4}

@@ -485,6 +485,20 @@
     min-width: 0;
   }
 
+  /* Victory Ceremony Mode - enable normal scrolling instead of zoom/pan */
+  .bracket-container.victory-mode {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Disable zoom/pan touch behavior in victory mode */
+  .bracket-container.victory-mode .zoom-wrapper {
+    touch-action: pan-y; /* Allow vertical scrolling on iOS */
+    overflow: visible;
+    min-height: auto;
+  }
+
   /* FPVOOE Logo-Watermark im Bracket-Container */
   .bracket-container::before {
     content: '';
