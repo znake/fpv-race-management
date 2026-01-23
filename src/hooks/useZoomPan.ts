@@ -116,6 +116,8 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     translateX: number
     translateY: number
     scale: number
+    timestamp: number  // For tap detection
+    hasMoved: boolean  // Track if touch has moved significantly
   } | null>(null)
 
   /**
@@ -191,21 +193,25 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
+    // Threshold for distinguishing tap from pan (in pixels)
+    const TAP_THRESHOLD = 10
+
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 1) {
-        // Single finger: start pan
-        e.preventDefault()
-        setIsTouchPanning(true)
+        // Single finger: prepare for potential pan OR tap
+        // Don't preventDefault here - allow tap events to propagate if no movement
         touchStartRef.current = {
           touches: [{ x: e.touches[0].clientX, y: e.touches[0].clientY }],
           distance: 0,
           midpoint: { x: e.touches[0].clientX, y: e.touches[0].clientY },
           translateX: state.translateX,
           translateY: state.translateY,
-          scale: state.scale
+          scale: state.scale,
+          timestamp: Date.now(),
+          hasMoved: false
         }
       } else if (e.touches.length === 2) {
-        // Two fingers: start pinch-zoom
+        // Two fingers: start pinch-zoom - this is definitely not a tap
         e.preventDefault()
         const touch1 = e.touches[0]
         const touch2 = e.touches[1]
@@ -221,25 +227,37 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
           midpoint,
           translateX: state.translateX,
           translateY: state.translateY,
-          scale: state.scale
+          scale: state.scale,
+          timestamp: Date.now(),
+          hasMoved: true  // Pinch is always considered "moved"
         }
+        setIsTouchPanning(true)
       }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!touchStartRef.current) return
       
-      if (e.touches.length === 1 && isTouchPanning) {
-        // Single finger pan
-        e.preventDefault()
+      if (e.touches.length === 1) {
+        // Single finger - check if we've moved enough to count as pan
         const dx = e.touches[0].clientX - touchStartRef.current.touches[0].x
         const dy = e.touches[0].clientY - touchStartRef.current.touches[0].y
+        const distance = Math.sqrt(dx * dx + dy * dy)
         
-        setState(prev => ({
-          ...prev,
-          translateX: touchStartRef.current!.translateX + dx,
-          translateY: touchStartRef.current!.translateY + dy
-        }))
+        // Only start panning if moved beyond threshold
+        if (distance > TAP_THRESHOLD) {
+          // This is a pan, not a tap - prevent default to stop scrolling
+          e.preventDefault()
+          touchStartRef.current.hasMoved = true
+          setIsTouchPanning(true)
+          
+          setState(prev => ({
+            ...prev,
+            translateX: touchStartRef.current!.translateX + dx,
+            translateY: touchStartRef.current!.translateY + dy
+          }))
+        }
+        // If distance <= TAP_THRESHOLD, don't preventDefault - allow tap
       } else if (e.touches.length === 2) {
         // Two-finger pinch zoom + pan
         e.preventDefault()
@@ -294,7 +312,9 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
           midpoint: { x: e.touches[0].clientX, y: e.touches[0].clientY },
           translateX: state.translateX,
           translateY: state.translateY,
-          scale: state.scale
+          scale: state.scale,
+          timestamp: Date.now(),
+          hasMoved: true  // Coming from pinch, continue as pan
         }
       }
     }
