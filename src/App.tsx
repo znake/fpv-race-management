@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useIsMobile } from './hooks/useIsMobile'
 import { PilotCard } from './components/pilot-card'
 import { AddPilotForm } from './components/add-pilot-form'
 import { CSVImport } from './components/csv-import'
@@ -23,6 +24,7 @@ import {
 type Tab = 'piloten' | 'turnier'
 
 export function App() {
+  const isMobile = useIsMobile()
   const [activeTab, setActiveTab] = useState<Tab>('piloten')
   const { pilots, importPilots, updatePilot, deletePilot, markPilotAsDroppedOut, tournamentStarted } = usePilots()
   const tournamentPhase = useTournamentStore((state) => state.tournamentPhase)
@@ -147,8 +149,8 @@ export function App() {
       <main className="main-content overflow-x-hidden max-w-none">
 
       {activeTab === 'piloten' && (
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
+        <div className={`max-w-6xl mx-auto pt-1.5 ${isMobile ? 'px-4' : ''}`}>
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 mb-8">
             {pilots.map((pilot) => (
               <PilotCard 
                 key={pilot.id} 
