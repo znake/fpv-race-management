@@ -269,6 +269,13 @@
   .main-content.max-w-none {
     max-width: none;
   }
+  
+  /* Mobile: Kein Padding für maximale Canvas-Fläche */
+  @media (max-width: 768px) {
+    .main-content {
+      padding: 0;
+    }
+  }
 
   /* Beamer-spezifischer Container für Brackets */
   .bracket-beamer-container {
@@ -490,9 +497,10 @@
   @media (max-width: 768px) {
     .bracket-container {
       border-radius: 0;
-      padding: 8px 0;
-      /* Nutze gesamte Viewport-Höhe minus Header */
-      min-height: calc(100vh - 120px);
+      padding: 0;
+      margin: 0;
+      /* Nutze gesamte Viewport-Höhe minus Header und Footer */
+      min-height: calc(100vh - 90px);
     }
   }
 
@@ -1224,10 +1232,10 @@
     }
   }
   
-  /* Mobile: Maximiere zoom-wrapper Höhe */
+  /* Mobile: Maximiere zoom-wrapper Höhe - volle Fläche nutzen */
   @media (max-width: 768px) {
     .zoom-wrapper {
-      min-height: calc(100vh - 140px);
+      min-height: calc(100vh - 90px);
     }
   }
 
