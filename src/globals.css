@@ -1224,7 +1224,15 @@
 
   /* Auto-Center Animation for next active heat */
   .zoom-container.animating {
-    transition: transform 500ms ease-out;
+    transition: transform 500ms cubic-bezier(0.25, 0.1, 0.25, 1);
+    will-change: transform;
+  }
+
+  /* Smoother, slower animation on mobile devices (touch screens) */
+  @media (pointer: coarse) {
+    .zoom-container.animating {
+      transition: transform 800ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
   }
 
   /* Respect reduced motion preference */

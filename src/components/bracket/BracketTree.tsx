@@ -77,6 +77,8 @@ export function BracketTree({
   const isMobile = useIsMobile()
   // Mobile gets 20% less zoom (2.4 instead of 3.0) for better overview
   const autoFocusZoomScale = isMobile ? 2.4 : 3.0
+  // Mobile gets slower, smoother animation (800ms vs 500ms) - synced with CSS
+  const autoFocusDuration = isMobile ? 800 : 500
   
   // Get store action for finding next active heat
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
@@ -122,13 +124,13 @@ export function BracketTree({
     const timer = setTimeout(() => {
       const element = heatRefsMap.current.get(activeHeat.id)
       if (element) {
-        centerOnElement(element, { targetScale: autoFocusZoomScale })
+        centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
         hasInitialFocused.current = true
       }
     }, 200)
     
     return () => clearTimeout(timer)
-  }, [heats, getActiveHeat, centerOnElement, autoFocusZoomScale])
+  }, [heats, getActiveHeat, centerOnElement, autoFocusZoomScale, autoFocusDuration])
 
   // Lifecycle: Close placement modal if heat no longer exists
   // Note: Allow editing of both 'active' and 'completed' heats
@@ -400,7 +402,7 @@ export function BracketTree({
               if (nextActiveHeat) {
                 const element = heatRefsMap.current.get(nextActiveHeat.id)
                 if (element) {
-                  centerOnElement(element, { targetScale: autoFocusZoomScale })
+                  centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
                 }
               }
             }, 150)
