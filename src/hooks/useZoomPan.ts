@@ -14,6 +14,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback, RefObject } from 'react'
+import { flushSync } from 'react-dom'
 
 /**
  * Helper: Calculate distance between two touch points
@@ -553,10 +554,11 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     
     const clamped = clampTranslation(newTranslateX, newTranslateY, clampedScale, wrapper, container)
 
-    // Start animation
-    setIsAnimating(true)
+    // flushSync ensures .animating class is applied BEFORE transform values change
+    flushSync(() => {
+      setIsAnimating(true)
+    })
 
-    // Update state (CSS transition will handle the animation)
     setState({
       scale: clampedScale,
       translateX: clamped.translateX,
