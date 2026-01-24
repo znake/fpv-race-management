@@ -559,18 +559,20 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       setIsAnimating(true)
     })
 
-    setState({
-      scale: clampedScale,
-      translateX: clamped.translateX,
-      translateY: clamped.translateY
-    })
+    // Wait for browser to apply .animating class and activate CSS transition
+    requestAnimationFrame(() => {
+      setState({
+        scale: clampedScale,
+        translateX: clamped.translateX,
+        translateY: clamped.translateY
+      })
 
-    onScaleChange?.(clampedScale)
-    
-    // End animation after duration
-    animationTimeoutRef.current = setTimeout(() => {
-      setIsAnimating(false)
-    }, duration)
+      onScaleChange?.(clampedScale)
+      
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+      }, duration)
+    })
   }, [state.scale, minScale, maxScale, onScaleChange, clampTranslation])
 
   // Cleanup animation timeout on unmount

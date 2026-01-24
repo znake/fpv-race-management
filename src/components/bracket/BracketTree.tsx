@@ -83,6 +83,9 @@ export function BracketTree({
   // Get store action for finding next active heat
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
 
+  // Refs for SVG connector lines - maps heat IDs to their DOM elements
+  const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
+
   // Retry mechanism for centering on dynamically created heats (LB/GF)
   const centerOnActiveHeatWithRetry = useCallback((maxRetries = 5, retryDelay = 50) => {
     let retryCount = 0
@@ -109,14 +112,15 @@ export function BracketTree({
         return
       }
       
-      centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
+      // Grand Finale is larger, so zoom less on mobile
+      const isGrandFinale = activeHeat.bracketType === 'grand_finale' || activeHeat.bracketType === 'finale'
+      const zoomScale = isMobile && isGrandFinale ? 1.8 : autoFocusZoomScale
+      
+      centerOnElement(element, { targetScale: zoomScale, duration: autoFocusDuration })
     }
     
     requestAnimationFrame(attemptCenter)
-  }, [getActiveHeat, centerOnElement, autoFocusZoomScale, autoFocusDuration])
-
-  // Refs for SVG connector lines - maps heat IDs to their DOM elements
-  const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
+  }, [getActiveHeat, centerOnElement, autoFocusZoomScale, autoFocusDuration, isMobile])
 
   // Refs for WB and LB Finals - used for SVG connector lines to Grand Finale
   const wbFinaleRef = useRef<HTMLDivElement | null>(null)
