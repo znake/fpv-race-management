@@ -518,6 +518,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     const container = containerRef.current
     if (!wrapper || !container) return
 
+    // Validate element has rendered with valid dimensions
+    const elementRect = element.getBoundingClientRect()
+    if (elementRect.width === 0 || elementRect.height === 0) {
+      return // Element not ready - caller should retry
+    }
+
     // Clear any existing animation timeout
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current)
@@ -529,7 +535,6 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     const viewportCenterY = wrapperRect.height / 2
 
     // Get element position relative to container (in unscaled coordinates)
-    const elementRect = element.getBoundingClientRect()
     const containerRect = container.getBoundingClientRect()
 
     // Calculate element center in current scaled space

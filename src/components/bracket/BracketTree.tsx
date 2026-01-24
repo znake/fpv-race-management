@@ -83,6 +83,38 @@ export function BracketTree({
   // Get store action for finding next active heat
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
 
+  // Retry mechanism for centering on dynamically created heats (LB/GF)
+  const centerOnActiveHeatWithRetry = useCallback((maxRetries = 5, retryDelay = 50) => {
+    let retryCount = 0
+    
+    const attemptCenter = () => {
+      const activeHeat = getActiveHeat()
+      if (!activeHeat) return
+      
+      const element = heatRefsMap.current.get(activeHeat.id)
+      if (!element) {
+        if (retryCount < maxRetries) {
+          retryCount++
+          setTimeout(attemptCenter, retryDelay)
+        }
+        return
+      }
+      
+      const rect = element.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) {
+        if (retryCount < maxRetries) {
+          retryCount++
+          requestAnimationFrame(() => setTimeout(attemptCenter, retryDelay))
+        }
+        return
+      }
+      
+      centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
+    }
+    
+    requestAnimationFrame(attemptCenter)
+  }, [getActiveHeat, centerOnElement, autoFocusZoomScale, autoFocusDuration])
+
   // Refs for SVG connector lines - maps heat IDs to their DOM elements
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
 
@@ -108,29 +140,16 @@ export function BracketTree({
   const hasInitialFocused = useRef(false)
 
   // Auto-focus on first active heat when tournament starts
-  // This runs once when heats become available and centers on the first active heat
   useEffect(() => {
-    // Only run once per tournament
     if (hasInitialFocused.current) return
-    
-    // Wait for heats to be generated
     if (heats.length === 0) return
     
-    // Find the first active heat
     const activeHeat = getActiveHeat()
     if (!activeHeat) return
     
-    // Small delay to ensure DOM elements are rendered and refs are registered
-    const timer = setTimeout(() => {
-      const element = heatRefsMap.current.get(activeHeat.id)
-      if (element) {
-        centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
-        hasInitialFocused.current = true
-      }
-    }, 200)
-    
-    return () => clearTimeout(timer)
-  }, [heats, getActiveHeat, centerOnElement, autoFocusZoomScale, autoFocusDuration])
+    hasInitialFocused.current = true
+    setTimeout(() => centerOnActiveHeatWithRetry(), 150)
+  }, [heats, getActiveHeat, centerOnActiveHeatWithRetry])
 
   // Lifecycle: Close placement modal if heat no longer exists
   // Note: Allow editing of both 'active' and 'completed' heats
@@ -395,17 +414,8 @@ export function BracketTree({
             onSubmitResults(heatId, rankings)
             setPlacementHeat(null)
             
-            // Auto-center on next active heat after a short delay
-            // (wait for state update and DOM render)
-            setTimeout(() => {
-              const nextActiveHeat = getActiveHeat()
-              if (nextActiveHeat) {
-                const element = heatRefsMap.current.get(nextActiveHeat.id)
-                if (element) {
-                  centerOnElement(element, { targetScale: autoFocusZoomScale, duration: autoFocusDuration })
-                }
-              }
-            }, 150)
+            // Auto-center on next active heat (with retry for dynamically created LB/GF heats)
+            setTimeout(() => centerOnActiveHeatWithRetry(), 100)
           }}
         />
       )}
