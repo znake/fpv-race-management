@@ -20,6 +20,7 @@ import {
   createTournamentStateSnapshot,
   type ParsedImportData
 } from './lib/export-import'
+import { loadDemoPilots } from './lib/demo-data'
 
 type Tab = 'piloten' | 'turnier'
 
@@ -168,7 +169,13 @@ export function App() {
             {pilots.length === 0 && (
               <div className="col-span-full text-center py-20">
                 <p className="text-2xl text-steel mb-4">Keine Piloten</p>
-                <p className="text-lg text-steel/70">Füge den ersten Pilot hinzu!</p>
+                <p className="text-lg text-steel/70 mb-8">Füge den ersten Pilot hinzu!</p>
+                <button
+                  onClick={loadDemoPilots}
+                  className="bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-pink bg-[length:200%_100%] animate-pulse text-void px-8 py-4 rounded-xl font-bold text-xl shadow-[0_0_30px_rgba(255,45,117,0.5)] hover:shadow-[0_0_50px_rgba(5,217,232,0.7)] hover:scale-105 transition-all duration-300"
+                >
+                  Mit Standardpiloten starten
+                </button>
               </div>
             )}
           </div>
