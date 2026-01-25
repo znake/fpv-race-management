@@ -11,6 +11,7 @@ export interface BracketHeatBoxProps {
   bracketType: BracketType
   onClick?: () => void
   onEdit?: () => void
+  canEdit?: boolean
   isNew?: boolean
 }
 

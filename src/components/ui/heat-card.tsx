@@ -31,6 +31,7 @@ export interface HeatCardProps {
   // Interaktion
   onClick?: () => void
   onEdit?: () => void
+  canEdit?: boolean
 
   // DnD props (für heat-assignment-view)
   heatId?: string  // für DnD Drop-Target
@@ -55,6 +56,7 @@ export function HeatCard({
   isFinale,
   onClick,
   onEdit,
+  canEdit = true,
   heatId,
   invalidReason = null,
   className,
@@ -99,6 +101,7 @@ export function HeatCard({
           isFinale={isFinale}
           onClick={onClick}
           onEdit={onEdit}
+          canEdit={canEdit}
           className={className}
         />
       )
@@ -125,6 +128,7 @@ export function HeatCard({
           invalidReason={invalidReason}
           isRecommended={isRecommended}
           onEdit={onEdit}
+          canEdit={canEdit}
           className={className}
         />
       )
@@ -141,6 +145,7 @@ export function HeatCard({
           hasBye={hasBye}
           isBye={isBye}
           onEdit={onEdit}
+          canEdit={canEdit}
           className={className}
         />
       )
@@ -205,6 +210,7 @@ function BracketVariant({
   isFinale,
   onClick,
   onEdit,
+  canEdit,
   className,
 }: {
   heatNumber: number
@@ -215,6 +221,7 @@ function BracketVariant({
   isFinale?: boolean
   onClick?: () => void
   onEdit?: () => void
+  canEdit?: boolean
   className?: string
 }) {
   // Border color based on bracket type (not status) - matching mockup
@@ -290,7 +297,7 @@ function BracketVariant({
               ✓
             </span>
           )}
-          {status === 'completed' && onEdit && (
+          {status === 'completed' && onEdit && canEdit && (
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className="text-steel hover:text-neon-cyan p-1"
@@ -509,6 +516,7 @@ function OverviewVariant({
   invalidReason,
   isRecommended,
   onEdit,
+  canEdit,
   className,
 }: {
   heatNumber: number
@@ -518,6 +526,7 @@ function OverviewVariant({
   invalidReason?: 'overfilled' | 'empty' | null
   isRecommended?: boolean
   onEdit?: () => void
+  canEdit?: boolean
   className?: string
 }) {
   const { setNodeRef, isOver } = useDroppable({ 
@@ -548,7 +557,7 @@ function OverviewVariant({
         <h3 className="font-display text-2xl font-bold text-chrome">HEAT {heatNumber}</h3>
         <div className="flex items-center gap-2">
           <span className="font-ui text-sm text-steel">{sortedPilots.length} Pilot{sortedPilots.length === 1 ? '' : 'en'}</span>
-          {status === 'completed' && onEdit && (
+          {status === 'completed' && onEdit && canEdit && (
             <button
               onClick={onEdit}
               className="p-1 text-steel hover:text-neon-cyan transition-colors"
@@ -586,6 +595,7 @@ function DetailVariant({
   hasBye,
   isBye,
   onEdit,
+  canEdit,
   className,
 }: {
   heatNumber: number
@@ -598,6 +608,7 @@ function DetailVariant({
   hasBye: boolean
   isBye?: boolean
   onEdit?: () => void
+  canEdit?: boolean
   className?: string
 }) {
   const getPilotStyling = (pilot: Pilot) => {
@@ -641,7 +652,7 @@ function DetailVariant({
               FREILOS
             </span>
           )}
-          {status === 'completed' && onEdit && (
+          {status === 'completed' && onEdit && canEdit && (
             <button
               onClick={() => onEdit()}
               className="p-1 text-steel hover:text-neon-cyan transition-colors"

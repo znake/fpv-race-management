@@ -180,6 +180,8 @@ interface TournamentState {
 
   // Story 13-5: Phase-Indikator
   getCurrentPhaseDescription: () => string
+
+  canEditHeat: (heatId: string) => boolean
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -1463,6 +1465,30 @@ export const useTournamentStore = create<TournamentState>()(
         }
 
         return 'Turnier läuft'
+      },
+
+      canEditHeat: (heatId: string) => {
+        const { heats, tournamentPhase } = get()
+        const heat = heats.find(h => h.id === heatId)
+
+        if (!heat || heat.status !== 'completed') return false
+
+        if (heat.bracketType === 'grand_finale' || heat.bracketType === 'finale') {
+          return tournamentPhase !== 'completed'
+        }
+
+        if (heat.bracketType === 'qualification' || !heat.bracketType) {
+          const wbRound1Exists = heats.some(h => h.bracketType === 'winner')
+          return !wbRound1Exists
+        }
+
+        const roundNumber = heat.roundNumber ?? 0
+        const laterRoundExists = heats.some(h =>
+          h.bracketType === heat.bracketType &&
+          (h.roundNumber ?? 0) > roundNumber
+        )
+
+        return !laterRoundExists
       }
     }),
     {

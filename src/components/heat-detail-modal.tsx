@@ -10,6 +10,7 @@ interface HeatDetailModalProps {
   isOpen: boolean
   onClose: () => void
   onEdit: () => void
+  canEdit?: boolean
 }
 
 export function HeatDetailModal({
@@ -17,7 +18,8 @@ export function HeatDetailModal({
   pilots,
   isOpen,
   onClose,
-  onEdit
+  onEdit,
+  canEdit = true
 }: HeatDetailModalProps) {
   const isMobile = useIsMobile()
   
@@ -104,7 +106,7 @@ export function HeatDetailModal({
 
       {/* Actions */}
       <Modal.Footer>
-        {heat.status === 'completed' && (
+        {heat.status === 'completed' && canEdit && (
           <button
             onClick={onEdit}
             className={`bg-neon-cyan text-void rounded-lg font-bold hover:shadow-[0_0_20px_rgba(5,217,232,0.5)] transition-all duration-200 ${isMobile ? 'px-3 py-1.5 text-sm' : 'px-4 py-2'}`}

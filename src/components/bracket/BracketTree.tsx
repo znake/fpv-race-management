@@ -58,6 +58,7 @@ export function BracketTree({
   const heats = useTournamentStore(state => state.heats || [])
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
+  const canEditHeat = useTournamentStore(state => state.canEditHeat)
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -404,6 +405,7 @@ export function BracketTree({
           isOpen={!!selectedHeat}
           onClose={handleCloseModal}
           onEdit={() => handleEditHeat(selectedHeatData.id)}
+          canEdit={canEditHeat(selectedHeatData.id)}
         />
       )}
 

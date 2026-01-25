@@ -10,6 +10,7 @@ type HeatOverviewProps = {
 
 export function HeatOverview({ heats, pilots }: HeatOverviewProps) {
   const reopenHeat = useTournamentStore((state) => state.reopenHeat)
+  const canEditHeat = useTournamentStore((state) => state.canEditHeat)
 
   // Story 9-2 AC7: Get next recommended heat
   const nextRecommendedHeat = useTournamentStore((state) => state.getNextRecommendedHeat())
@@ -47,7 +48,7 @@ export function HeatOverview({ heats, pilots }: HeatOverviewProps) {
               results={heat.results}
               status={heat.status}
               onEdit={heat.status === 'completed' ? () => reopenHeat(heat.id) : undefined}
-              // Story 9-2 AC7: Highlight recommended heat
+              canEdit={canEditHeat(heat.id)}
               isRecommended={nextRecommendedHeat?.id === heat.id}
             />
           ))}

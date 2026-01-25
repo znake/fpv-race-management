@@ -25,6 +25,7 @@ export function BracketHeatBox({
   bracketType,
   onClick,
   onEdit,
+  canEdit = true,
   isNew = false
 }: BracketHeatBoxProps) {
   // Get pilot count for 3-pilot detection
@@ -146,7 +147,7 @@ export function BracketHeatBox({
       </div>
       
       {/* Edit button for completed heats */}
-      {heat.status === 'completed' && onEdit && (
+      {heat.status === 'completed' && onEdit && canEdit && (
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(); }}
           className="absolute top-1 right-1 text-steel hover:text-neon-cyan p-1 text-xs"
