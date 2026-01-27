@@ -6,6 +6,7 @@
  */
 
 import type { TournamentStateData, Heat, Pilot, Top4Pilots, TournamentPhase } from '../types'
+import { formatLapTime } from './ui-helpers'
 
 // localStorage key used by Zustand persist middleware
 const STORAGE_KEY = 'tournament-storage'
@@ -392,6 +393,7 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
   const results = pilotHeats.map(heat => {
     const ranking = heat.results?.rankings.find(r => r.pilotId === pilot.id)
     const place = ranking ? `${ranking.rank}.` : '?'
+    const timeStr = ranking?.lapTimeMs ? ` (${formatLapTime(ranking.lapTimeMs)})` : ''
     
     // Format heat name
     let heatName: string
@@ -407,7 +409,7 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
       heatName = `Q-H${heat.heatNumber}`
     }
     
-    return `${heatName}: ${place}`
+    return `${heatName}: ${place}${timeStr}`
   })
   
   return results.join(' | ')
