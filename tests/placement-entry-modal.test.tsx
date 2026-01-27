@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
 import { PlacementEntryModal } from '../src/components/placement-entry-modal'
 import { createMockPilots, resetMockPilotCounter } from './helpers/mock-factories'
 import type { Heat } from '../src/types'
@@ -38,8 +38,8 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      expect(screen.getByTestId('placement-entry-modal')).toBeInTheDocument()
-      expect(screen.getByText('WB H1')).toBeInTheDocument()
+      expect(screen.queryByTestId('placement-entry-modal')).not.toBeNull()
+      expect(screen.queryByText('WB H1')).not.toBeNull()
     })
 
     it('should not render modal when closed', () => {
@@ -53,7 +53,7 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      expect(screen.queryByTestId('placement-entry-modal')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('placement-entry-modal')).toBeNull()
     })
 
     it('should render all pilot cards', () => {
@@ -68,7 +68,7 @@ describe('PlacementEntryModal', () => {
       )
 
       mockPilots.forEach(pilot => {
-        expect(screen.getByTestId(`pilot-card-${pilot.id}`)).toBeInTheDocument()
+        expect(screen.queryByTestId(`pilot-card-${pilot.id}`)).not.toBeNull()
       })
     })
 
@@ -88,7 +88,7 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      expect(screen.getByText('GRAND FINALE')).toBeInTheDocument()
+      expect(screen.queryByText('GRAND FINALE')).not.toBeNull()
     })
 
     it('should show LB label for loser bracket heat', () => {
@@ -108,7 +108,7 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      expect(screen.getByText('LB H2')).toBeInTheDocument()
+      expect(screen.queryByText('LB H2')).not.toBeNull()
     })
   })
 
@@ -128,7 +128,7 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(firstPilotCard)
 
       // Rank badge should appear with "1"
-      expect(screen.getByText('1')).toBeInTheDocument()
+      expect(screen.queryByText('1')).not.toBeNull()
     })
 
     it('should assign sequential ranks on multiple clicks', () => {
@@ -148,9 +148,9 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[2].id}`))
 
       // All three ranks should be visible
-      expect(screen.getByText('1')).toBeInTheDocument()
-      expect(screen.getByText('2')).toBeInTheDocument()
-      expect(screen.getByText('3')).toBeInTheDocument()
+      expect(screen.queryByText('1')).not.toBeNull()
+      expect(screen.queryByText('2')).not.toBeNull()
+      expect(screen.queryByText('3')).not.toBeNull()
     })
 
     it('should remove rank when clicking ranked pilot', () => {
@@ -168,11 +168,11 @@ describe('PlacementEntryModal', () => {
       
       // Click to assign rank
       fireEvent.click(pilotCard)
-      expect(screen.getByText('1')).toBeInTheDocument()
+      expect(screen.queryByText('1')).not.toBeNull()
 
       // Click again to remove
       fireEvent.click(pilotCard)
-      expect(screen.queryByText('1')).not.toBeInTheDocument()
+      expect(screen.queryByText('1')).toBeNull()
     })
   })
 
@@ -189,7 +189,7 @@ describe('PlacementEntryModal', () => {
       )
 
       const submitBtn = screen.getByTestId('submit-placement-btn')
-      expect(submitBtn).toBeDisabled()
+      expect((submitBtn as HTMLButtonElement).disabled).toBe(true)
     })
 
     it('should be disabled with only 1 ranking (when 4 pilots)', () => {
@@ -206,7 +206,7 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
       const submitBtn = screen.getByTestId('submit-placement-btn')
-      expect(submitBtn).toBeDisabled()
+      expect((submitBtn as HTMLButtonElement).disabled).toBe(true)
     })
 
     it('should be enabled with 2 rankings', () => {
@@ -224,7 +224,7 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
 
       const submitBtn = screen.getByTestId('submit-placement-btn')
-      expect(submitBtn).toBeEnabled()
+      expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
     })
 
     it('should call onSubmitResults with correct data on submit', () => {
@@ -246,8 +246,8 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId('submit-placement-btn'))
 
       expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
-        { pilotId: mockPilots[0].id, rank: 1 },
-        { pilotId: mockPilots[1].id, rank: 2 },
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
       ])
     })
   })
@@ -276,8 +276,201 @@ describe('PlacementEntryModal', () => {
       )
 
       // Rank badges should be visible
-      expect(screen.getByText('1')).toBeInTheDocument()
-      expect(screen.getByText('2')).toBeInTheDocument()
+      expect(screen.queryByText('1')).not.toBeNull()
+      expect(screen.queryByText('2')).not.toBeNull()
+    })
+  })
+
+  describe('Lap time digit accumulation', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('should accumulate digits within 2s and submit lapTimeMs', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      // Click Pilot A -> rank 1, opens time window
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+
+      // Enter "59" within 2s
+      fireEvent.keyDown(window, { key: '5' })
+      fireEvent.keyDown(window, { key: '9' })
+
+      // Finalize after inactivity window
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      // Click Pilot B -> rank 2 (submit enabled)
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
+
+      fireEvent.click(screen.getByTestId('submit-placement-btn'))
+
+      expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: 59000 },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
+      ])
+    })
+
+    it('should not record time when typing after the 2s window closed', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+
+      // Let window expire
+      act(() => {
+        vi.advanceTimersByTime(3000)
+      })
+
+      // Type after window -> ignored
+      fireEvent.keyDown(window, { key: '5' })
+      fireEvent.keyDown(window, { key: '9' })
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
+      fireEvent.click(screen.getByTestId('submit-placement-btn'))
+
+      expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
+      ])
+    })
+
+    it('should treat keys 1-4 as rank keys and not time digits', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      // Click Pilot A (rank 1) and keep it focused
+      const pilotA = screen.getByTestId(`pilot-card-${mockPilots[0].id}`)
+      fireEvent.click(pilotA)
+
+      // If "1" was incorrectly treated as time digit, "105" would be parsed as 1:05 (valid)
+      fireEvent.keyDown(window, { key: '1' })
+      fireEvent.keyDown(window, { key: '0' })
+      fireEvent.keyDown(window, { key: '5' })
+
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
+      fireEvent.click(screen.getByTestId('submit-placement-btn'))
+
+      expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
+      ])
+    })
+
+    it('should prefill lapTimes from existing results and include them on submit', () => {
+      const heatWithResults: Heat = {
+        ...mockHeat,
+        results: {
+          rankings: [
+            { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: 59000 },
+            { pilotId: mockPilots[1].id, rank: 2 },
+          ],
+          completedAt: new Date().toISOString(),
+        },
+      }
+
+      render(
+        <PlacementEntryModal
+          heat={heatWithResults}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('submit-placement-btn'))
+
+      expect(mockOnSubmitResults).toHaveBeenCalledWith(heatWithResults.id, [
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: 59000 },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
+      ])
+    })
+
+    it('should cleanup timer and discard pending digits on modal close', () => {
+      const { rerender } = render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+      fireEvent.keyDown(window, { key: '5' })
+      fireEvent.keyDown(window, { key: '9' })
+
+      // Close before the 2s timeout triggers finalize
+      rerender(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={false}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      // Let any pending timers run; should not crash or save
+      act(() => {
+        vi.advanceTimersByTime(5000)
+      })
+
+      // Reopen and submit: no lapTimeMs should be present
+      rerender(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
+      fireEvent.click(screen.getByTestId('submit-placement-btn'))
+
+      expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
+        { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
+      ])
     })
   })
 
@@ -294,13 +487,13 @@ describe('PlacementEntryModal', () => {
       )
 
       // Initially no reset button
-      expect(screen.queryByTestId('reset-rankings-btn')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('reset-rankings-btn')).toBeNull()
 
       // Add a ranking
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
       // Reset button should appear
-      expect(screen.getByTestId('reset-rankings-btn')).toBeInTheDocument()
+      expect(screen.queryByTestId('reset-rankings-btn')).not.toBeNull()
     })
 
     it('should clear all rankings on reset click', () => {
@@ -318,15 +511,15 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
 
-      expect(screen.getByText('1')).toBeInTheDocument()
-      expect(screen.getByText('2')).toBeInTheDocument()
+      expect(screen.queryByText('1')).not.toBeNull()
+      expect(screen.queryByText('2')).not.toBeNull()
 
       // Click reset
       fireEvent.click(screen.getByTestId('reset-rankings-btn'))
 
       // Rankings should be gone
-      expect(screen.queryByText('1')).not.toBeInTheDocument()
-      expect(screen.queryByText('2')).not.toBeInTheDocument()
+      expect(screen.queryByText('1')).toBeNull()
+      expect(screen.queryByText('2')).toBeNull()
     })
   })
 
@@ -351,7 +544,7 @@ describe('PlacementEntryModal', () => {
       fireEvent.keyDown(window, { key: '2' })
 
       // Rank 2 should be assigned
-      expect(screen.getByText('2')).toBeInTheDocument()
+      expect(screen.queryByText('2')).not.toBeNull()
     })
 
     it('should ignore rank assignment when pressing rank higher than pilot count', () => {
@@ -380,10 +573,10 @@ describe('PlacementEntryModal', () => {
       fireEvent.keyDown(window, { key: '4' })
 
       // No rank badge should appear
-      expect(screen.queryByText('4')).not.toBeInTheDocument()
-      expect(screen.queryByText('1')).not.toBeInTheDocument()
-      expect(screen.queryByText('2')).not.toBeInTheDocument()
-      expect(screen.queryByText('3')).not.toBeInTheDocument()
+      expect(screen.queryByText('4')).toBeNull()
+      expect(screen.queryByText('1')).toBeNull()
+      expect(screen.queryByText('2')).toBeNull()
+      expect(screen.queryByText('3')).toBeNull()
     })
   })
 
@@ -410,7 +603,7 @@ describe('PlacementEntryModal', () => {
       fireEvent.click(screen.getByTestId(`pilot-card-${threePilots[1].id}`))
 
       const submitBtn = screen.getByTestId('submit-placement-btn')
-      expect(submitBtn).toBeEnabled()
+      expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
     })
   })
 })

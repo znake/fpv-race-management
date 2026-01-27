@@ -2,7 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
 import { Modal } from './ui/modal'
-import { getRankBadgeClasses, getRankBorderClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
+import {
+  getRankBadgeClasses,
+  getRankBorderClasses,
+  FALLBACK_PILOT_IMAGE,
+  parseLapTimeDigits
+} from '../lib/ui-helpers'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 type PlacementEntryModalProps = {
@@ -10,7 +15,10 @@ type PlacementEntryModalProps = {
   pilots: Pilot[]
   isOpen: boolean
   onClose: () => void
-  onSubmitResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
+  onSubmitResults: (
+    heatId: string,
+    rankings: { pilotId: string; rank: 1 | 2 | 3 | 4; lapTimeMs?: number }[]
+  ) => void
 }
 
 /**
@@ -32,8 +40,14 @@ export function PlacementEntryModal({
 }: PlacementEntryModalProps) {
   // Local state for rankings during input
   const [rankings, setRankings] = useState<Map<string, number>>(new Map())
+  const [lapTimes, setLapTimes] = useState<Map<string, number>>(new Map())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  // Refs for keyboard-based lap time digit accumulation
+  const lastClickedPilotIdRef = useRef<string | null>(null)
+  const timeDigitBufferRef = useRef<string>('')
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   // Mobile detection for responsive layout
   const isMobile = useIsMobile()
@@ -57,14 +71,52 @@ export function PlacementEntryModal({
   useEffect(() => {
     if (isOpen && heat.results?.rankings) {
       const existingRankings = new Map<string, number>()
+      const existingLapTimes = new Map<string, number>()
       heat.results.rankings.forEach((r) => {
         existingRankings.set(r.pilotId, r.rank)
+        if (r.lapTimeMs !== undefined) {
+          existingLapTimes.set(r.pilotId, r.lapTimeMs)
+        }
       })
       setRankings(existingRankings)
+      setLapTimes(existingLapTimes)
     } else if (isOpen) {
       setRankings(new Map())
+      setLapTimes(new Map())
     }
   }, [isOpen, heat.id, heat.results])
+
+  const finalizeTimeEntry = useCallback(() => {
+    const pilotId = lastClickedPilotIdRef.current
+    const buffer = timeDigitBufferRef.current
+
+    if (pilotId && buffer) {
+      const parsedMs = parseLapTimeDigits(buffer)
+      if (parsedMs !== null) {
+        setLapTimes((prev) => new Map(prev).set(pilotId, parsedMs))
+      }
+    }
+
+    lastClickedPilotIdRef.current = null
+    timeDigitBufferRef.current = ''
+    timeoutRef.current = null
+  }, [])
+
+  const openTimeEntryWindow = useCallback(
+    (pilotId: string) => {
+      // Clear any previous window / pending digits
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      timeDigitBufferRef.current = ''
+      lastClickedPilotIdRef.current = pilotId
+
+      timeoutRef.current = setTimeout(() => {
+        finalizeTimeEntry()
+      }, 2000)
+    },
+    [finalizeTimeEntry]
+  )
 
   // Focus first pilot button when modal opens
   useEffect(() => {
@@ -78,6 +130,10 @@ export function PlacementEntryModal({
 
   // Toggle rank for a pilot
   const toggleRank = useCallback((pilotId: string) => {
+    const currentRank = rankings.get(pilotId)
+    const willAssignRank =
+      currentRank === undefined && rankings.size + 1 <= heatPilots.length
+
     setRankings((prev) => {
       const currentRank = prev.get(pilotId)
 
@@ -102,7 +158,11 @@ export function PlacementEntryModal({
         return prev
       }
     })
-  }, [heatPilots.length])
+
+    if (willAssignRank) {
+      openTimeEntryWindow(pilotId)
+    }
+  }, [rankings, heatPilots.length, openTimeEntryWindow])
 
   // Assign a direct rank (for keyboard shortcuts)
   const assignDirectRank = useCallback((pilotId: string, rank: 1 | 2 | 3 | 4) => {
@@ -130,11 +190,22 @@ export function PlacementEntryModal({
       
       return newRankings
     })
-  }, [heatPilots.length])
+
+    // Opening a time window here enables a "rank via keyboard, time via digits" flow.
+    openTimeEntryWindow(pilotId)
+  }, [heatPilots.length, openTimeEntryWindow])
 
   // Reset all rankings
   const resetRankings = useCallback(() => {
     setRankings(new Map())
+    setLapTimes(new Map())
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    lastClickedPilotIdRef.current = null
+    timeDigitBufferRef.current = ''
   }, [])
 
   // Handle submit with double-click protection
@@ -144,7 +215,11 @@ export function PlacementEntryModal({
     setIsSubmitting(true)
 
     const rankingsArray = Array.from(rankings.entries())
-      .map(([pilotId, rank]) => ({ pilotId, rank: rank as 1 | 2 | 3 | 4 }))
+      .map(([pilotId, rank]) => ({
+        pilotId,
+        rank: rank as 1 | 2 | 3 | 4,
+        lapTimeMs: lapTimes.get(pilotId)
+      }))
       .sort((a, b) => a.rank - b.rank)
 
     onSubmitResults(heat.id, rankingsArray)
@@ -162,6 +237,28 @@ export function PlacementEntryModal({
       if (focusedPilotId && ['1', '2', '3', '4'].includes(e.key)) {
         e.preventDefault()
         assignDirectRank(focusedPilotId, parseInt(e.key) as 1 | 2 | 3 | 4)
+        return
+      }
+
+      // Time digit accumulation (0, 5-9 only; 1-4 reserved for rank keys)
+      if (
+        lastClickedPilotIdRef.current &&
+        ['0', '5', '6', '7', '8', '9'].includes(e.key)
+      ) {
+        e.preventDefault()
+
+        timeDigitBufferRef.current += e.key
+
+        // Reset timeout on each digit
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+
+        timeoutRef.current = setTimeout(() => {
+          finalizeTimeEntry()
+        }, 2000)
+
+        return
       }
 
       // Escape always resets rankings (no-op if empty)
@@ -178,7 +275,25 @@ export function PlacementEntryModal({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, assignDirectRank, resetRankings]) // Removed rankings.size - using ref instead
+  }, [isOpen, assignDirectRank, resetRankings, finalizeTimeEntry]) // Removed rankings.size - using ref instead
+
+  // Cleanup timer + pending digit buffer when modal closes/unmounts
+  useEffect(() => {
+    if (!isOpen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      lastClickedPilotIdRef.current = null
+      timeDigitBufferRef.current = ''
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [isOpen])
 
   // Get rank badge styling
   const getRankBadgeClass = (rank: number) => {
