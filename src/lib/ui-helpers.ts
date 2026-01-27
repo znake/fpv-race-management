@@ -161,3 +161,49 @@ export function getPilotRowClass(
   if (rank <= 2) return 'top'
   return 'bottom'
 }
+
+/**
+ * Format milliseconds as M:SS lap time string
+ * @param ms - Time in milliseconds
+ * @returns Formatted string like "0:45" or "1:23"
+ */
+export function formatLapTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
+/**
+ * Parse digit string to milliseconds
+ * @param digits - 2-3 digit string (SS or MSS format)
+ * @returns Milliseconds or null if invalid/out of range
+ */
+export function parseLapTimeDigits(digits: string): number | null {
+  if (!/^\d{2,3}$/.test(digits)) {
+    return null
+  }
+
+  let minutes = 0
+  let seconds = 0
+
+  if (digits.length === 2) {
+    seconds = parseInt(digits, 10)
+  } else {
+    minutes = parseInt(digits[0], 10)
+    seconds = parseInt(digits.slice(1), 10)
+  }
+
+  if (seconds > 59) {
+    return null
+  }
+
+  const ms = (minutes * 60 + seconds) * 1000
+
+  // Validation: 20s to 5min (exclusive of 5min per requirements)
+  if (ms < 20000 || ms >= 300000) {
+    return null
+  }
+
+  return ms
+}
