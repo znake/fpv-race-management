@@ -175,6 +175,24 @@ export function formatLapTime(ms: number): string {
 }
 
 /**
+ * Format partial digit input as M:SS preview for time entry overlay.
+ * Examples: "" → "", "1" → "0:01", "12" → "0:12", "123" → "1:23"
+ */
+export function formatPartialTimeEntry(digits: string): string {
+  if (!digits) return ''
+  
+  const truncated = digits.slice(0, 3)
+  
+  if (truncated.length === 1) {
+    return `0:0${truncated}`
+  } else if (truncated.length === 2) {
+    return `0:${truncated}`
+  } else {
+    return `${truncated[0]}:${truncated.slice(1)}`
+  }
+}
+
+/**
  * Parse digit string to milliseconds
  * @param digits - 2-3 digit string (SS or MSS format)
  * @returns Milliseconds or null if invalid/out of range
@@ -200,8 +218,8 @@ export function parseLapTimeDigits(digits: string): number | null {
 
   const ms = (minutes * 60 + seconds) * 1000
 
-  // Validation: 20s to 5min (exclusive of 5min per requirements)
-  if (ms < 20000 || ms >= 300000) {
+  // Validation: 20s to 9:59
+  if (ms < 20000 || ms > 599000) {
     return null
   }
 

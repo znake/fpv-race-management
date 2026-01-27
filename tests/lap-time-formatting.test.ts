@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatLapTime, parseLapTimeDigits } from '../src/lib/ui-helpers'
+import { formatLapTime, parseLapTimeDigits, formatPartialTimeEntry } from '../src/lib/ui-helpers'
 
 describe('lap time formatting', () => {
   describe('formatLapTime', () => {
@@ -61,6 +61,32 @@ describe('lap time formatting', () => {
 
     it('returns null for 4+ digit strings', () => {
       expect(parseLapTimeDigits('1234')).toBe(null)
+    })
+  })
+
+  describe('formatPartialTimeEntry', () => {
+    it('returns empty string for empty input', () => {
+      expect(formatPartialTimeEntry('')).toBe('')
+    })
+
+    it('formats single digit as 0:0X', () => {
+      expect(formatPartialTimeEntry('1')).toBe('0:01')
+      expect(formatPartialTimeEntry('9')).toBe('0:09')
+    })
+
+    it('formats two digits as 0:XX', () => {
+      expect(formatPartialTimeEntry('12')).toBe('0:12')
+      expect(formatPartialTimeEntry('45')).toBe('0:45')
+    })
+
+    it('formats three digits as M:SS', () => {
+      expect(formatPartialTimeEntry('123')).toBe('1:23')
+      expect(formatPartialTimeEntry('459')).toBe('4:59')
+    })
+
+    it('truncates to 3 digits for longer input', () => {
+      expect(formatPartialTimeEntry('1234')).toBe('1:23')
+      expect(formatPartialTimeEntry('12345')).toBe('1:23')
     })
   })
 })
