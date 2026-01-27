@@ -1,6 +1,9 @@
+import { useRef, useState } from 'react'
 import type { Heat } from '../types'
 import type { Pilot } from '../lib/schemas'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
+import { Clock, X } from 'lucide-react'
+import { useTournamentStore } from '../stores/tournamentStore'
+import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, formatLapTime, parseLapTimeDigits } from '../lib/ui-helpers'
 import { Modal } from './ui/modal'
 import { useIsMobile } from '../hooks/useIsMobile'
 
@@ -22,6 +25,51 @@ export function HeatDetailModal({
   canEdit = true
 }: HeatDetailModalProps) {
   const isMobile = useIsMobile()
+
+  const [editingTimeForPilot, setEditingTimeForPilot] = useState<string | null>(null)
+  const [timeInputValue, setTimeInputValue] = useState<string>('')
+  const isDeleteClickRef = useRef(false) // Prevents blur-vs-delete race condition
+  const submitHeatResults = useTournamentStore(state => state.submitHeatResults)
+
+  const msToDigits = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000)
+    const seconds = Math.floor((ms % 60000) / 1000)
+    if (minutes === 0) return String(seconds)
+    return `${minutes}${String(seconds).padStart(2, '0')}`
+  }
+
+  const handleOpenTimeEdit = (pilotId: string, currentMs?: number) => {
+    setEditingTimeForPilot(pilotId)
+    setTimeInputValue(currentMs ? msToDigits(currentMs) : '')
+  }
+
+  const handleSaveTime = (pilotId: string) => {
+    if (!heat.results?.rankings) return
+
+    const parsedMs = parseLapTimeDigits(timeInputValue)
+    if (timeInputValue && parsedMs === null) {
+      setEditingTimeForPilot(null)
+      return
+    }
+
+    const updatedRankings = heat.results.rankings.map(r =>
+      r.pilotId === pilotId ? { ...r, lapTimeMs: parsedMs ?? undefined } : r
+    )
+
+    submitHeatResults(heat.id, updatedRankings)
+    setEditingTimeForPilot(null)
+  }
+
+  const handleDeleteTime = (pilotId: string) => {
+    if (!heat.results?.rankings) return
+
+    const updatedRankings = heat.results.rankings.map(r =>
+      r.pilotId === pilotId ? { ...r, lapTimeMs: undefined } : r
+    )
+
+    submitHeatResults(heat.id, updatedRankings)
+    setEditingTimeForPilot(null)
+  }
   
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md" closeOnBackdropClick data-testid="modal-backdrop">
@@ -76,13 +124,62 @@ export function HeatDetailModal({
 
               {/* Ranking Badge */}
               {ranking && (
-                <div className={`
-                  rounded-full flex items-center justify-center font-bold
-                  ${isMobile ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-lg'}
-                  ${getRankBadgeClasses(ranking.rank)}
-                `}>
-                  {ranking.rank}
-                </div>
+                <>
+                  <div className={`
+                    rounded-full flex items-center justify-center font-bold
+                    ${isMobile ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-lg'}
+                    ${getRankBadgeClasses(ranking.rank)}
+                  `}>
+                    {ranking.rank}
+                  </div>
+
+                  {heat.status === 'completed' && canEdit && ranking && (
+                    <>
+                      {editingTimeForPilot === pilotId ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={3}
+                            value={timeInputValue}
+                            onChange={(e) => setTimeInputValue(e.target.value.replace(/\D/g, ''))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveTime(pilotId)
+                              } else if (e.key === 'Escape') {
+                                setEditingTimeForPilot(null)
+                              }
+                            }}
+                            onBlur={() => {
+                              if (!isDeleteClickRef.current) handleSaveTime(pilotId)
+                              isDeleteClickRef.current = false
+                            }}
+                            className="w-12 px-1 text-center text-sm bg-void border border-steel rounded"
+                            autoFocus
+                          />
+                          {ranking?.lapTimeMs && (
+                            <button
+                              onMouseDown={() => {
+                                isDeleteClickRef.current = true
+                              }}
+                              onClick={() => handleDeleteTime(pilotId)}
+                            >
+                              <X className="w-4 h-4 text-steel hover:text-neon-pink" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button onClick={() => handleOpenTimeEdit(pilotId, ranking?.lapTimeMs)}>
+                          <Clock className="w-4 h-4 text-steel hover:text-neon-cyan" />
+                        </button>
+                      )}
+                      {ranking?.lapTimeMs && editingTimeForPilot !== pilotId && (
+                        <span className="text-xs text-steel ml-1">{formatLapTime(ranking.lapTimeMs)}</span>
+                      )}
+                    </>
+                  )}
+                </>
               )}
             </div>
           )
