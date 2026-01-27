@@ -69,6 +69,8 @@ export type RankPosition = 1 | 2 | 3 | 4
 export interface Ranking {
   pilotId: string
   rank: RankPosition
+  /** Lap time in milliseconds (optional) */
+  lapTimeMs?: number
 }
 
 /**
