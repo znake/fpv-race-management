@@ -28,7 +28,7 @@ export function HeatDetailModal({
 
   const [editingTimeForPilot, setEditingTimeForPilot] = useState<string | null>(null)
   const [timeInputValue, setTimeInputValue] = useState<string>('')
-  const isDeleteClickRef = useRef(false) // Prevents blur-vs-delete race condition
+  const isDeleteClickRef = useRef(false)
   const submitHeatResults = useTournamentStore(state => state.submitHeatResults)
 
   const msToDigits = (ms: number): string => {
