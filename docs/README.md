@@ -213,6 +213,21 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 - Alle Piloten müssen eine eindeutige Platzierung haben
 - Keine doppelten Platzierungen erlaubt
 
+##### Rundenzeiten erfassen (optional)
+
+Für Turniere mit Zeitnehmung können zusätzlich **Rundenzeiten** pro Pilot erfasst werden:
+
+1. **Platzierung eingeben** - Pilot anklicken oder Taste 1-4 drücken
+2. **Zeit eingeben** - Nach Vergabe der Platzierung Ziffern tippen (z.B. `123` für 1:23)
+3. **Bestätigen** - Enter drücken oder nächsten Piloten platzieren
+
+**Zeitformat:**
+- 1-2 Ziffern: Sekunden (z.B. `5` → 0:05, `45` → 0:45)
+- 3-4 Ziffern: Minuten:Sekunden (z.B. `123` → 1:23, `959` → 9:59)
+- Bereich: 0:01 bis 9:59
+
+Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind im CSV-Export enthalten.
+
 ![Platzierungen eingeben](./images/Platzierungen.png)
 
 #### Phase 4: Grand Finale
@@ -286,7 +301,7 @@ Die App bietet Export- und Import-Funktionen im Footer-Bereich.
 | **CSV** | Piloten + Ergebnisse | Dokumentation, Weitergabe |
 
 - **JSON-Export** speichert alle Daten (Piloten, Heats, Bracket-Status)
-- **CSV-Export** erzeugt eine lesbare Tabelle mit Piloten und Platzierungen
+- **CSV-Export** erzeugt eine lesbare Tabelle mit Piloten, Platzierungen und Rundenzeiten (falls erfasst)
 - In der **Siegerehrung** wird automatisch ein CSV-Export angeboten
 
 #### Import
@@ -393,4 +408,4 @@ Entwickelt für FPVOOE - FPV Austria Racing Community
 
 ---
 
-*Zuletzt aktualisiert: 2026-01-22*
+*Zuletzt aktualisiert: 2026-01-27*
