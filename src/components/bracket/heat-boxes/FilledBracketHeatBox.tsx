@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '../../../lib/utils'
-import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
+import { FALLBACK_PILOT_IMAGE, formatLapTime } from '../../../lib/ui-helpers'
 import type { FilledBracketHeatBoxProps } from '../types'
 
 /**
@@ -130,6 +130,11 @@ export function FilledBracketHeatBox({
               {rank && (
                 <span className={cn('rank-badge', `r${rank}`)}>
                   {rank}
+                </span>
+              )}
+              {ranking?.lapTimeMs && (
+                <span className="text-xs text-steel ml-1">
+                  {formatLapTime(ranking.lapTimeMs)}
                 </span>
               )}
             </div>
