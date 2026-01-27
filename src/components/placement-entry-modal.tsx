@@ -6,7 +6,8 @@ import {
   getRankBadgeClasses,
   getRankBorderClasses,
   FALLBACK_PILOT_IMAGE,
-  parseLapTimeDigits
+  parseLapTimeDigits,
+  formatPartialTimeEntry
 } from '../lib/ui-helpers'
 import { useIsMobile } from '../hooks/useIsMobile'
 
@@ -38,16 +39,18 @@ export function PlacementEntryModal({
   onClose,
   onSubmitResults
 }: PlacementEntryModalProps) {
-  // Local state for rankings during input
   const [rankings, setRankings] = useState<Map<string, number>>(new Map())
   const [lapTimes, setLapTimes] = useState<Map<string, number>>(new Map())
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [displayedTimeDigits, setDisplayedTimeDigits] = useState('')
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [shakeOverlay, setShakeOverlay] = useState(false)
+  const [editingPilotId, setEditingPilotId] = useState<string | null>(null)
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   // Refs for keyboard-based lap time digit accumulation
   const lastClickedPilotIdRef = useRef<string | null>(null)
   const timeDigitBufferRef = useRef<string>('')
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   // Mobile detection for responsive layout
   const isMobile = useIsMobile()
@@ -91,32 +94,52 @@ export function PlacementEntryModal({
     const buffer = timeDigitBufferRef.current
 
     if (pilotId && buffer) {
-      const parsedMs = parseLapTimeDigits(buffer)
-      if (parsedMs !== null) {
-        setLapTimes((prev) => new Map(prev).set(pilotId, parsedMs))
+      let seconds = 0
+      if (buffer.length <= 2) {
+        seconds = parseInt(buffer, 10)
+      } else {
+        seconds = parseInt(buffer.slice(1), 10)
       }
+      
+      if (seconds > 59) {
+        setValidationError('Sekunden max. 59')
+        setShakeOverlay(true)
+        setTimeout(() => setShakeOverlay(false), 400)
+        return
+      }
+      
+      const parsedMs = parseLapTimeDigits(buffer)
+      if (parsedMs === null) {
+        setValidationError('Ungültige Zeit (20s - 9:59)')
+        setShakeOverlay(true)
+        setTimeout(() => setShakeOverlay(false), 400)
+        return
+      }
+      
+      setLapTimes((prev) => new Map(prev).set(pilotId, parsedMs))
     }
 
     lastClickedPilotIdRef.current = null
     timeDigitBufferRef.current = ''
-    timeoutRef.current = null
+    setDisplayedTimeDigits('')
+    setValidationError(null)
+    setEditingPilotId(null)
   }, [])
 
   const openTimeEntryWindow = useCallback(
     (pilotId: string) => {
-      // Clear any previous window / pending digits
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
       timeDigitBufferRef.current = ''
       lastClickedPilotIdRef.current = pilotId
-
-      timeoutRef.current = setTimeout(() => {
-        finalizeTimeEntry()
-      }, 2000)
+      setEditingPilotId(pilotId)
+      setDisplayedTimeDigits('')
+      setValidationError(null)
     },
-    [finalizeTimeEntry]
+    []
   )
+  
+  const currentEditingPilot = editingPilotId 
+    ? heatPilots.find(p => p.id === editingPilotId)
+    : null
 
   // Focus first pilot button when modal opens
   useEffect(() => {
@@ -195,17 +218,12 @@ export function PlacementEntryModal({
     openTimeEntryWindow(pilotId)
   }, [heatPilots.length, openTimeEntryWindow])
 
-  // Reset all rankings
   const resetRankings = useCallback(() => {
     setRankings(new Map())
     setLapTimes(new Map())
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
     lastClickedPilotIdRef.current = null
     timeDigitBufferRef.current = ''
+    setDisplayedTimeDigits('')
   }, [])
 
   // Handle submit with double-click protection
@@ -226,72 +244,88 @@ export function PlacementEntryModal({
     // onClose is called by parent after submit
   }
 
-  // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if focus is on a pilot card
+      const isTimeEntryActive = lastClickedPilotIdRef.current !== null
       const focusedPilotId = document.activeElement?.getAttribute('data-pilot-id')
 
-      if (focusedPilotId && ['1', '2', '3', '4'].includes(e.key)) {
+      // PRIORITY 1: Time entry mode active + Enter → finalize time entry
+      if (isTimeEntryActive && e.key === 'Enter') {
+        e.preventDefault()
+        finalizeTimeEntry()
+        return
+      }
+
+      // PRIORITY 2: Time entry mode active + digit → capture ALL 0-9
+      if (isTimeEntryActive && /^[0-9]$/.test(e.key)) {
+        e.preventDefault()
+
+        const newBuffer = timeDigitBufferRef.current + e.key
+        timeDigitBufferRef.current = newBuffer
+        setDisplayedTimeDigits(newBuffer)
+
+        return
+      }
+
+      // PRIORITY 3: Time entry mode active + Backspace → delete last digit
+      if (isTimeEntryActive && e.key === 'Backspace') {
+        e.preventDefault()
+
+        const newBuffer = timeDigitBufferRef.current.slice(0, -1)
+        timeDigitBufferRef.current = newBuffer
+        setDisplayedTimeDigits(newBuffer)
+
+        if (!newBuffer) {
+          lastClickedPilotIdRef.current = null
+        }
+
+        return
+      }
+
+      // PRIORITY 4: Time entry mode active + Escape → clear time entry only
+      if (isTimeEntryActive && e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+
+        lastClickedPilotIdRef.current = null
+        timeDigitBufferRef.current = ''
+        setDisplayedTimeDigits('')
+        setValidationError(null)
+        setEditingPilotId(null)
+
+        return
+      }
+
+      // PRIORITY 5: Pilot focused + NO time entry + 1-4 → assign direct rank
+      if (focusedPilotId && !isTimeEntryActive && ['1', '2', '3', '4'].includes(e.key)) {
         e.preventDefault()
         assignDirectRank(focusedPilotId, parseInt(e.key) as 1 | 2 | 3 | 4)
         return
       }
 
-      // Time digit accumulation (0, 5-9 only; 1-4 reserved for rank keys)
-      if (
-        lastClickedPilotIdRef.current &&
-        ['0', '5', '6', '7', '8', '9'].includes(e.key)
-      ) {
-        e.preventDefault()
-
-        timeDigitBufferRef.current += e.key
-
-        // Reset timeout on each digit
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current)
-        }
-
-        timeoutRef.current = setTimeout(() => {
-          finalizeTimeEntry()
-        }, 2000)
-
-        return
-      }
-
-      // Escape always resets rankings (no-op if empty)
-      // Only stopPropagation when rankings exist to prevent modal close
+      // PRIORITY 6: Escape (no time entry) → reset rankings or close modal
       if (e.key === 'Escape') {
         if (rankingsSizeRef.current > 0) {
           e.preventDefault()
           e.stopPropagation()
         }
         resetRankings()
-        // When no rankings, let event bubble to Modal for normal close
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, assignDirectRank, resetRankings, finalizeTimeEntry]) // Removed rankings.size - using ref instead
+  }, [isOpen, assignDirectRank, resetRankings, finalizeTimeEntry])
 
-  // Cleanup timer + pending digit buffer when modal closes/unmounts
   useEffect(() => {
     if (!isOpen) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
       lastClickedPilotIdRef.current = null
       timeDigitBufferRef.current = ''
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      setDisplayedTimeDigits('')
+      setValidationError(null)
+      setEditingPilotId(null)
     }
   }, [isOpen])
 
@@ -454,12 +488,43 @@ export function PlacementEntryModal({
         </p>
       </div>
 
-      {/* Keyboard Shortcuts Help - hide on mobile */}
       {!isMobile && (
         <div className="mt-8 text-center">
           <p className="font-ui text-lg text-steel/60">
-            1-4 = Direkter Rang | Escape = Reset
+            1-4 = Direkter Rang | Enter = Zeit bestätigen | Escape = Reset
           </p>
+        </div>
+      )}
+
+      {(displayedTimeDigits || validationError) && (
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="time-entry-overlay"
+        >
+          <div className={`bg-void/90 px-12 py-8 rounded-2xl border-2 shadow-glow-cyan ${
+            shakeOverlay ? 'shake-error' : 'border-neon-cyan'
+          }`}>
+            {currentEditingPilot && (
+              <div className="text-center mb-4">
+                <div className="text-steel text-lg">Zeit für</div>
+                <div className="font-display text-3xl text-chrome">{currentEditingPilot.name}</div>
+              </div>
+            )}
+            <div className="font-display text-8xl text-chrome tracking-wider text-center">
+              {formatPartialTimeEntry(displayedTimeDigits)}
+            </div>
+            {validationError ? (
+              <div className="text-center text-loser-red mt-4 text-xl font-bold animate-pulse">
+                {validationError}
+              </div>
+            ) : (
+              <div className="text-center text-steel mt-2 text-xl">
+                Enter zum Bestätigen
+              </div>
+            )}
+          </div>
         </div>
       )}
     </Modal>

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { PlacementEntryModal } from '../src/components/placement-entry-modal'
 import { createMockPilots, resetMockPilotCounter } from './helpers/mock-factories'
 import type { Heat } from '../src/types'
@@ -282,15 +282,7 @@ describe('PlacementEntryModal', () => {
   })
 
   describe('Lap time digit accumulation', () => {
-    beforeEach(() => {
-      vi.useFakeTimers()
-    })
-
-    afterEach(() => {
-      vi.useRealTimers()
-    })
-
-    it('should accumulate digits within 2s and submit lapTimeMs', () => {
+    it('should accumulate digits and submit lapTimeMs on Enter', () => {
       render(
         <PlacementEntryModal
           heat={mockHeat}
@@ -301,19 +293,12 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      // Click Pilot A -> rank 1, opens time window
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
-      // Enter "59" within 2s
       fireEvent.keyDown(window, { key: '5' })
       fireEvent.keyDown(window, { key: '9' })
+      fireEvent.keyDown(window, { key: 'Enter' })
 
-      // Finalize after inactivity window
-      act(() => {
-        vi.advanceTimersByTime(2000)
-      })
-
-      // Click Pilot B -> rank 2 (submit enabled)
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
 
       fireEvent.click(screen.getByTestId('submit-placement-btn'))
@@ -324,7 +309,7 @@ describe('PlacementEntryModal', () => {
       ])
     })
 
-    it('should not record time when typing after the 2s window closed', () => {
+    it('should not record time when cancelled with Escape', () => {
       render(
         <PlacementEntryModal
           heat={mockHeat}
@@ -337,17 +322,9 @@ describe('PlacementEntryModal', () => {
 
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
-      // Let window expire
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
-
-      // Type after window -> ignored
       fireEvent.keyDown(window, { key: '5' })
       fireEvent.keyDown(window, { key: '9' })
-      act(() => {
-        vi.advanceTimersByTime(2000)
-      })
+      fireEvent.keyDown(window, { key: 'Escape' })
 
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
       fireEvent.click(screen.getByTestId('submit-placement-btn'))
@@ -358,7 +335,7 @@ describe('PlacementEntryModal', () => {
       ])
     })
 
-    it('should treat keys 1-4 as rank keys and not time digits', () => {
+    it('should capture digits 1-4 as time digits when time entry mode is active', () => {
       render(
         <PlacementEntryModal
           heat={mockHeat}
@@ -369,24 +346,19 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      // Click Pilot A (rank 1) and keep it focused
       const pilotA = screen.getByTestId(`pilot-card-${mockPilots[0].id}`)
       fireEvent.click(pilotA)
 
-      // If "1" was incorrectly treated as time digit, "105" would be parsed as 1:05 (valid)
       fireEvent.keyDown(window, { key: '1' })
       fireEvent.keyDown(window, { key: '0' })
       fireEvent.keyDown(window, { key: '5' })
-
-      act(() => {
-        vi.advanceTimersByTime(2000)
-      })
+      fireEvent.keyDown(window, { key: 'Enter' })
 
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[1].id}`))
       fireEvent.click(screen.getByTestId('submit-placement-btn'))
 
       expect(mockOnSubmitResults).toHaveBeenCalledWith(mockHeat.id, [
-        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
+        { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: 65000 },
         { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
       ])
     })
@@ -421,7 +393,7 @@ describe('PlacementEntryModal', () => {
       ])
     })
 
-    it('should cleanup timer and discard pending digits on modal close', () => {
+    it('should discard pending digits on modal close', () => {
       const { rerender } = render(
         <PlacementEntryModal
           heat={mockHeat}
@@ -436,7 +408,6 @@ describe('PlacementEntryModal', () => {
       fireEvent.keyDown(window, { key: '5' })
       fireEvent.keyDown(window, { key: '9' })
 
-      // Close before the 2s timeout triggers finalize
       rerender(
         <PlacementEntryModal
           heat={mockHeat}
@@ -447,12 +418,6 @@ describe('PlacementEntryModal', () => {
         />
       )
 
-      // Let any pending timers run; should not crash or save
-      act(() => {
-        vi.advanceTimersByTime(5000)
-      })
-
-      // Reopen and submit: no lapTimeMs should be present
       rerender(
         <PlacementEntryModal
           heat={mockHeat}
@@ -471,6 +436,82 @@ describe('PlacementEntryModal', () => {
         { pilotId: mockPilots[0].id, rank: 1, lapTimeMs: undefined },
         { pilotId: mockPilots[1].id, rank: 2, lapTimeMs: undefined },
       ])
+    })
+
+    it('should show overlay with formatted time while typing', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+      fireEvent.keyDown(window, { key: '1' })
+
+      expect(screen.getByTestId('time-entry-overlay')).not.toBeNull()
+      expect(screen.getByText('0:01')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: '2' })
+      expect(screen.getByText('0:12')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: '3' })
+      expect(screen.getByText('1:23')).not.toBeNull()
+    })
+
+    it('should delete last digit on Backspace', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+      fireEvent.keyDown(window, { key: '1' })
+      fireEvent.keyDown(window, { key: '2' })
+      fireEvent.keyDown(window, { key: '3' })
+
+      expect(screen.getByText('1:23')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: 'Backspace' })
+      expect(screen.getByText('0:12')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: 'Backspace' })
+      expect(screen.getByText('0:01')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: 'Backspace' })
+      expect(screen.queryByTestId('time-entry-overlay')).toBeNull()
+    })
+
+    it('should clear time entry on Escape without affecting rankings', () => {
+      render(
+        <PlacementEntryModal
+          heat={mockHeat}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+
+      fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
+      expect(screen.queryByText('1')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: '5' })
+      fireEvent.keyDown(window, { key: '9' })
+      expect(screen.getByTestId('time-entry-overlay')).not.toBeNull()
+
+      fireEvent.keyDown(window, { key: 'Escape' })
+
+      expect(screen.queryByTestId('time-entry-overlay')).toBeNull()
+      expect(screen.queryByText('1')).not.toBeNull()
     })
   })
 
