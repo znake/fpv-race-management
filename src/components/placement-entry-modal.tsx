@@ -258,9 +258,16 @@ export function PlacementEntryModal({
         return
       }
 
-      // PRIORITY 2: Time entry mode active + digit → capture ALL 0-9
+      // PRIORITY 2: Time entry mode active + digit → capture ALL 0-9 (max 3 digits)
       if (isTimeEntryActive && /^[0-9]$/.test(e.key)) {
         e.preventDefault()
+
+        if (timeDigitBufferRef.current.length >= 3) {
+          setValidationError('Max. 3 Ziffern')
+          setShakeOverlay(true)
+          setTimeout(() => setShakeOverlay(false), 400)
+          return
+        }
 
         const newBuffer = timeDigitBufferRef.current + e.key
         timeDigitBufferRef.current = newBuffer
