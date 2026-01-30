@@ -276,6 +276,21 @@ Klick auf abgeschlossene Heats zeigt:
 - Alle Piloten mit finaler Platzierung
 - Wohin jeder Pilot weitergeleitet wurde (WB/LB/Eliminiert)
 
+#### Channel-Anzeige & Optimierung
+
+Jeder Pilot im Heat erhält einen **Raceband-Channel** (R1, R3, R4, R6, R8) basierend auf seiner Position:
+
+| Heat-Größe | Channels |
+|------------|----------|
+| 3 Piloten | R1, R4, R8 |
+| 4 Piloten | R1, R3, R6, R8 |
+
+Die Channels werden als **Badges** direkt im Bracket angezeigt.
+
+**Intelligente Channel-Optimierung:**
+
+Um häufige Kanalwechsel zu vermeiden, merkt sich die App den zuletzt verwendeten Channel jedes Piloten. Bei der Generierung neuer Heats werden Piloten automatisch so angeordnet, dass sie möglichst oft auf ihrem bisherigen Channel bleiben können. Das spart Zeit beim Umstellen der Video-Sender zwischen den Rennen.
+
 ---
 
 ### 6. Daten-Persistenz
@@ -406,4 +421,4 @@ Entwickelt für FPVOOE - FPV Austria Racing Community
 
 ---
 
-*Zuletzt aktualisiert: 2026-01-27*
+*Zuletzt aktualisiert: 2026-01-30*
