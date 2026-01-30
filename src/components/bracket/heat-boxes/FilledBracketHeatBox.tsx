@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { cn } from '../../../lib/utils'
 import { FALLBACK_PILOT_IMAGE, formatLapTime } from '../../../lib/ui-helpers'
+import { formatChannel, getChannelForPosition } from '../../../lib/channel-assignment'
 import type { FilledBracketHeatBoxProps } from '../types'
 
 /**
@@ -113,6 +114,9 @@ export function FilledBracketHeatBox({
           const rank = ranking?.rank
           const rowClass = getPilotRowClass(rank)
           
+          const originalIndex = bracketHeat.pilotIds.indexOf(pilot.id)
+          const channel = getChannelForPosition(originalIndex, pilotCount)
+          
           return (
             <div key={pilot.id} className={cn('pilot-row', rowClass)}>
               {/* Pilot-Avatar */}
@@ -124,6 +128,9 @@ export function FilledBracketHeatBox({
                   (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
                 }}
               />
+              <span className="channel-badge bg-zinc-700 text-xs px-1 rounded font-mono text-steel mr-1">
+                {formatChannel(channel)}
+              </span>
               {/* Pilot-Name */}
               <span className="pilot-name">{pilot.name}</span>
               {/* Rank-Badge */}
