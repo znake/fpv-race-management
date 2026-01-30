@@ -615,8 +615,7 @@
   /* US-14.4 AC6: 3-Pilot Heat Box */
   .heat-box.three-pilot,
   [data-three-pilot="true"] .heat-box {
-    width: 120px;
-    min-width: 120px;
+    /* Width consistency: 3-pilot heats now use standard 150px width */
   }
 
   /* US-14.4 AC7: LB Heat Box Red Styling */
@@ -719,8 +718,7 @@
      ======================================== */
   /* Heat width CSS variables */
   :root {
-    --heat-width: 140px;
-    --heat-width-3: 120px;
+    --heat-width: 150px;
     --bg-winner: rgba(57, 255, 20, 0.25);
     --bg-loser: rgba(255, 7, 58, 0.25);
   }
@@ -754,16 +752,15 @@
     box-shadow: var(--glow-blue);
   }
 
-  /* AC2: 3er-Heat Box (120px width) */
+  /* AC2: 3er-Heat Box (Width consistency: now uses standard 150px) */
   .heat-box.three-pilot {
-    width: var(--heat-width-3);
   }
 
   /* AC3: Grand Finale Box */
   .heat-box.gf {
     border: 3px solid var(--gold);
     box-shadow: var(--glow-gold);
-    width: 180px;
+    width: 190px;
     padding: 10px 12px;
   }
 
@@ -801,14 +798,48 @@
     background: var(--gold);
   }
 
+  .pilot-row-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 1px 0;
+  }
+
+  .channel-badge-outer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: var(--steel);
+    background: #3f3f46;
+    padding: 0 2px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+
+  .pilot-row-wrapper:not(:has(.top, .bottom, .champ)) .channel-badge-outer {
+    margin-right: 0;
+  }
+
   /* AC6: Pilot-Row Basis */
   .pilot-row {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 2px 5px;
+    gap: 2px;
+    padding: 2px 2px;
     border-radius: 3px;
-    margin: 1px 0;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .pilot-row.top,
+  .pilot-row.bottom,
+  .pilot-row.champ {
+    gap: 4px;
+    padding: 2px 4px;
+  }
+
+  .pilot-row.flex-1 {
+    flex: 1;
   }
 
   /* AC7: Pilot-Row Weiterkommer (Platz 1+2) - Green */

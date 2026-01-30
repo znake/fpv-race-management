@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { cn } from '../../../lib/utils'
 import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
+import { formatChannel, getChannelForPosition } from '../../../lib/channel-assignment'
 import type { BracketHeatBoxProps } from '../types'
 
 /**
@@ -122,25 +123,31 @@ export function BracketHeatBox({
           const rank = ranking?.rank
           const rowClass = getPilotRowClass(rank)
           
+          // Get channel based on original position in heat
+          const originalIndex = heat.pilotIds.indexOf(pilot.id)
+          const channel = getChannelForPosition(originalIndex, pilotCount)
+          
           return (
-            <div key={pilot.id} className={cn('pilot-row', rowClass)}>
-              {/* AC9: Pilot-Avatar */}
-              <img 
-                className="pilot-avatar"
-                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
-                alt={pilot.name}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
-                }}
-              />
-              {/* AC10: Pilot-Name */}
-              <span className="pilot-name">{pilot.name}</span>
-              {/* AC11: Rank-Badge */}
-              {rank && (
-                <span className={cn('rank-badge', `r${rank}`)}>
-                  {rank}
-                </span>
-              )}
+            <div key={pilot.id} className="pilot-row-wrapper">
+              <span className="channel-badge-outer">
+                {formatChannel(channel)}
+              </span>
+              <div className={cn('pilot-row', rowClass, 'flex-1')}>
+                <img 
+                  className="pilot-avatar"
+                  src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
+                  alt={pilot.name}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                  }}
+                />
+                <span className="pilot-name">{pilot.name}</span>
+                {rank && (
+                  <span className={cn('rank-badge', `r${rank}`)}>
+                    {rank}
+                  </span>
+                )}
+              </div>
             </div>
           )
         })}

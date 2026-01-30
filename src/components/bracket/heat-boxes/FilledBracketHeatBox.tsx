@@ -118,32 +118,32 @@ export function FilledBracketHeatBox({
           const channel = getChannelForPosition(originalIndex, pilotCount)
           
           return (
-            <div key={pilot.id} className={cn('pilot-row', rowClass)}>
-              {/* Pilot-Avatar */}
-              <img 
-                className="pilot-avatar"
-                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
-                alt={pilot.name}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
-                }}
-              />
-              <span className="channel-badge bg-zinc-700 text-xs px-1 rounded font-mono text-steel mr-1">
+            <div key={pilot.id} className="pilot-row-wrapper">
+              <span className="channel-badge-outer">
                 {formatChannel(channel)}
               </span>
-              {/* Pilot-Name */}
-              <span className="pilot-name">{pilot.name}</span>
-              {/* Rank-Badge */}
-              {rank && (
-                <span className={cn('rank-badge', `r${rank}`)}>
-                  {rank}
-                </span>
-              )}
-              {ranking?.lapTimeMs && (
-                <span className="text-xs text-steel ml-1">
-                  {formatLapTime(ranking.lapTimeMs)}
-                </span>
-              )}
+              <div className={cn('pilot-row', rowClass, 'flex-1')}>
+                <img 
+                  className="pilot-avatar"
+                  src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
+                  alt={pilot.name}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                  }}
+                />
+                <span className="pilot-name">{pilot.name}</span>
+                {/* Rank-Badge */}
+                {rank && (
+                  <span className={cn('rank-badge', `r${rank}`)}>
+                    {rank}
+                  </span>
+                )}
+                {ranking?.lapTimeMs && (
+                  <span className="text-xs text-steel ml-1">
+                    {formatLapTime(ranking.lapTimeMs)}
+                  </span>
+                )}
+              </div>
             </div>
           )
         })}
