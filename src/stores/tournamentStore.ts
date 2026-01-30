@@ -16,6 +16,7 @@ import {
   generateNextHeats,
   handleRematchCompletion
 } from '../lib/heat-completion'
+import { getChannelForPosition } from '../lib/channel-assignment'
 
 // Story 1.1: Initial State als wiederverwendbare Konstante
 // Ermöglicht DRY Reset-Funktionen (Story 1.2)
@@ -607,6 +608,16 @@ export const useTournamentStore = create<TournamentState>()(
           }
         }
 
+        // Update pilot lastChannel based on their position in the heat
+        const updatedPilots = get().pilots.map(pilot => {
+          const positionInHeat = heat.pilotIds.indexOf(pilot.id)
+          if (positionInHeat !== -1) {
+            const channel = getChannelForPosition(positionInHeat, heat.pilotIds.length)
+            return { ...pilot, lastChannel: channel as 1 | 4 | 6 | 8 }
+          }
+          return pilot
+        })
+
         // Story 1.6: Use extracted processRankingsByBracket function
         if (!isGrandFinale) {
           const rankingResult = processRankingsByBracket({
@@ -698,6 +709,7 @@ export const useTournamentStore = create<TournamentState>()(
         else if (bracketType === 'loser') completedBracketType = 'loser'
 
         set({
+          pilots: updatedPilots,
           heats: updatedHeats,
           currentHeatIndex: newCurrentHeatIndex,
           tournamentPhase: newPhase,

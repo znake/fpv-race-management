@@ -13,6 +13,8 @@
 
 import type { Heat } from '../types'
 import { HEAT_ID_PREFIXES } from './bracket-constants'
+import { optimizePilotOrder } from './channel-assignment'
+import type { Pilot } from './schemas'
 
 // ============================================================================
 // Story 1.6: Bracket Type Inference
@@ -159,7 +161,8 @@ export function getPilotBracketOrigin(pilotId: string, heats: Heat[]): 'wb' | 'l
  */
 export function createWBHeatFromPool(
   winnerPool: Set<string>,
-  currentHeats: Pick<Heat, 'heatNumber'>[]
+  currentHeats: Pick<Heat, 'heatNumber'>[],
+  pilots: Pilot[] = []
 ): { heat: Heat | null; updatedPool: Set<string> } {
   if (winnerPool.size < 4) {
     return { heat: null, updatedPool: winnerPool }
@@ -168,6 +171,7 @@ export function createWBHeatFromPool(
   // FIFO: Take first 4 pilots from pool
   const poolArray = Array.from(winnerPool)
   const pilotsForHeat = poolArray.slice(0, 4)
+  const optimizedPilotIds = optimizePilotOrder(pilotsForHeat, pilots)
 
   // Create new pool without selected pilots
   const updatedPool = new Set(winnerPool)
@@ -179,7 +183,7 @@ export function createWBHeatFromPool(
   const wbHeat: Heat = {
     id: `wb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
-    pilotIds: pilotsForHeat,
+    pilotIds: optimizedPilotIds,
     status: 'pending',
     bracketType: 'winner'
   }
@@ -199,9 +203,24 @@ export function createWBHeatFromPool(
 export function createLBHeatFromPool(
   loserPool: Set<string>,
   currentHeats: Pick<Heat, 'heatNumber'>[],
+  pilots: Pilot[],
+  minPilots?: number
+): { heat: Heat | null; updatedPool: Set<string> }
+export function createLBHeatFromPool(
+  loserPool: Set<string>,
+  currentHeats: Pick<Heat, 'heatNumber'>[],
+  minPilots?: number
+): { heat: Heat | null; updatedPool: Set<string> }
+export function createLBHeatFromPool(
+  loserPool: Set<string>,
+  currentHeats: Pick<Heat, 'heatNumber'>[],
+  pilotsOrMinPilots: Pilot[] | number = [],
   minPilots: number = 4
 ): { heat: Heat | null; updatedPool: Set<string> } {
-  if (loserPool.size < minPilots) {
+  const resolvedPilots = Array.isArray(pilotsOrMinPilots) ? pilotsOrMinPilots : []
+  const resolvedMinPilots = typeof pilotsOrMinPilots === 'number' ? pilotsOrMinPilots : minPilots
+
+  if (loserPool.size < resolvedMinPilots) {
     return { heat: null, updatedPool: loserPool }
   }
 
@@ -209,6 +228,7 @@ export function createLBHeatFromPool(
   const poolArray = Array.from(loserPool)
   const heatSize = Math.min(4, poolArray.length)
   const pilotsForHeat = poolArray.slice(0, heatSize)
+  const optimizedPilotIds = optimizePilotOrder(pilotsForHeat, resolvedPilots)
 
   // Create new pool without selected pilots
   const updatedPool = new Set(loserPool)
@@ -220,7 +240,7 @@ export function createLBHeatFromPool(
   const lbHeat: Heat = {
     id: `lb-heat-${crypto.randomUUID()}`,
     heatNumber: currentHeats.length + 1,
-    pilotIds: pilotsForHeat,
+    pilotIds: optimizedPilotIds,
     status: 'pending',
     bracketType: 'loser'
   }

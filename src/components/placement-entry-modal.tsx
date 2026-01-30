@@ -9,6 +9,7 @@ import {
   parseLapTimeDigits,
   formatPartialTimeEntry
 } from '../lib/ui-helpers'
+import { formatChannel, getChannelForPosition } from '../lib/channel-assignment'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 type PlacementEntryModalProps = {
@@ -395,6 +396,10 @@ export function PlacementEntryModal({
         {heatPilots.map((pilot, index) => {
           const rank = rankings.get(pilot.id)
           const hasRank = rank !== undefined
+          
+          // Calculate channel based on original position in heat
+          const originalIndex = heat.pilotIds.indexOf(pilot.id)
+          const channel = getChannelForPosition(originalIndex, heat.pilotIds.length)
 
           return (
             <button
@@ -447,9 +452,14 @@ export function PlacementEntryModal({
                 </div>
               </div>
 
-              {/* Pilot Name */}
-              <div className={`font-display font-bold text-chrome truncate ${isMobile ? 'text-base mb-1' : 'text-3xl mb-2'}`}>
-                {pilot.name}
+              {/* Pilot Name with Channel Badge */}
+              <div className={`flex items-center justify-center w-full ${isMobile ? 'mb-1' : 'mb-2'}`}>
+                <span className="channel-badge bg-zinc-700 text-xs px-1 rounded font-mono text-steel mr-2 flex-shrink-0">
+                  {formatChannel(channel)}
+                </span>
+                <div className={`font-display font-bold text-chrome truncate ${isMobile ? 'text-base' : 'text-3xl'}`}>
+                  {pilot.name}
+                </div>
               </div>
 
               {/* Instagram Handle */}
