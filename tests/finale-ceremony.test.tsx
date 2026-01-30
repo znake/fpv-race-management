@@ -196,7 +196,7 @@ describe('VictoryCeremony Component', () => {
   it('shows instagram handle when available', () => {
     render(<VictoryCeremony top4={mockTop4} onNewTournament={() => {}} />)
     
-    expect(screen.getByText('@anna_fpv')).toBeInTheDocument()
+    expect(screen.getByText('anna_fpv')).toBeInTheDocument()
   })
 
   it('renders new tournament button', () => {

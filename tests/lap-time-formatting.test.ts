@@ -42,9 +42,16 @@ describe('lap time formatting', () => {
       expect(parseLapTimeDigits('199')).toBe(null)
     })
 
-    it('returns null for time over 5min', () => {
-      expect(parseLapTimeDigits('500')).toBe(null)
-      expect(parseLapTimeDigits('501')).toBe(null)
+    it('returns null for time over 9:59', () => {
+      // 9:59 (599s) is the max valid time
+      // Any 3-digit input > 959 has invalid seconds (> 59)
+      expect(parseLapTimeDigits('999')).toBe(null) // 9:99 invalid seconds
+      expect(parseLapTimeDigits('960')).toBe(null) // 9:60 invalid seconds
+    })
+
+    it('accepts valid times up to 9:59', () => {
+      expect(parseLapTimeDigits('500')).toBe(300000) // 5:00
+      expect(parseLapTimeDigits('959')).toBe(599000) // 9:59
     })
 
     it('returns null for empty string', () => {
