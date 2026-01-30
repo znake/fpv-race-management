@@ -45,58 +45,6 @@ export interface HeatCompletionResult {
 }
 
 // ============================================================================
-// Story 1.6: Rematch Completion Handling
-// ============================================================================
-
-/**
- * Input für handleRematchCompletion
- */
-export interface RematchCompletionInput {
-  heatId: string
-  updatedHeat: Heat
-  rematchHeats: Heat[]
-  grandFinaleRematchPending: boolean
-}
-
-/**
- * Ergebnis der Rematch-Verarbeitung
- */
-export interface RematchCompletionResult {
-  updatedRematchHeats: Heat[]
-  updatedGrandFinaleRematchPending: boolean
-}
-
-/**
- * Verarbeitet das Abschließen eines Rematch-Heats
- *
- * Story 1.6: Extrahiert aus submitHeatResults (Zeilen 558-573)
- * Story 13-4: Handle Rematch completion
- *
- * @param input - Alle erforderlichen Eingabedaten
- * @returns Aktualisierte Rematch-Daten
- */
-export function handleRematchCompletion(input: RematchCompletionInput): RematchCompletionResult {
-  const { heatId, updatedHeat, rematchHeats, grandFinaleRematchPending } = input
-
-  // Update the rematch in the rematchHeats array
-  const newRematchHeats = [...rematchHeats]
-  const rematchIndex = newRematchHeats.findIndex(r => r.id === heatId)
-
-  if (rematchIndex !== -1) {
-    newRematchHeats[rematchIndex] = updatedHeat
-  }
-
-  // Check if all rematches are completed
-  const allRematchesCompleted = newRematchHeats.every(r => r.status === 'completed')
-  const newGrandFinaleRematchPending = allRematchesCompleted ? false : grandFinaleRematchPending
-
-  return {
-    updatedRematchHeats: newRematchHeats,
-    updatedGrandFinaleRematchPending: newGrandFinaleRematchPending
-  }
-}
-
-// ============================================================================
 // Story 1.6: Ranking Processing by Bracket Type
 // ============================================================================
 

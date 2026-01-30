@@ -32,12 +32,6 @@ export interface Heat {
   results?: HeatResults
   /** Story 13-1: Runden-Nummer innerhalb des Brackets (1 = erste Runde nach Quali) */
   roundNumber?: number
-  /** Story 13-4 Task 1.1: Markiert ob dieser Heat ein Rematch ist */
-  isRematch?: boolean
-  /** Story 13-4 Task 1.2: Die beiden Piloten-IDs die im Rematch gegeneinander antreten */
-  rematchBetween?: [string, string]
-  /** Story 13-4 Task 1.3: Um welchen Platz wird im Rematch gekämpft (1 oder 2) */
-  rematchForPlace?: 1 | 2
 }
 
 /**

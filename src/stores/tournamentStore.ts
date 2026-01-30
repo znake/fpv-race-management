@@ -13,8 +13,7 @@ import { shuffleArray } from '../lib/utils'
 import { inferBracketType, isGrandFinaleBracketType, calculateAvailableWinnerPool } from '../lib/bracket-logic'
 import {
   processRankingsByBracket,
-  generateNextHeats,
-  handleRematchCompletion
+  generateNextHeats
 } from '../lib/heat-completion'
 import { getChannelForPosition } from '../lib/channel-assignment'
 
@@ -41,10 +40,8 @@ export const INITIAL_TOURNAMENT_STATE = {
   currentWBRound: 0,
   currentLBRound: 0,
   lbRoundWaitingForWB: false,
-  // Story 13-3 + 13-4: Rematch und Grand Finale States
+  // Story 13-3: Grand Finale States (pilotBracketStates für WB/LB Origin-Tracking)
   pilotBracketStates: {} as Record<string, { bracket: string; roundReached: number; bracketOrigin?: 'wb' | 'lb' }>,
-  rematchHeats: [] as Heat[],
-  grandFinaleRematchPending: false,
 }
 
 // Pilot interface export
@@ -94,10 +91,8 @@ interface TournamentState {
   currentLBRound: number
   lbRoundWaitingForWB: boolean
 
-  // Story 13-3 + 13-4: Rematch und Grand Finale States
+  // Story 13-3: Grand Finale States (pilotBracketStates für WB/LB Origin-Tracking)
   pilotBracketStates: Record<string, { bracket: string; roundReached: number; bracketOrigin?: 'wb' | 'lb' }>
-  rematchHeats: Heat[]
-  grandFinaleRematchPending: boolean
 
   // Pilot management actions
   addPilot: (input: { name: string; imageUrl?: string; instagramHandle?: string }) => boolean
@@ -176,8 +171,7 @@ interface TournamentState {
   isRoundComplete: (bracketType: 'winner' | 'loser', roundNumber: number) => boolean
   generateLBRound: (roundNumber: number) => Heat[]
 
-  // Story 13-4: Rematch Logik
-  checkAndGenerateRematches: () => Heat[]
+
 
   // Story 13-5: Phase-Indikator
   getCurrentPhaseDescription: () => string
@@ -518,7 +512,7 @@ export const useTournamentStore = create<TournamentState>()(
       // fullBracketStructure wird NUR noch für Visualisierung verwendet.
       // =======================================================================
       submitHeatResults: (heatId, rankings) => {
-        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool, rematchHeats, grandFinaleRematchPending } = get()
+        const { heats, winnerPilots, loserPilots, eliminatedPilots, loserPool } = get()
 
         const heatIndex = heats.findIndex(h => h.id === heatId)
         if (heatIndex === -1) return
@@ -526,14 +520,9 @@ export const useTournamentStore = create<TournamentState>()(
         let updatedHeats = [...heats]
         const heat = updatedHeats[heatIndex]
 
-        // Story 13-4: Check if this is a rematch heat
-        const isRematch = heat.isRematch === true
-
-        // Story 1.6: Use extracted inferBracketType function
         const bracketType = inferBracketType(heat)
         const isGrandFinale = isGrandFinaleBracketType(bracketType)
 
-        // Mark heat as completed with results
         updatedHeats[heatIndex] = {
           ...heat,
           status: 'completed',
@@ -541,20 +530,6 @@ export const useTournamentStore = create<TournamentState>()(
             rankings,
             completedAt: new Date().toISOString()
           }
-        }
-
-        // Story 13-4: Handle Rematch completion using extracted function
-        let newRematchHeats = [...rematchHeats]
-        let newGrandFinaleRematchPending = grandFinaleRematchPending
-        if (isRematch) {
-          const rematchResult = handleRematchCompletion({
-            heatId,
-            updatedHeat: updatedHeats[heatIndex],
-            rematchHeats,
-            grandFinaleRematchPending
-          })
-          newRematchHeats = rematchResult.updatedRematchHeats
-          newGrandFinaleRematchPending = rematchResult.updatedGrandFinaleRematchPending
         }
 
         // Story 1.6: Use extracted calculateAvailableWinnerPool function
@@ -613,7 +588,7 @@ export const useTournamentStore = create<TournamentState>()(
           const positionInHeat = heat.pilotIds.indexOf(pilot.id)
           if (positionInHeat !== -1) {
             const channel = getChannelForPosition(positionInHeat, heat.pilotIds.length)
-            return { ...pilot, lastChannel: channel as 1 | 4 | 6 | 8 }
+            return { ...pilot, lastChannel: channel as 1 | 3 | 6 | 8 }
           }
           return pilot
         })
@@ -719,8 +694,6 @@ export const useTournamentStore = create<TournamentState>()(
           loserPool: Array.from(newLoserPool),
           isQualificationComplete: newIsQualificationComplete,
           lastCompletedBracketType: completedBracketType,
-          grandFinaleRematchPending: newGrandFinaleRematchPending,
-          rematchHeats: newRematchHeats,
           pilotBracketStates: newPilotBracketStates
         })
       },
@@ -801,28 +774,9 @@ export const useTournamentStore = create<TournamentState>()(
         )
       },
 
-      // Story 5.1: Get Top 4 pilots after tournament completion
-      //
-      // Double Elimination Placement Logic:
-      // - 1st Place: Grand Finale Winner (oder Rematch-Gewinner für Platz 1)
-      // - 2nd Place: Grand Finale Loser (oder Rematch-Gewinner für Platz 2)
-      // - 3rd Place: LB Finale Loser (oder Rematch-Verlierer für Platz 1)
-      // - 4th Place: LB Finale Verlierer (oder Rematch-Verlierer für Platz 2)
-      //
-      // Story 13-3 + 13-4: Berücksichtigt Rematches und 4-Piloten Grand Finale
       getTop4Pilots: () => {
-        const { pilots, heats, rematchHeats, grandFinaleRematchPending } = get()
+        const { pilots, heats } = get()
 
-        // Wenn Rematches pending, return null
-        if (grandFinaleRematchPending) {
-          // Prüfe ob alle Rematches completed sind
-          const allRematchesCompleted = rematchHeats.every(h => h.status === 'completed')
-          if (!allRematchesCompleted) {
-            return null
-          }
-        }
-
-        // Find Grand Finale heat
         const grandFinaleHeat = heats.find(h =>
           h.bracketType === 'grand_finale' ||
           h.bracketType === 'finale' ||
@@ -831,64 +785,16 @@ export const useTournamentStore = create<TournamentState>()(
 
         if (!grandFinaleHeat?.results) return null
 
-        // Prüfe ob Rematches existieren
-        const hasRematches = rematchHeats.length > 0
-
-        // Prüfe ob 4-Piloten oder 2-Piloten Grand Finale
-        const is4PilotGF = grandFinaleHeat.pilotIds.length === 4
-
-        if (is4PilotGF && !hasRematches) {
-          // Story 13-3: Grand Finale mit 4 Piloten - Platzierungen direkt aus GF Rankings
-          // KEINE Rematches vorhanden
-          const place1Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 1)
-          const place2Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 2)
-          const place3Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 3)
-          const place4Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 4)
-
-          return {
-            place1: pilots.find(p => p.id === place1Ranking?.pilotId),
-            place2: pilots.find(p => p.id === place2Ranking?.pilotId),
-            place3: pilots.find(p => p.id === place3Ranking?.pilotId),
-            place4: pilots.find(p => p.id === place4Ranking?.pilotId),
-          }
-        }
-
-        // 2-Piloten Grand Finale mit Rematches (ODER 4-Piloten GF mit Rematches)
         const place1Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 1)
         const place2Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 2)
         const place3Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 3)
         const place4Ranking = grandFinaleHeat.results.rankings.find(r => r.rank === 4)
 
-        // Prüfe Rematches und aktualisiere Platzierungen
-        let place1Id = place1Ranking?.pilotId
-        let place2Id = place2Ranking?.pilotId
-        let place3Id = place3Ranking?.pilotId
-        let place4Id = place4Ranking?.pilotId
-
-        for (const rematch of rematchHeats) {
-          if (!rematch.results || !rematch.rematchForPlace) continue
-
-          const winner = rematch.results.rankings.find(r => r.rank === 1)?.pilotId
-          const loser = rematch.results.rankings.find(r => r.rank === 2)?.pilotId
-
-          if (!winner || !loser) continue
-
-          if (rematch.rematchForPlace === 1) {
-            // Rematch für Platz 1: Gewinner wird Platz 1, Verlierer wird Platz 3
-            place1Id = winner
-            place3Id = loser
-          } else if (rematch.rematchForPlace === 2) {
-            // Rematch für Platz 2: Gewinner wird Platz 2, Verlierer wird Platz 4
-            place2Id = winner
-            place4Id = loser
-          }
-        }
-
         return {
-          place1: pilots.find(p => p.id === place1Id),
-          place2: pilots.find(p => p.id === place2Id),
-          place3: pilots.find(p => p.id === place3Id),
-          place4: pilots.find(p => p.id === place4Id),
+          place1: pilots.find(p => p.id === place1Ranking?.pilotId),
+          place2: pilots.find(p => p.id === place2Ranking?.pilotId),
+          place3: pilots.find(p => p.id === place3Ranking?.pilotId),
+          place4: pilots.find(p => p.id === place4Ranking?.pilotId),
         }
       },
 
@@ -1288,77 +1194,6 @@ export const useTournamentStore = create<TournamentState>()(
         }
 
         return lbHeats
-      },
-
-      // Story 13-4: checkAndGenerateRematches - Prüft und generiert Rematches für Grand Finale
-      checkAndGenerateRematches: () => {
-        const { heats, pilotBracketStates } = get()
-
-        // Finde das Grand Finale
-        const grandFinale = heats.find(
-          h => h.bracketType === 'grand_finale' && h.status === 'completed'
-        )
-
-        if (!grandFinale?.results) {
-          return []
-        }
-
-        const rankings = grandFinale.results.rankings
-        const rematches: Heat[] = []
-
-        // Prüfe Rematch für Platz 1 (LB auf 1 + WB auf 3)
-        const place1Pilot = rankings.find(r => r.rank === 1)
-        const place3Pilot = rankings.find(r => r.rank === 3)
-
-        if (place1Pilot && place3Pilot) {
-          const place1Origin = pilotBracketStates[place1Pilot.pilotId]?.bracketOrigin
-          const place3Origin = pilotBracketStates[place3Pilot.pilotId]?.bracketOrigin
-
-          if (place1Origin === 'lb' && place3Origin === 'wb') {
-            rematches.push({
-              id: crypto.randomUUID(),
-              heatNumber: heats.length + rematches.length + 1,
-              pilotIds: [place1Pilot.pilotId, place3Pilot.pilotId],
-              status: 'pending',
-              isRematch: true,
-              rematchBetween: [place1Pilot.pilotId, place3Pilot.pilotId],
-              rematchForPlace: 1
-            })
-          }
-        }
-
-        // Prüfe Rematch für Platz 2 (LB auf 2 + WB auf 4)
-        const place2Pilot = rankings.find(r => r.rank === 2)
-        const place4Pilot = rankings.find(r => r.rank === 4)
-
-        if (place2Pilot && place4Pilot) {
-          const place2Origin = pilotBracketStates[place2Pilot.pilotId]?.bracketOrigin
-          const place4Origin = pilotBracketStates[place4Pilot.pilotId]?.bracketOrigin
-
-          if (place2Origin === 'lb' && place4Origin === 'wb') {
-            rematches.push({
-              id: crypto.randomUUID(),
-              heatNumber: heats.length + rematches.length + 1,
-              pilotIds: [place2Pilot.pilotId, place4Pilot.pilotId],
-              status: 'pending',
-              isRematch: true,
-              rematchBetween: [place2Pilot.pilotId, place4Pilot.pilotId],
-              rematchForPlace: 2
-            })
-          }
-        }
-
-        // Rematches zum Store hinzufügen wenn welche generiert wurden
-        if (rematches.length > 0) {
-          set({
-            heats: [...heats, ...rematches],
-            rematchHeats: rematches,
-            grandFinaleRematchPending: true,
-            tournamentPhase: 'finale'
-          })
-        }
-
-        return rematches
       },
 
       // Story 13-5: getCurrentPhaseDescription - Beschreibt die aktuelle Turnier-Phase

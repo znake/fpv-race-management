@@ -117,9 +117,7 @@ export function loadDemoPilots(): void {
       currentWBRound: 0,
       currentLBRound: 0,
       lbRoundWaitingForWB: false,
-      pilotBracketStates: {},
-      rematchHeats: [],
-      grandFinaleRematchPending: false
+      pilotBracketStates: {}
     },
     version: 0
   }
