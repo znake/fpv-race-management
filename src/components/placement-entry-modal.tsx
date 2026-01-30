@@ -518,7 +518,7 @@ export function PlacementEntryModal({
           aria-atomic="true"
           data-testid="time-entry-overlay"
         >
-          <div className={`bg-void/90 px-12 py-8 rounded-2xl border-2 shadow-glow-cyan ${
+          <div className={`bg-void/90 px-12 py-8 rounded-2xl border-2 shadow-glow-cyan pointer-events-auto ${
             shakeOverlay ? 'shake-error' : 'border-neon-cyan'
           }`}>
             {currentEditingPilot && (
@@ -535,7 +535,10 @@ export function PlacementEntryModal({
                 {validationError}
               </div>
             ) : (
-              <div className="text-center text-steel mt-2 text-xl">
+              <div 
+                className="text-center text-steel mt-2 text-xl cursor-pointer hover:text-chrome transition-colors"
+                onClick={finalizeTimeEntry}
+              >
                 Enter zum Bestätigen
               </div>
             )}
