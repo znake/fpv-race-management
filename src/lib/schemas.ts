@@ -7,7 +7,7 @@ export interface Pilot {
   instagramHandle?: string
   status?: 'active' | 'withdrawn'
   droppedOut?: boolean // @deprecated - use status instead
-  lastChannel?: 1 | 4 | 6 | 8 // Last used Raceband channel for smart assignment
+  lastChannel?: 1 | 3 | 4 | 6 | 8 // Last used Raceband channel for smart assignment
 }
 
 // Instagram handle validation: optional, starts with @, 1-30 chars, alphanumeric + _ + .
