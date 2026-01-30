@@ -589,20 +589,73 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   if (isQualificationComplete && canGenerateWBHeats()) {
     const wbRoundNumber = getCurrentRound('winner')
     
-    // Generate as many heats as possible for this round
-    while (newWinnerPool.size >= POOL_THRESHOLDS.MIN_FOR_REGULAR_HEAT) {
-      const pilots = Array.from(newWinnerPool).slice(0, 4)
-      const wbHeat: Heat = {
-        id: `${HEAT_ID_PREFIXES.WB_HEAT}${crypto.randomUUID()}`,
-        heatNumber: updatedHeats.length + 1,
-        pilotIds: pilots,
-        status: 'pending',
-        bracketType: 'winner',
-        roundNumber: wbRoundNumber
+    // BATCH-GENERIERUNG: Alle WB-Heats dieser Runde gleichzeitig generieren
+    // Berechne optimale Verteilung von 4er- und 3er-Heats (wie bei LB)
+    const poolArray = Array.from(newWinnerPool)
+    const poolSize = poolArray.length
+    
+    if (poolSize >= 3) {
+      // Berechne Heat-Verteilung: Maximiere 4er-Heats, Rest als 3er-Heats
+      let fourPlayerHeats = Math.floor(poolSize / 4)
+      let remaining = poolSize - (fourPlayerHeats * 4)
+      let threePlayerHeats = 0
+      
+      // Optimiere Verteilung: Vermeide Reste von 1-2 Piloten
+      // remaining=1: 2 4er-Heats → 3 3er-Heats (9 Piloten)
+      // remaining=2: 1 4er-Heat → 2 3er-Heats (6 Piloten)
+      // remaining=3: perfekt für 1 3er-Heat
+      if (remaining === 1 && fourPlayerHeats >= 2) {
+        fourPlayerHeats -= 2
+        remaining = poolSize - (fourPlayerHeats * 4)
+        threePlayerHeats = Math.floor(remaining / 3)
+      } else if (remaining === 2 && fourPlayerHeats > 0) {
+        fourPlayerHeats -= 1
+        remaining = poolSize - (fourPlayerHeats * 4)
+        threePlayerHeats = Math.floor(remaining / 3)
+      } else if (remaining === 3) {
+        threePlayerHeats = 1
       }
-      updatedHeats = [...updatedHeats, wbHeat]
-      generatedHeats.push(wbHeat)
-      pilots.forEach(p => newWinnerPool.delete(p))
+      
+      if (fourPlayerHeats < 0) {
+        fourPlayerHeats = 0
+        threePlayerHeats = Math.floor(poolSize / 3)
+      }
+      
+      let cursor = 0
+      
+      // Generiere alle 4er-Heats
+      for (let i = 0; i < fourPlayerHeats; i++) {
+        const pilots = poolArray.slice(cursor, cursor + 4)
+        cursor += 4
+        const wbHeat: Heat = {
+          id: `${HEAT_ID_PREFIXES.WB_HEAT}${crypto.randomUUID()}`,
+          heatNumber: updatedHeats.length + 1,
+          pilotIds: pilots,
+          status: 'pending',
+          bracketType: 'winner',
+          roundNumber: wbRoundNumber
+        }
+        updatedHeats = [...updatedHeats, wbHeat]
+        generatedHeats.push(wbHeat)
+        pilots.forEach(p => newWinnerPool.delete(p))
+      }
+      
+      // Generiere alle 3er-Heats
+      for (let i = 0; i < threePlayerHeats; i++) {
+        const pilots = poolArray.slice(cursor, cursor + 3)
+        cursor += 3
+        const wbHeat: Heat = {
+          id: `${HEAT_ID_PREFIXES.WB_HEAT}${crypto.randomUUID()}`,
+          heatNumber: updatedHeats.length + 1,
+          pilotIds: pilots,
+          status: 'pending',
+          bracketType: 'winner',
+          roundNumber: wbRoundNumber
+        }
+        updatedHeats = [...updatedHeats, wbHeat]
+        generatedHeats.push(wbHeat)
+        pilots.forEach(p => newWinnerPool.delete(p))
+      }
     }
   }
   
