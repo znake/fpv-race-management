@@ -1,5 +1,6 @@
 # Hidden folders (BMAD, OpenCode, etc.)
 .*/ 
+!.sisyphus/
 
 # OS files
 .DS_Store
