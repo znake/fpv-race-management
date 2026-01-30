@@ -462,12 +462,10 @@ export function PlacementEntryModal({
                 </div>
               </div>
 
-              {/* Instagram Handle */}
-              {pilot.instagramHandle && (
-                <div className={`font-ui text-steel truncate ${isMobile ? 'text-sm' : 'text-xl'}`}>
-                  {pilot.instagramHandle}
-                </div>
-              )}
+              {/* Instagram Handle - always render to maintain consistent card height */}
+              <div className={`font-ui text-steel truncate ${isMobile ? 'text-sm' : 'text-xl'}`}>
+                {pilot.instagramHandle || '\u00A0'}
+              </div>
             </button>
           )
         })}
