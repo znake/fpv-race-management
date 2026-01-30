@@ -29,11 +29,6 @@ Der `tournamentStore` verwaltet drei primäre Datenströme:
 - **Loser Bracket**: Top 2 kommen weiter im LB, Rest wird eliminiert.
 - **Grand Finale**: Besteht aus 4 Piloten (Top 2 WB + Top 2 LB).
 
-### Rematch-Mechanismus
-Um die Fairness des Double-Elimination-Prinzips zu wahren, prüft das System nach dem Grand Finale automatisch auf Rematch-Bedarf:
-- Wenn ein LB-Pilot auf Platz 1 landet und Platz 3 aus dem WB kommt → **Rematch**.
-- Wenn ein LB-Pilot auf Platz 2 landet und Platz 4 aus dem WB kommt → **Rematch**.
-
 ## 🎨 Frontend-Architektur
 
 ### Komponentenhierarchie

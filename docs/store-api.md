@@ -70,14 +70,6 @@ import { useTournamentStore } from './stores/tournamentStore'
 | `currentLBRound` | `number` | Aktuelle LB-Runde |
 | `lbRoundWaitingForWB` | `boolean` | LB wartet auf WB |
 
-### Rematch (Story 13-4)
-
-| Property | Typ | Beschreibung |
-|----------|-----|--------------|
-| `pilotBracketStates` | `Record<string, PilotBracketState>` | Pilot → Bracket-State Mapping |
-| `rematchHeats` | `Heat[]` | Generierte Rematch-Heats |
-| `grandFinaleRematchPending` | `boolean` | Rematches noch offen |
-
 ---
 
 ## Actions
@@ -207,13 +199,6 @@ isRoundComplete(bracketType: 'winner' | 'loser', roundNumber: number): boolean
 
 // LB-Runde generieren
 generateLBRound(roundNumber: number): Heat[]
-```
-
-### Rematch (Story 13-4)
-
-```typescript
-// Rematches prüfen und generieren
-checkAndGenerateRematches(): Heat[]
 ```
 
 ### Queries

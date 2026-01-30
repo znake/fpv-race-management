@@ -143,11 +143,6 @@ interface TournamentState {
   currentWBRound: number
   currentLBRound: number
   lbRoundWaitingForWB: boolean
-
-  // Rematch (Story 13-4)
-  pilotBracketStates: Record<string, PilotBracketState>
-  rematchHeats: Heat[]
-  grandFinaleRematchPending: boolean
 }
 ```
 
@@ -167,9 +162,6 @@ interface Heat {
     completedAt: string
   }
   roundNumber?: number
-  isRematch?: boolean
-  rematchBetween?: [string, string]
-  rematchForPlace?: 1 | 2
 }
 ```
 
@@ -315,7 +307,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
 | **Komponenten** | pilot-card, csv-import, heat-results | UI-Verhalten |
 | **Integration** | tournament-start, heat-assignment | User Flows |
 | **Business-Logik** | loser-pool, lb-heat-generation, grand-finale | Bracket-Algorithmen |
-| **Edge Cases** | eight-pilots-flow, rematch-logic | Spezialfälle |
+| **Edge Cases** | eight-pilots-flow | Spezialfälle |
 
 ---
 

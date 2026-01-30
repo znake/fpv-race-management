@@ -179,7 +179,6 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 #### Grand Finale
 
 - **WB Top 2** + **LB Top 2** = 4 Finalisten
-- **Rematch-System**: Gewinnt ein LB-Pilot gegen den WB-Champion, gibt es ein Rematch
 
 ---
 
@@ -234,7 +233,6 @@ Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind 
 
 - Automatisch generiert wenn WB und LB abgeschlossen sind
 - 4 Finalisten kämpfen um den Sieg
-- Bei Rematch-Bedingung wird automatisch ein weiterer Heat erstellt
 
 ![Finale](./images/Finale.png)
 

@@ -26,8 +26,7 @@ heats/
 │   │   │   │   ├── WinnerBracketSection.tsx  # Winner Bracket
 │   │   │   │   ├── LoserBracketSection.tsx   # Loser Bracket
 │   │   │   │   ├── GrandFinaleSection.tsx    # Grand Finale
-│   │   │   │   ├── GrandFinaleHeatBox.tsx    # Grand Finale Heat-Box
-│   │   │   │   └── RematchSection.tsx        # Rematch-Heats
+│   │   │   │   └── GrandFinaleHeatBox.tsx    # Grand Finale Heat-Box
 │   │   │   └── index.ts                  # Barrel exports
 │   │   ├── ui/                   # Wiederverwendbare UI-Komponenten (shadcn/ui)
 │   │   │   ├── button.tsx
@@ -101,7 +100,6 @@ heats/
 │   ├── lb-heat-generation.test.ts
 │   ├── lb-synchronization-32-pilots.test.ts  # LB Sync für 32 Piloten
 │   ├── grand-finale-4-piloten.test.ts
-│   ├── rematch-logic.test.ts
 │   ├── round-progression.test.ts
 │   ├── eight-pilots-flow.test.ts
 │   ├── reset-functions.test.ts
@@ -201,7 +199,6 @@ App.tsx
     ├── LoserBracketSection
     ├── GrandFinaleSection
     │   └── GrandFinaleHeatBox
-    ├── RematchSection
     ├── SVGConnectorLines
     ├── ZoomIndicator
     ├── PoolDisplay

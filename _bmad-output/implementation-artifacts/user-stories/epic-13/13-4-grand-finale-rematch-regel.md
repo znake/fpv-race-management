@@ -1,4 +1,6 @@
-# Story 13.4: Grand Finale Rematch-Regel
+# [REMOVED] Grand Finale Rematch-Regel
+
+> **Status**: This feature was removed. Grand Finale now directly determines places 1-4 without rematches.
 
 Status: completed
 
