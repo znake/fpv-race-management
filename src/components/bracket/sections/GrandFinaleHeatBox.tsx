@@ -66,6 +66,7 @@ export function GrandFinaleHeatBox({
           >
             {/* AC9: Pilot-Avatar */}
             <img
+              id={`pilot-avatar-${pilot.id}-${heat.id}`}
               className="pilot-avatar"
               src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
               alt={pilot.name}
