@@ -144,7 +144,10 @@ export function BracketHeatBox({
                 />
                 <span className="pilot-name">{pilot.name}</span>
                 {rank && (
-                  <span className={cn('rank-badge', `r${rank}`)}>
+                  <span 
+                    id={`rank-badge-${pilot.id}-${heat.id}`}
+                    className={cn('rank-badge', `r${rank}`)}
+                  >
                     {rank}
                   </span>
                 )}

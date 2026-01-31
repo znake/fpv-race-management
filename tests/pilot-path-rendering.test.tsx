@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { SVGPilotPaths } from '../src/components/bracket/SVGPilotPaths'
+import { BracketHeatBox } from '../src/components/bracket/heat-boxes/BracketHeatBox'
 import type { Heat, Pilot } from '../src/types'
 
 // Mock the ConnectorManager logic since we can't easily test DOM geometry in JSDOM without setup
@@ -196,5 +197,65 @@ describe('SVGPilotPaths', () => {
     // Path should start at avatar right edge (120) + offset (8) = 128
     // Avatar is at x=100, width=20 -> right=120
     expect(pathD).toContain('M 128')
+  })
+})
+
+describe('BracketHeatBox rank-badge', () => {
+  const mockHeatWithRanking: Heat = {
+    id: 'heat-1',
+    heatNumber: 1,
+    roundNumber: 1,
+    bracketType: 'winner',
+    status: 'completed',
+    pilotIds: ['p1', 'p2'],
+    results: {
+      rankings: [
+        { pilotId: 'p1', rank: 1 },
+        { pilotId: 'p2', rank: 2 }
+      ],
+      completedAt: '2024-01-01'
+    }
+  }
+
+  const mockPilots: Pilot[] = [
+    { id: 'p1', name: 'Pilot 1', imageUrl: '' },
+    { id: 'p2', name: 'Pilot 2', imageUrl: '' }
+  ]
+
+  it('renders rank-badge with correct ID when pilot has ranking', () => {
+    render(
+      <BracketHeatBox
+        heat={mockHeatWithRanking}
+        pilots={mockPilots}
+        bracketType="winner"
+      />
+    )
+
+    const rankBadge1 = document.getElementById('rank-badge-p1-heat-1')
+    const rankBadge2 = document.getElementById('rank-badge-p2-heat-1')
+    
+    expect(rankBadge1).toBeInTheDocument()
+    expect(rankBadge1).toHaveTextContent('1')
+    expect(rankBadge2).toBeInTheDocument()
+    expect(rankBadge2).toHaveTextContent('2')
+  })
+
+  it('does not render rank-badge for pending heats', () => {
+    const pendingHeat: Heat = {
+      ...mockHeatWithRanking,
+      status: 'pending',
+      results: undefined
+    }
+
+    render(
+      <BracketHeatBox
+        heat={pendingHeat}
+        pilots={mockPilots}
+        bracketType="winner"
+      />
+    )
+
+    const rankBadge = document.getElementById('rank-badge-p1-heat-1')
+    expect(rankBadge).toBeNull()
   })
 })
