@@ -1,0 +1,138 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import '@testing-library/jest-dom'
+import { SVGPilotPaths } from '../src/components/bracket/SVGPilotPaths'
+import type { Heat, Pilot } from '../src/types'
+
+// Mock the ConnectorManager logic since we can't easily test DOM geometry in JSDOM without setup
+// We will mock getBoundingClientRect for elements
+const mockGetBoundingClientRect = vi.fn()
+Element.prototype.getBoundingClientRect = mockGetBoundingClientRect
+
+describe('SVGPilotPaths', () => {
+  const mockHeats: Heat[] = [
+    {
+      id: 'heat-1',
+      heatNumber: 1,
+      roundNumber: 1,
+      bracketType: 'winner',
+      status: 'completed',
+      pilotIds: ['p1'],
+      results: {
+        rankings: [{ pilotId: 'p1', rank: 1 }],
+        completedAt: '2024-01-01'
+      }
+    },
+    {
+      id: 'heat-2',
+      heatNumber: 2,
+      roundNumber: 2,
+      bracketType: 'winner',
+      status: 'completed',
+      pilotIds: ['p1'],
+      results: {
+        rankings: [{ pilotId: 'p1', rank: 1 }],
+        completedAt: '2024-01-01'
+      }
+    }
+  ]
+
+  const mockPilots: Pilot[] = [
+    { id: 'p1', name: 'Pilot 1', imageUrl: '' }
+  ]
+
+  const containerRef = { current: document.createElement('div') }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Setup DOM elements for heats
+    document.body.innerHTML = `
+      <div id="bracket-container">
+        <div id="heat-1"></div>
+        <div id="heat-2"></div>
+      </div>
+    `
+    
+    // Mock container rect
+    mockGetBoundingClientRect.mockReturnValue({
+      top: 0, left: 0, right: 1000, bottom: 1000, width: 1000, height: 1000, x: 0, y: 0
+    })
+  })
+
+  it('renders nothing when visible is false', () => {
+    const { container } = render(
+      <SVGPilotPaths
+        heats={mockHeats}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={false}
+      />
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('renders SVG when visible is true', () => {
+    render(
+      <SVGPilotPaths
+        heats={mockHeats}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+    const svg = document.querySelector('svg')
+    expect(svg).toBeInTheDocument()
+    expect(svg).toHaveStyle({ zIndex: '2', position: 'absolute' })
+  })
+
+  it('defines markers for arrows and elimination', () => {
+    render(
+      <SVGPilotPaths
+        heats={mockHeats}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+    expect(document.getElementById('pilot-arrow')).toBeInTheDocument()
+    expect(document.getElementById('pilot-x')).toBeInTheDocument()
+  })
+
+  it('renders paths for pilots with completed heats', async () => {
+    // Mock positions for heat elements
+    const heat1 = document.getElementById('heat-1')
+    const heat2 = document.getElementById('heat-2')
+    
+    if (heat1) {
+        heat1.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 100, left: 100, right: 200, bottom: 200, width: 100, height: 100, x: 100, y: 100
+        })
+    }
+    if (heat2) {
+        heat2.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 300, left: 300, right: 400, bottom: 400, width: 100, height: 100, x: 300, y: 300
+        })
+    }
+
+    render(
+      <SVGPilotPaths
+        heats={mockHeats}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+
+    // Wait for effect to run (setTimeout 100ms in component)
+    await new Promise(resolve => setTimeout(resolve, 150))
+
+    const paths = document.querySelectorAll('path[data-pilot-id="p1"]')
+    expect(paths.length).toBeGreaterThan(0)
+    
+    const path = paths[0]
+    expect(path).toHaveAttribute('d')
+    expect(path.getAttribute('d')).toContain('Q') // Should use quadratic bezier
+    expect(path).toHaveAttribute('stroke')
+    expect(path).toHaveAttribute('marker-end', 'url(#pilot-arrow)')
+  })
+})
