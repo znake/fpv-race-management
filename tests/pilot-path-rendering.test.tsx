@@ -259,3 +259,167 @@ describe('BracketHeatBox rank-badge', () => {
     expect(rankBadge).toBeNull()
   })
 })
+
+describe('SVGPilotPaths rank-badge integration', () => {
+  const mockHeatsWithRankings: Heat[] = [
+    {
+      id: 'heat-1',
+      heatNumber: 1,
+      roundNumber: 1,
+      bracketType: 'winner',
+      status: 'completed',
+      pilotIds: ['p1'],
+      results: {
+        rankings: [{ pilotId: 'p1', rank: 1 }],
+        completedAt: '2024-01-01'
+      }
+    },
+    {
+      id: 'heat-2',
+      heatNumber: 2,
+      roundNumber: 2,
+      bracketType: 'winner',
+      status: 'completed',
+      pilotIds: ['p1'],
+      results: {
+        rankings: [{ pilotId: 'p1', rank: 1 }],
+        completedAt: '2024-01-01'
+      }
+    }
+  ]
+
+  const mockPilots: Pilot[] = [
+    { id: 'p1', name: 'Pilot 1', imageUrl: '' }
+  ]
+
+  const containerRef = { current: document.createElement('div') }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetBoundingClientRect.mockReturnValue({
+      top: 0, left: 0, right: 1000, bottom: 1000, width: 1000, height: 1000, x: 0, y: 0
+    })
+  })
+
+  it('uses rank-badge position for path start when rank-badge exists', async () => {
+    document.body.innerHTML = `
+      <div id="bracket-container">
+        <div id="heat-1">
+          <img id="pilot-avatar-p1-heat-1" />
+          <span id="rank-badge-p1-heat-1">1</span>
+        </div>
+        <div id="heat-2">
+          <img id="pilot-avatar-p1-heat-2" />
+        </div>
+      </div>
+    `
+    
+    const heat1 = document.getElementById('heat-1')
+    const heat2 = document.getElementById('heat-2')
+    const avatar1 = document.getElementById('pilot-avatar-p1-heat-1')
+    const avatar2 = document.getElementById('pilot-avatar-p1-heat-2')
+    const rankBadge1 = document.getElementById('rank-badge-p1-heat-1')
+    
+    if (heat1) {
+      heat1.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 100, left: 100, right: 200, bottom: 200, width: 100, height: 100, x: 100, y: 100
+      })
+    }
+    if (heat2) {
+      heat2.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 300, left: 300, right: 400, bottom: 400, width: 100, height: 100, x: 300, y: 300
+      })
+    }
+
+    if (avatar1) {
+      avatar1.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 120, left: 100, right: 120, bottom: 140, width: 20, height: 20, x: 100, y: 120
+      })
+    }
+    if (avatar2) {
+      avatar2.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 320, left: 300, right: 320, bottom: 340, width: 20, height: 20, x: 300, y: 320
+      })
+    }
+
+    if (rankBadge1) {
+      rankBadge1.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 120, left: 170, right: 190, bottom: 140, width: 20, height: 20, x: 170, y: 120
+      })
+    }
+
+    render(
+      <SVGPilotPaths
+        heats={mockHeatsWithRankings}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+
+    await new Promise(resolve => setTimeout(resolve, 150))
+
+    const paths = document.querySelectorAll('path[data-pilot-id="p1"]')
+    expect(paths.length).toBeGreaterThan(0)
+    
+    const pathD = paths[0].getAttribute('d')
+    expect(pathD).toContain('M 198')
+  })
+
+  it('falls back to avatar position when rank-badge does not exist', async () => {
+    document.body.innerHTML = `
+      <div id="bracket-container">
+        <div id="heat-1">
+          <img id="pilot-avatar-p1-heat-1" />
+        </div>
+        <div id="heat-2">
+          <img id="pilot-avatar-p1-heat-2" />
+        </div>
+      </div>
+    `
+    
+    const heat1 = document.getElementById('heat-1')
+    const heat2 = document.getElementById('heat-2')
+    const avatar1 = document.getElementById('pilot-avatar-p1-heat-1')
+    const avatar2 = document.getElementById('pilot-avatar-p1-heat-2')
+    
+    if (heat1) {
+      heat1.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 100, left: 100, right: 200, bottom: 200, width: 100, height: 100, x: 100, y: 100
+      })
+    }
+    if (heat2) {
+      heat2.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 300, left: 300, right: 400, bottom: 400, width: 100, height: 100, x: 300, y: 300
+      })
+    }
+
+    if (avatar1) {
+      avatar1.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 120, left: 100, right: 120, bottom: 140, width: 20, height: 20, x: 100, y: 120
+      })
+    }
+    if (avatar2) {
+      avatar2.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 320, left: 300, right: 320, bottom: 340, width: 20, height: 20, x: 300, y: 320
+      })
+    }
+
+    render(
+      <SVGPilotPaths
+        heats={mockHeatsWithRankings}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+
+    await new Promise(resolve => setTimeout(resolve, 150))
+
+    const paths = document.querySelectorAll('path[data-pilot-id="p1"]')
+    expect(paths.length).toBeGreaterThan(0)
+    
+    const pathD = paths[0].getAttribute('d')
+    expect(pathD).toContain('M 128')
+  })
+})

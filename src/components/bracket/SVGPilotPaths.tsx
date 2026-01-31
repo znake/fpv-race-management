@@ -93,6 +93,21 @@ export function SVGPilotPaths({
         }
       }
 
+      const getRankBadgePosition = (pilotId: string, heatId: string): Position | null => {
+        const badgeElement = document.getElementById(`rank-badge-${pilotId}-${heatId}`)
+        if (!badgeElement) return null
+
+        const rect = badgeElement.getBoundingClientRect()
+        return {
+          centerX: (rect.left - containerRect.left + rect.width / 2) / scale,
+          centerY: (rect.top - containerRect.top + rect.height / 2) / scale,
+          top: (rect.top - containerRect.top) / scale,
+          bottom: (rect.bottom - containerRect.top) / scale,
+          left: (rect.left - containerRect.left) / scale,
+          right: (rect.right - containerRect.left) / scale
+        }
+      }
+
       const getPosition = (elementId: string): Position | null => {
         const element = document.getElementById(elementId)
         if (!element) return null
@@ -115,7 +130,9 @@ export function SVGPilotPaths({
         const color = assignPilotColor(pilot.id, allPilotIds)
 
         segments.forEach((segment, index) => {
-          const fromPos = getPilotAvatarPosition(segment.pilotId, segment.fromHeatId) ?? getPosition(segment.fromHeatId)
+          const fromPos = getRankBadgePosition(segment.pilotId, segment.fromHeatId) 
+            ?? getPilotAvatarPosition(segment.pilotId, segment.fromHeatId) 
+            ?? getPosition(segment.fromHeatId)
           const toPos = getPilotAvatarPosition(segment.pilotId, segment.toHeatId) ?? getPosition(segment.toHeatId)
 
           if (!fromPos || !toPos) return
