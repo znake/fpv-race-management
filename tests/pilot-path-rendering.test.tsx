@@ -135,4 +135,66 @@ describe('SVGPilotPaths', () => {
     expect(path).toHaveAttribute('stroke')
     expect(path).toHaveAttribute('marker-end', 'url(#pilot-arrow)')
   })
+
+  it('uses pilot avatar position when avatar element exists', async () => {
+    // Add pilot avatar elements to the DOM
+    document.body.innerHTML = `
+      <div id="bracket-container">
+        <div id="heat-1">
+          <img id="pilot-avatar-p1-heat-1" />
+        </div>
+        <div id="heat-2">
+          <img id="pilot-avatar-p1-heat-2" />
+        </div>
+      </div>
+    `
+    
+    // Mock avatar positions (different from heat center)
+    const heat1 = document.getElementById('heat-1')
+    const heat2 = document.getElementById('heat-2')
+    const avatar1 = document.getElementById('pilot-avatar-p1-heat-1')
+    const avatar2 = document.getElementById('pilot-avatar-p1-heat-2')
+    
+    if (heat1) {
+        heat1.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 100, left: 100, right: 200, bottom: 200, width: 100, height: 100, x: 100, y: 100
+        })
+    }
+    if (heat2) {
+        heat2.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 300, left: 300, right: 400, bottom: 400, width: 100, height: 100, x: 300, y: 300
+        })
+    }
+
+    // Avatar at left edge of heat, 20px wide
+    if (avatar1) {
+        avatar1.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 120, left: 100, right: 120, bottom: 140, width: 20, height: 20, x: 100, y: 120
+        })
+    }
+    if (avatar2) {
+        avatar2.getBoundingClientRect = vi.fn().mockReturnValue({
+            top: 320, left: 300, right: 320, bottom: 340, width: 20, height: 20, x: 300, y: 320
+        })
+    }
+
+    render(
+      <SVGPilotPaths
+        heats={mockHeats}
+        pilots={mockPilots}
+        containerRef={containerRef}
+        visible={true}
+      />
+    )
+
+    await new Promise(resolve => setTimeout(resolve, 150))
+
+    const paths = document.querySelectorAll('path[data-pilot-id="p1"]')
+    expect(paths.length).toBeGreaterThan(0)
+    
+    const pathD = paths[0].getAttribute('d')
+    // Path should start at avatar center (110) not heat center (150)
+    // Avatar is at x=100, width=20 -> center=110
+    expect(pathD).toContain('M 110')
+  })
 })

@@ -15,6 +15,8 @@ interface Position {
   centerY: number
   top: number
   bottom: number
+  left: number
+  right: number
 }
 
 interface RenderedPath {
@@ -76,6 +78,21 @@ export function SVGPilotPaths({
       const newPaths: RenderedPath[] = []
       const allPilotIds = pilots.map(p => p.id)
 
+      const getPilotAvatarPosition = (pilotId: string, heatId: string): Position | null => {
+        const avatarElement = document.getElementById(`pilot-avatar-${pilotId}-${heatId}`)
+        if (!avatarElement) return null
+
+        const rect = avatarElement.getBoundingClientRect()
+        return {
+          centerX: (rect.left - containerRect.left + rect.width / 2) / scale,
+          centerY: (rect.top - containerRect.top + rect.height / 2) / scale,
+          top: (rect.top - containerRect.top) / scale,
+          bottom: (rect.bottom - containerRect.top) / scale,
+          left: (rect.left - containerRect.left) / scale,
+          right: (rect.right - containerRect.left) / scale
+        }
+      }
+
       const getPosition = (elementId: string): Position | null => {
         const element = document.getElementById(elementId)
         if (!element) return null
@@ -85,7 +102,9 @@ export function SVGPilotPaths({
           centerX: (rect.left - containerRect.left + rect.width / 2) / scale,
           centerY: (rect.top - containerRect.top + rect.height / 2) / scale,
           top: (rect.top - containerRect.top) / scale,
-          bottom: (rect.bottom - containerRect.top) / scale
+          bottom: (rect.bottom - containerRect.top) / scale,
+          left: (rect.left - containerRect.left) / scale,
+          right: (rect.right - containerRect.left) / scale
         }
       }
 
@@ -96,8 +115,8 @@ export function SVGPilotPaths({
         const color = assignPilotColor(pilot.id, allPilotIds)
 
         segments.forEach((segment, index) => {
-          const fromPos = getPosition(segment.fromHeatId)
-          const toPos = getPosition(segment.toHeatId)
+          const fromPos = getPilotAvatarPosition(segment.pilotId, segment.fromHeatId) ?? getPosition(segment.fromHeatId)
+          const toPos = getPilotAvatarPosition(segment.pilotId, segment.toHeatId) ?? getPosition(segment.toHeatId)
 
           if (!fromPos || !toPos) return
 
