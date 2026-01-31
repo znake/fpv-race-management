@@ -276,6 +276,16 @@ Klick auf abgeschlossene Heats zeigt:
 - Alle Piloten mit finaler Platzierung
 - Wohin jeder Pilot weitergeleitet wurde (WB/LB/Eliminiert)
 
+#### Piloten-Pfade
+
+Mit dem **Toggle links unten** (oder Taste `P`) lassen sich die Flugwege aller Piloten durch das Turnier visualisieren. So sieht man auf einen Blick, welche Heats ein Pilot geflogen ist und welche Platzierungen er erreicht hat.
+
+- **Übersicht**: Alle Piloten-Pfade werden als farbige Linien angezeigt
+- **Detail-Ansicht**: Mit der Maus über einen Piloten fahren hebt dessen Pfad hervor
+- **Eliminierung**: Pfade enden mit einem X-Marker, wenn der Pilot ausgeschieden ist
+
+![Piloten-Pfade](./images/Pfade.png)
+
 #### Channel-Anzeige & Optimierung
 
 Jeder Pilot im Heat erhält einen **Raceband-Channel** (R1, R3, R4, R6, R8) basierend auf seiner Position:
@@ -338,6 +348,7 @@ Die App bietet Export- und Import-Funktionen im Footer-Bereich.
 | `Drag` | Pan im Bracket |
 | `Doppelklick` | Zoom zurücksetzen |
 | `1-4` | Schnelle Platzierungseingabe |
+| `P` | Piloten-Pfade ein-/ausblenden |
 | `Escape` | Modal schließen |
 
 ---
@@ -421,4 +432,4 @@ Entwickelt für FPVOOE - FPV Austria Racing Community
 
 ---
 
-*Zuletzt aktualisiert: 2026-01-30*
+*Zuletzt aktualisiert: 2026-01-31*
