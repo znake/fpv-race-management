@@ -8,6 +8,8 @@ interface SVGPilotPathsProps {
   containerRef: React.RefObject<HTMLDivElement | null>
   scale?: number
   visible: boolean
+  hoveredPilotId?: string | null
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 interface Position {
@@ -32,24 +34,36 @@ export function SVGPilotPaths({
   pilots,
   containerRef,
   scale = 1,
-  visible
+  visible,
+  hoveredPilotId: externalHoveredPilotId,
+  onPilotHover
 }: SVGPilotPathsProps) {
   const [paths, setPaths] = useState<RenderedPath[]>([])
   const [isReady, setIsReady] = useState(false)
-  const [hoveredPilotId, setHoveredPilotId] = useState<string | null>(null)
+  const [internalHoveredPilotId, setInternalHoveredPilotId] = useState<string | null>(null)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const hoveredPilotId = externalHoveredPilotId ?? internalHoveredPilotId
 
   const handleMouseEnter = (pilotId: string) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredPilotId(pilotId)
+      if (onPilotHover) {
+        onPilotHover(pilotId)
+      } else {
+        setInternalHoveredPilotId(pilotId)
+      }
     }, 50)
   }
 
   const handleMouseLeave = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredPilotId(null)
+      if (onPilotHover) {
+        onPilotHover(null)
+      } else {
+        setInternalHoveredPilotId(null)
+      }
     }, 50)
   }
 

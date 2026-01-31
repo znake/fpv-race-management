@@ -13,6 +13,7 @@ export interface BracketHeatBoxProps {
   onEdit?: () => void
   canEdit?: boolean
   isNew?: boolean
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 // Phase 4: EmptyBracketHeatBoxProps - vereinfacht ohne BracketHeat dependency
@@ -61,6 +62,7 @@ export interface GrandFinaleHeatBoxProps {
   pilots: Pilot[]
   heats?: Heat[]  // Story 11-6: Needed for bracket origin tags
   onClick?: () => void
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 // US-14.8: Zoom Indicator Props

@@ -63,6 +63,8 @@ export function BracketTree({
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const canEditHeat = useTournamentStore(state => state.canEditHeat)
 
+  const [hoveredPilotId, setHoveredPilotId] = useState<string | null>(null)
+
   // US-14.8: Zoom & Pan Hook
   const {
     state: zoomState,
@@ -329,6 +331,8 @@ export function BracketTree({
           containerRef={zoomContainerRef}
           scale={zoomState.scale}
           visible={showPilotPaths && !disableConnectors}
+          hoveredPilotId={hoveredPilotId}
+          onPilotHover={setHoveredPilotId}
         />
         
         {/* 1. QUALIFICATION SECTION (horizontal, oben) */}
@@ -337,6 +341,7 @@ export function BracketTree({
           pilots={pilots}
           onHeatClick={handleHeatClick}
           registerHeatRef={registerHeatRef}
+          onPilotHover={showPilotPaths ? setHoveredPilotId : undefined}
         />
         
         {/* 2. WB + LB side-by-side */}
@@ -354,6 +359,7 @@ export function BracketTree({
               }
             }}
             columnWidth={wbColumnWidth}
+            onPilotHover={showPilotPaths ? setHoveredPilotId : undefined}
           />
           
           {/* LB Column (rechts) */}
@@ -369,6 +375,7 @@ export function BracketTree({
               }
             }}
             columnWidth={lbColumnWidth}
+            onPilotHover={showPilotPaths ? setHoveredPilotId : undefined}
           />
         </div>
         
@@ -379,6 +386,7 @@ export function BracketTree({
           heats={heats}
           onHeatClick={handleHeatClick}
           registerHeatRef={registerHeatRef}
+          onPilotHover={showPilotPaths ? setHoveredPilotId : undefined}
         />
       </div>
     </div>

@@ -1,13 +1,10 @@
 {
-  "active_plan": "/Users/jakoblehner/coding/heats/.sisyphus/plans/channel-assignment.md",
-  "started_at": "2026-01-30T21:33:27.036Z",
-  "completed_at": "2026-01-30T22:15:00.000Z",
+  "active_plan": "/Users/jakoblehner/coding/heats/.sisyphus/plans/pilot-path-visualization.md",
+  "started_at": "2026-01-31T07:19:12.061Z",
+  "completed_at": "2026-01-31T08:55:00.000Z",
   "session_ids": [
-    "ses_3ef2cbb9affevtOPHxkggJOz4y",
-    "ses_3ef2219b9ffeKLub8ToC74vBMn",
-    "ses_3ef18de48ffe87OZKg0Lts0j8C",
-    "ses_3eeecf7b6ffeLJkn0GW1I2229W"
+    "ses_3ed14764cffeomu16FnV1KuqDB"
   ],
-  "plan_name": "channel-assignment",
+  "plan_name": "pilot-path-visualization",
   "status": "completed"
 }

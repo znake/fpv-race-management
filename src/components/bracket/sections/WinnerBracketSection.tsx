@@ -9,6 +9,7 @@ interface WinnerBracketSectionProps {
   onHeatClick: (heatId: string) => void
   registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
   columnWidth?: number // Optional prop for overriding calculated width
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 /**
@@ -31,7 +32,8 @@ export function WinnerBracketSection({
   pilots,
   onHeatClick,
   registerHeatRef,
-  columnWidth: propColumnWidth
+  columnWidth: propColumnWidth,
+  onPilotHover
 }: WinnerBracketSectionProps) {
   // Get ALL WB heats from heats[] array (the single source of truth)
   const allWBHeats = heats.filter(h => h.bracketType === 'winner')
@@ -101,6 +103,7 @@ export function WinnerBracketSection({
                         pilots={pilots}
                         bracketType="winner"
                         onClick={() => onHeatClick(heat.id)}
+                        onPilotHover={onPilotHover}
                       />
                     </div>
                   ))}
@@ -131,6 +134,7 @@ export function WinnerBracketSection({
                   pilots={pilots}
                   bracketType="winner"
                   onClick={() => onHeatClick(finaleHeat.id)}
+                  onPilotHover={onPilotHover}
                 />
               </div>
             </div>

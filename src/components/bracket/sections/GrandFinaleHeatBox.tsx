@@ -15,7 +15,8 @@ export function GrandFinaleHeatBox({
   heat,
   pilots,
   heats = [],
-  onClick
+  onClick,
+  onPilotHover
 }: GrandFinaleHeatBoxProps) {
   // Get pilot data with bracket origin and ranking
   const pilotsWithOrigin = heat.pilotIds.map(pilotId => {
@@ -57,7 +58,12 @@ export function GrandFinaleHeatBox({
         const rowClass = isChamp ? 'champ' : ''
 
         return (
-          <div key={pilot.id} className={`pilot-row ${rowClass}`}>
+          <div 
+            key={pilot.id} 
+            className={`pilot-row ${rowClass}`}
+            onMouseEnter={() => onPilotHover?.(pilot.id)}
+            onMouseLeave={() => onPilotHover?.(null)}
+          >
             {/* AC9: Pilot-Avatar */}
             <img
               className="pilot-avatar"

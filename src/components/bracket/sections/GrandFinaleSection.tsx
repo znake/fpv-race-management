@@ -14,6 +14,7 @@ export interface GrandFinaleSectionProps {
   heats: Heat[]
   onHeatClick: (heatId: string) => void
   registerHeatRef?: (heatId: string, element: HTMLDivElement | null) => void
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 export function GrandFinaleSection({
@@ -21,7 +22,8 @@ export function GrandFinaleSection({
   pilots,
   heats,
   onHeatClick,
-  registerHeatRef
+  registerHeatRef,
+  onPilotHover
 }: GrandFinaleSectionProps) {
   // Nichts rendern wenn kein Grand Finale Heat
   if (!grandFinaleHeat) return null
@@ -56,6 +58,7 @@ export function GrandFinaleSection({
           pilots={pilots}
           heats={heats}
           onClick={() => onHeatClick(grandFinaleHeat.id)}
+          onPilotHover={onPilotHover}
         />
       </div>
     </div>

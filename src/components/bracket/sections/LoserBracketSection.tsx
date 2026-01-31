@@ -9,6 +9,7 @@ interface LoserBracketSectionProps {
   onHeatClick: (heatId: string) => void
   registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
   columnWidth?: number
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 /**
@@ -31,7 +32,8 @@ export function LoserBracketSection({
   pilots,
   onHeatClick,
   registerHeatRef,
-  columnWidth: providedColumnWidth
+  columnWidth: providedColumnWidth,
+  onPilotHover
 }: LoserBracketSectionProps) {
   // Get ALL LB heats from heats[] array (the single source of truth)
   const allLBHeats = heats.filter(h => h.bracketType === 'loser')
@@ -101,6 +103,7 @@ export function LoserBracketSection({
                           pilots={pilots}
                           bracketType="loser"
                           onClick={() => onHeatClick(heat.id)}
+                          onPilotHover={onPilotHover}
                         />
                       </div>
                     )
@@ -138,6 +141,7 @@ export function LoserBracketSection({
                   pilots={pilots}
                   bracketType="loser"
                   onClick={() => onHeatClick(finaleHeat.id)}
+                  onPilotHover={onPilotHover}
                 />
               </div>
             </div>

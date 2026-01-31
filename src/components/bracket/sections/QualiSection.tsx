@@ -6,13 +6,15 @@ interface QualiSectionProps {
   pilots: Pilot[]
   onHeatClick: (heatId: string) => void
   registerHeatRef: (heatId: string, el: HTMLDivElement | null) => void
+  onPilotHover?: (pilotId: string | null) => void
 }
 
 export function QualiSection({
   qualiHeats,
   pilots,
   onHeatClick,
-  registerHeatRef
+  registerHeatRef,
+  onPilotHover
 }: QualiSectionProps) {
   if (qualiHeats.length === 0) return null
   
@@ -33,6 +35,7 @@ export function QualiSection({
               pilots={pilots}
               bracketType="qualification"
               onClick={() => onHeatClick(heat.id)}
+              onPilotHover={onPilotHover}
             />
           </div>
         ))}

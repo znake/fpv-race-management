@@ -30,3 +30,15 @@
 - Uses `fixed` positioning and `z-50` to ensure visibility over other elements.
 - Connects directly to `useTournamentStore` for state and actions.
 - Tested with Vitest and React Testing Library for rendering, interaction, and state reflection.
+
+## Hover Interaction in SVGPilotPaths
+- Implemented CSS-based highlighting for pilot paths using `hoveredPilotId` state.
+- Added 50ms debounce to `onMouseEnter` and `onMouseLeave` to prevent flickering during rapid mouse movements.
+- Paths now have `pointerEvents: 'auto'` and `cursor: 'pointer'` to receive hover events, while the parent SVG remains `pointerEvents: 'none'` to not block underlying elements.
+- Used `opacity` and `strokeWidth` transitions (150ms) for smooth visual feedback.
+- TDD approach: Created `tests/pilot-path-hover.test.tsx` to verify highlighting, fading, and debounce logic.
+
+## Integration in BracketTree
+- SVGPilotPaths is rendered as an absolute overlay within the zoom container, ensuring it scales and pans with the bracket.
+- Visibility is controlled by both the store state (`showPilotPaths`) and the `disableConnectors` flag (used during Victory Ceremony).
+- PilotPathToggle is placed next to the ZoomIndicator for consistent UI controls.

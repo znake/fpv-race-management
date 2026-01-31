@@ -70,12 +70,12 @@ Toggle-basierte Visualisierung der Pilot-Pfade durch alle Turnier-Phasen mit int
 - 6 Test-Dateien in `tests/`
 
 ### Definition of Done
-- [ ] `bun test` → alle neuen Tests PASS
-- [ ] Toggle zeigt/versteckt Pilot-Pfade korrekt
-- [ ] Bezier-Kurven mit Pfeilspitzen gerendert
-- [ ] X-Marker bei eliminierten Piloten
-- [ ] Hover hebt einen Pfad hervor, andere verblassen
-- [ ] Performance bei 32 Piloten < 500ms Render-Zeit
+- [x] `bun test` → alle neuen Tests PASS
+- [x] Toggle zeigt/versteckt Pilot-Pfade korrekt
+- [x] Bezier-Kurven mit Pfeilspitzen gerendert
+- [x] X-Marker bei eliminierten Piloten
+- [x] Hover hebt einen Pfad hervor, andere verblassen
+- [x] Performance bei 32 Piloten < 500ms Render-Zeit
 
 ### Must Have
 - Separater SVG-Layer (zIndex: 2)
@@ -159,7 +159,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ## TODOs
 
-- [ ] 1. Pure Functions: Pfad-Berechnung und Farbzuweisung
+- [x] 1. Pure Functions: Pfad-Berechnung und Farbzuweisung
 
   **What to do**:
   - Erstelle `src/lib/pilot-path-manager.ts`
@@ -225,14 +225,14 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-calculation.test.ts`
-  - [ ] Test: `calculatePilotPath` returns empty array for pilot with no completed heats
-  - [ ] Test: `calculatePilotPath` returns correct segments for 3-heat journey
-  - [ ] Test: `calculatePilotPath` marks last segment as elimination for LB rank 3/4
-  - [ ] Test: `assignPilotColor` returns same color for same pilot on repeated calls
-  - [ ] Test: `assignPilotColor` rotates through palette (pilot 8 = color 1)
-  - [ ] Test: All colors in SYNTHWAVE_COLORS match tailwind.config.js values
-  - [ ] `bun test tests/pilot-path-calculation.test.ts` → PASS
+  - [x] Test file created: `tests/pilot-path-calculation.test.ts`
+  - [x] Test: `calculatePilotPath` returns empty array for pilot with no completed heats
+  - [x] Test: `calculatePilotPath` returns correct segments for 3-heat journey
+  - [x] Test: `calculatePilotPath` marks last segment as elimination for LB rank 3/4
+  - [x] Test: `assignPilotColor` returns same color for same pilot on repeated calls
+  - [x] Test: `assignPilotColor` rotates through palette (pilot 8 = color 1)
+  - [x] Test: All colors in SYNTHWAVE_COLORS match tailwind.config.js values
+  - [x] `bun test tests/pilot-path-calculation.test.ts` → PASS
 
   **Automated Verification:**
   ```bash
@@ -248,7 +248,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ---
 
-- [ ] 2. SVG Rendering: SVGPilotPaths Komponente
+- [x] 2. SVG Rendering: SVGPilotPaths Komponente
 
   **What to do**:
   - Erstelle `src/components/bracket/SVGPilotPaths.tsx`
@@ -324,15 +324,15 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-rendering.test.tsx`
-  - [ ] Test: SVGPilotPaths renders null when `visible=false`
-  - [ ] Test: SVGPilotPaths renders SVG element when `visible=true`
-  - [ ] Test: SVG has `zIndex: 2` style
-  - [ ] Test: `<marker id="pilot-arrow">` exists in defs
-  - [ ] Test: `<marker id="pilot-x">` exists in defs
-  - [ ] Test: `<path>` elements have `data-pilot-id` attribute
-  - [ ] Test: Path `d` attribute contains `Q` command (Bezier)
-  - [ ] `bun test tests/pilot-path-rendering.test.tsx` → PASS
+  - [x] Test file created: `tests/pilot-path-rendering.test.tsx`
+  - [x] Test: SVGPilotPaths renders null when `visible=false`
+  - [x] Test: SVGPilotPaths renders SVG element when `visible=true`
+  - [x] Test: SVG has `zIndex: 2` style
+  - [x] Test: `<marker id="pilot-arrow">` exists in defs
+  - [x] Test: `<marker id="pilot-x">` exists in defs
+  - [x] Test: `<path>` elements have `data-pilot-id` attribute
+  - [x] Test: Path `d` attribute contains `Q` command (Bezier)
+  - [x] `bun test tests/pilot-path-rendering.test.tsx` → PASS
 
   **Automated Verification:**
   ```bash
@@ -348,7 +348,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ---
 
-- [ ] 3. Hover Interaction: CSS-basiertes Highlighting
+- [x] 3. Hover Interaction: CSS-basiertes Highlighting
 
   **What to do**:
   - Erweitere `SVGPilotPaths.tsx` mit Hover-Logik:
@@ -402,12 +402,12 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-hover.test.tsx`
-  - [ ] Test: Hovering path adds `pilot-path-highlighted` class
-  - [ ] Test: Non-hovered paths have `pilot-path-faded` class when one is hovered
-  - [ ] Test: Hover state clears on mouse leave (all paths back to default)
-  - [ ] Test: Hover debounced by 50ms (rapid enter/leave doesn't flicker)
-  - [ ] `bun test tests/pilot-path-hover.test.tsx` → PASS
+  - [x] Test file created: `tests/pilot-path-hover.test.tsx`
+  - [x] Test: Hovering path adds `pilot-path-highlighted` class
+  - [x] Test: Non-hovered paths have `pilot-path-faded` class when one is hovered
+  - [x] Test: Hover state clears on mouse leave (all paths back to default)
+  - [x] Test: Hover debounced by 50ms (rapid enter/leave doesn't flicker)
+  - [x] `bun test tests/pilot-path-hover.test.tsx` → PASS
 
   **Automated Verification:**
   ```bash
@@ -423,7 +423,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ---
 
-- [ ] 4. Store Extension: showPilotPaths State
+- [x] 4. Store Extension: showPilotPaths State
 
   **What to do**:
   - Erweitere `INITIAL_TOURNAMENT_STATE` in `tournamentStore.ts`:
@@ -476,13 +476,13 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-toggle.test.ts`
-  - [ ] Test: `showPilotPaths` defaults to `false`
-  - [ ] Test: `togglePilotPaths()` switches state from false to true
-  - [ ] Test: `togglePilotPaths()` switches state from true to false
-  - [ ] Test: `showPilotPaths` NOT reset by `performReset()`
-  - [ ] Test: `showPilotPaths` persists in localStorage (survives store re-init)
-  - [ ] `bun test tests/pilot-path-toggle.test.ts` → PASS
+  - [x] Test file created: `tests/pilot-path-toggle.test.ts`
+  - [x] Test: `showPilotPaths` defaults to `false`
+  - [x] Test: `togglePilotPaths()` switches state from false to true
+  - [x] Test: `togglePilotPaths()` switches state from true to false
+  - [x] Test: `showPilotPaths` NOT reset by `performReset()`
+  - [x] Test: `showPilotPaths` persists in localStorage (survives store re-init)
+  - [x] `bun test tests/pilot-path-toggle.test.ts` → PASS
 
   **Automated Verification:**
   ```bash
@@ -498,7 +498,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ---
 
-- [ ] 5. Toggle UI: PilotPathToggle Komponente
+- [x] 5. Toggle UI: PilotPathToggle Komponente
 
   **What to do**:
   - Erstelle `src/components/bracket/PilotPathToggle.tsx`
@@ -560,12 +560,12 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-toggle-ui.test.tsx`
-  - [ ] Test: Toggle renders with "Pilot-Pfade" label
-  - [ ] Test: Toggle reflects `showPilotPaths` state from store
-  - [ ] Test: Clicking toggle calls `togglePilotPaths()`
-  - [ ] Test: Toggle has correct Tailwind classes for positioning
-  - [ ] `bun test tests/pilot-path-toggle-ui.test.tsx` → PASS
+  - [x] Test file created: `tests/pilot-path-toggle-ui.test.tsx`
+  - [x] Test: Toggle renders with "Pilot-Pfade" label
+  - [x] Test: Toggle reflects `showPilotPaths` state from store
+  - [x] Test: Clicking toggle calls `togglePilotPaths()`
+  - [x] Test: Toggle has correct Tailwind classes for positioning
+  - [x] `bun test tests/pilot-path-toggle-ui.test.tsx` → PASS
 
   **Automated Verification:**
   ```bash
@@ -581,7 +581,7 @@ Parallel Speedup: ~35% faster than sequential
 
 ---
 
-- [ ] 6. Integration & Edge Cases
+- [x] 6. Integration & Edge Cases
 
   **What to do**:
   - Integriere `SVGPilotPaths` und `PilotPathToggle` in `BracketTree.tsx`:
@@ -640,14 +640,14 @@ Parallel Speedup: ~35% faster than sequential
   **Acceptance Criteria**:
 
   **TDD (tests first):**
-  - [ ] Test file created: `tests/pilot-path-integration.test.tsx`
-  - [ ] Test: Toggle on → SVGPilotPaths visible
-  - [ ] Test: Toggle off → SVGPilotPaths hidden
-  - [ ] Test: Paths scale correctly at 200% zoom
-  - [ ] Test: Paths hidden during Victory Ceremony (disabled state)
-  - [ ] Test: Dropped-out pilot's path ends at last heat
-  - [ ] Test: Rematch path renders correctly after Grand Finale
-  - [ ] `bun test tests/pilot-path-integration.test.tsx` → PASS
+  - [x] Test file created: `tests/pilot-path-integration.test.tsx`
+  - [x] Test: Toggle on → SVGPilotPaths visible
+  - [x] Test: Toggle off → SVGPilotPaths hidden
+  - [x] Test: Paths scale correctly at 200% zoom
+  - [x] Test: Paths hidden during Victory Ceremony (disabled state)
+  - [x] Test: Dropped-out pilot's path ends at last heat
+  - [x] Test: Rematch path renders correctly after Grand Finale
+  - [x] `bun test tests/pilot-path-integration.test.tsx` → PASS
 
   **Performance Verification:**
   ```bash
@@ -694,19 +694,19 @@ bun run build
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present:
-  - [ ] Separater SVG-Layer mit zIndex: 2
-  - [ ] Bezier-Kurven in allen Pfaden
-  - [ ] Pfeilspitzen bei normalen Segmenten
-  - [ ] X-Marker bei Elimination
-  - [ ] Hover-Highlighting funktioniert
-  - [ ] Toggle in localStorage persistiert
-  - [ ] Alle Tests grün (TDD)
-- [ ] All "Must NOT Have" absent:
-  - [ ] SVGConnectorLines.tsx unverändert
-  - [ ] Keine neuen Farben außerhalb Synthwave
-  - [ ] Keine Click-Handler auf Pfaden
-  - [ ] Keine Animation-Libraries
-- [ ] Performance:
-  - [ ] 32-Piloten-Turnier rendert < 500ms
-  - [ ] Hover-State-Wechsel < 100ms
+- [x] All "Must Have" present:
+  - [x] Separater SVG-Layer mit zIndex: 2
+  - [x] Bezier-Kurven in allen Pfaden
+  - [x] Pfeilspitzen bei normalen Segmenten
+  - [x] X-Marker bei Elimination
+  - [x] Hover-Highlighting funktioniert
+  - [x] Toggle in localStorage persistiert
+  - [x] Alle Tests grün (TDD)
+- [x] All "Must NOT Have" absent:
+  - [x] SVGConnectorLines.tsx unverändert
+  - [x] Keine neuen Farben außerhalb Synthwave
+  - [x] Keine Click-Handler auf Pfaden
+  - [x] Keine Animation-Libraries
+- [x] Performance:
+  - [x] 32-Piloten-Turnier rendert < 500ms
+  - [x] Hover-State-Wechsel < 100ms

@@ -4,18 +4,20 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, cleanup } from '@testing-library/react'
 import { useTournamentStore } from '../src/stores/tournamentStore'
+import { resetTournamentStore } from './helpers/store-helpers'
 
 describe('showPilotPaths toggle', () => {
   beforeEach(() => {
-    act(() => {
-      useTournamentStore.getState().performReset({ clearLocalStorage: true })
-    })
-    // Reset the store state manually to be absolutely sure
+    resetTournamentStore()
+    // Also reset showPilotPaths to ensure clean state
     useTournamentStore.setState({ showPilotPaths: false })
+    // Clear localStorage
+    localStorage.removeItem('tournament-storage')
   })
 
   afterEach(() => {
     cleanup()
+    localStorage.removeItem('tournament-storage')
   })
 
   it('defaults to false', () => {

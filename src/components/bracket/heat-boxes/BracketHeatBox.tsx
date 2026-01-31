@@ -27,7 +27,8 @@ export function BracketHeatBox({
   onClick,
   onEdit,
   canEdit = true,
-  isNew = false
+  isNew = false,
+  onPilotHover
 }: BracketHeatBoxProps) {
   // Get pilot count for 3-pilot detection
   const pilotCount = heat.pilotIds.length
@@ -128,7 +129,12 @@ export function BracketHeatBox({
           const channel = getChannelForPosition(originalIndex, pilotCount)
           
           return (
-            <div key={pilot.id} className="pilot-row-wrapper">
+            <div 
+              key={pilot.id} 
+              className="pilot-row-wrapper"
+              onMouseEnter={() => onPilotHover?.(pilot.id)}
+              onMouseLeave={() => onPilotHover?.(null)}
+            >
               <span className="channel-badge-outer">
                 {formatChannel(channel)}
               </span>
