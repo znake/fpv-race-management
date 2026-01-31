@@ -42,6 +42,7 @@ export const INITIAL_TOURNAMENT_STATE = {
   lbRoundWaitingForWB: false,
   // Story 13-3: Grand Finale States (pilotBracketStates für WB/LB Origin-Tracking)
   pilotBracketStates: {} as Record<string, { bracket: string; roundReached: number; bracketOrigin?: 'wb' | 'lb' }>,
+  showPilotPaths: false,
 }
 
 // Pilot interface export
@@ -177,6 +178,8 @@ interface TournamentState {
   getCurrentPhaseDescription: () => string
 
   canEditHeat: (heatId: string) => boolean
+  showPilotPaths: boolean
+  togglePilotPaths: () => void
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -347,9 +350,11 @@ export const useTournamentStore = create<TournamentState>()(
 
         // Klone INITIAL_TOURNAMENT_STATE für neue Array-Referenzen
         // Wichtig weil Tests Arrays direkt manipulieren könnten
+        const currentShowPilotPaths = get().showPilotPaths
         set({
           ...structuredClone(INITIAL_TOURNAMENT_STATE),
           pilots: keepPilots ? get().pilots : [],
+          showPilotPaths: currentShowPilotPaths,
         })
 
         if (clearLocalStorage) {
@@ -1336,6 +1341,10 @@ export const useTournamentStore = create<TournamentState>()(
         )
 
         return !laterRoundExists
+      },
+
+      togglePilotPaths: () => {
+        set({ showPilotPaths: !get().showPilotPaths })
       }
     }),
     {
