@@ -120,17 +120,30 @@ export function SVGPilotPaths({
 
           if (!fromPos || !toPos) return
 
-          // Bezier Curve Calculation
-          const startX = fromPos.centerX
-          const startY = fromPos.bottom
-          const endX = toPos.centerX
-          const endY = toPos.top
+          // Cubic Bezier S-Curve Calculation
+          const AVATAR_OFFSET = 8 // pixels offset from avatar edge
           
-          // Control point for quadratic bezier
-          const controlX = (startX + endX) / 2
-          const controlY = startY + (endY - startY) * 0.5
+          // Start from right edge of source avatar
+          const startX = fromPos.right + AVATAR_OFFSET
+          const startY = fromPos.centerY
+          
+          // End at left edge of target avatar
+          const endX = toPos.left - AVATAR_OFFSET
+          const endY = toPos.centerY
+          
+          // Calculate control points for elegant S-curve
+          const deltaY = endY - startY
+          const curveStrength = 40 // horizontal extent of curve
+          
+          // Control point 1: exit horizontally from source, then curve
+          const cp1x = startX + curveStrength
+          const cp1y = startY + deltaY * 0.3
+          
+          // Control point 2: approach target horizontally
+          const cp2x = endX - curveStrength
+          const cp2y = endY - deltaY * 0.3
 
-          const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`
+          const d = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
 
           newPaths.push({
             id: `${pilot.id}-${index}`,

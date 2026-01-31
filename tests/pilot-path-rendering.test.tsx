@@ -131,7 +131,7 @@ describe('SVGPilotPaths', () => {
     
     const path = paths[0]
     expect(path).toHaveAttribute('d')
-    expect(path.getAttribute('d')).toContain('Q') // Should use quadratic bezier
+    expect(path.getAttribute('d')).toContain('C') // Should use Cubic bezier
     expect(path).toHaveAttribute('stroke')
     expect(path).toHaveAttribute('marker-end', 'url(#pilot-arrow)')
   })
@@ -193,8 +193,8 @@ describe('SVGPilotPaths', () => {
     expect(paths.length).toBeGreaterThan(0)
     
     const pathD = paths[0].getAttribute('d')
-    // Path should start at avatar center (110) not heat center (150)
-    // Avatar is at x=100, width=20 -> center=110
-    expect(pathD).toContain('M 110')
+    // Path should start at avatar right edge (120) + offset (8) = 128
+    // Avatar is at x=100, width=20 -> right=120
+    expect(pathD).toContain('M 128')
   })
 })
