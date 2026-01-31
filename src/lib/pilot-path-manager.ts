@@ -5,6 +5,7 @@ export interface PathSegment {
   toHeatId: string
   isElimination: boolean
   pilotId: string
+  showMarker: boolean  // false for pending/active heats (no arrow/X)
 }
 
 export const SYNTHWAVE_COLORS = [
@@ -40,7 +41,7 @@ export function assignPilotColor(pilotId: string, allPilotIds: string[]): string
 
 export function calculatePilotPath(pilotId: string, heats: Heat[]): PathSegment[] {
   const pilotHeats = heats
-    .filter(heat => heat.pilotIds.includes(pilotId) && heat.status === 'completed')
+    .filter(heat => heat.pilotIds.includes(pilotId))
     .sort((a, b) => a.heatNumber - b.heatNumber)
 
   if (pilotHeats.length < 2) {
@@ -53,14 +54,16 @@ export function calculatePilotPath(pilotId: string, heats: Heat[]): PathSegment[
     const fromHeat = pilotHeats[i]
     const toHeat = pilotHeats[i + 1]
     
+    const toHeatCompleted = toHeat.status === 'completed'
     const isLastSegment = i === pilotHeats.length - 2
-    const isElimination = isLastSegment && isEliminatedInHeat(pilotId, toHeat)
+    const isElimination = toHeatCompleted && isLastSegment && isEliminatedInHeat(pilotId, toHeat)
 
     segments.push({
       fromHeatId: fromHeat.id,
       toHeatId: toHeat.id,
       isElimination,
-      pilotId
+      pilotId,
+      showMarker: toHeatCompleted
     })
   }
 
