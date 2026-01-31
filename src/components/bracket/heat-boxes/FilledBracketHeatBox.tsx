@@ -124,6 +124,7 @@ export function FilledBracketHeatBox({
               </span>
               <div className={cn('pilot-row', rowClass, 'flex-1')}>
                 <img 
+                  id={`pilot-avatar-${pilot.id}-${bracketHeat.id}`}
                   className="pilot-avatar"
                   src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
                   alt={pilot.name}
