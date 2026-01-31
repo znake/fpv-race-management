@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { Heat, Pilot } from '../../types'
 import { calculatePilotPath, assignPilotColor } from '../../lib/pilot-path-manager'
 
@@ -34,13 +34,32 @@ export function SVGPilotPaths({
 }: SVGPilotPathsProps) {
   const [paths, setPaths] = useState<RenderedPath[]>([])
   const [isReady, setIsReady] = useState(false)
+  const [hoveredPilotId, setHoveredPilotId] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleMouseEnter = (pilotId: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredPilotId(pilotId)
+    }, 50)
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredPilotId(null)
+    }, 50)
+  }
 
   // Wait for DOM to be ready
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true)
     }, 100)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    }
   }, [])
 
   useEffect(() => {
@@ -162,12 +181,28 @@ export function SVGPilotPaths({
           key={path.id}
           d={path.d}
           stroke={path.color}
-          strokeWidth="1.5"
+          strokeWidth={hoveredPilotId === path.pilotId ? 2.5 : 1.5}
           fill="none"
-          opacity="0.6"
+          opacity={
+            hoveredPilotId === null ? 0.6 : hoveredPilotId === path.pilotId ? 1 : 0.15
+          }
           data-pilot-id={path.pilotId}
+          className={`pilot-path ${
+            hoveredPilotId === path.pilotId
+              ? 'pilot-path-highlighted'
+              : hoveredPilotId !== null
+              ? 'pilot-path-faded'
+              : ''
+          }`}
           markerEnd={path.isElimination ? "url(#pilot-x)" : "url(#pilot-arrow)"}
-          style={{ color: path.color }} // For marker currentColor
+          style={{
+            color: path.color,
+            transition: 'opacity 150ms, stroke-width 150ms',
+            pointerEvents: 'auto',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={() => handleMouseEnter(path.pilotId)}
+          onMouseLeave={handleMouseLeave}
         />
       ))}
     </svg>
