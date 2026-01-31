@@ -17,6 +17,8 @@ import { calculateBracketDimensions } from '../../lib/bracket-layout-calculator'
 // Import heat box components
 import { GrandFinaleSection } from './sections/GrandFinaleSection'
 import { SVGConnectorLines } from './SVGConnectorLines'
+import { SVGPilotPaths } from './SVGPilotPaths'
+import { PilotPathToggle } from './PilotPathToggle'
 
 import { QualiSection } from './sections/QualiSection'
 import { WinnerBracketSection } from './sections/WinnerBracketSection'
@@ -56,6 +58,7 @@ export function BracketTree({
   onExportCSV
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
+  const showPilotPaths = useTournamentStore(state => state.showPilotPaths)
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const canEditHeat = useTournamentStore(state => state.canEditHeat)
@@ -318,6 +321,15 @@ export function BracketTree({
           scale={zoomState.scale}
           disabled={disableConnectors}
         />
+
+        {/* Pilot Path Visualization Layer */}
+        <SVGPilotPaths
+          heats={heats}
+          pilots={pilots}
+          containerRef={zoomContainerRef}
+          scale={zoomState.scale}
+          visible={showPilotPaths && !disableConnectors}
+        />
         
         {/* 1. QUALIFICATION SECTION (horizontal, oben) */}
         <QualiSection
@@ -396,6 +408,8 @@ export function BracketTree({
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
       />
+
+      <PilotPathToggle />
 
       {/* Heat Detail Modal */}
       {selectedHeatData && (
