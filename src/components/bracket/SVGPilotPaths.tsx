@@ -145,15 +145,15 @@ export function SVGPilotPaths({
           let d: string
 
           if (isVerticalLayout) {
-            const startX = fromPos.centerX
-            const startY = fromPos.bottom + OFFSET
+            const HORIZONTAL_EXIT = 25
+            const startX = fromPos.right + OFFSET
+            const startY = fromPos.centerY
             const endX = toPos.left - OFFSET
             const endY = toPos.centerY
             
-            const verticalDrop = Math.abs(deltaY) * 0.4
-            const cp1x = startX
-            const cp1y = startY + verticalDrop
-            const cp2x = endX - 30
+            const cp1x = startX + HORIZONTAL_EXIT
+            const cp1y = startY + Math.abs(deltaY) * 0.5
+            const cp2x = endX - HORIZONTAL_EXIT
             const cp2y = endY
 
             d = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`

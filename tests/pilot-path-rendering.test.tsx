@@ -194,7 +194,7 @@ describe('SVGPilotPaths', () => {
     expect(paths.length).toBeGreaterThan(0)
     
     const pathD = paths[0].getAttribute('d')
-    expect(pathD).toContain('M 110 148')
+    expect(pathD).toContain('M 128 130')
   })
 })
 
@@ -361,7 +361,7 @@ describe('SVGPilotPaths rank-badge integration', () => {
     expect(paths.length).toBeGreaterThan(0)
     
     const pathD = paths[0].getAttribute('d')
-    expect(pathD).toContain('M 180 148')
+    expect(pathD).toContain('M 198 130')
   })
 
   it('falls back to avatar position when rank-badge does not exist', async () => {
@@ -418,6 +418,6 @@ describe('SVGPilotPaths rank-badge integration', () => {
     expect(paths.length).toBeGreaterThan(0)
     
     const pathD = paths[0].getAttribute('d')
-    expect(pathD).toContain('M 110 148')
+    expect(pathD).toContain('M 128 130')
   })
 })
