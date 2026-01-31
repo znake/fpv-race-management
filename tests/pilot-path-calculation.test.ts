@@ -120,8 +120,8 @@ describe('calculatePilotPath', () => {
     ]
     const path = calculatePilotPath('p1', heats)
     expect(path).toHaveLength(2)
-    expect(path[0]).toEqual({ fromHeatId: 'h1', toHeatId: 'h2', isElimination: false })
-    expect(path[1]).toEqual({ fromHeatId: 'h2', toHeatId: 'h3', isElimination: false })
+    expect(path[0]).toEqual({ fromHeatId: 'h1', toHeatId: 'h2', isElimination: false, pilotId: 'p1' })
+    expect(path[1]).toEqual({ fromHeatId: 'h2', toHeatId: 'h3', isElimination: false, pilotId: 'p1' })
   })
 
   it('should mark last segment as elimination for LB rank 3/4', () => {
@@ -133,6 +133,16 @@ describe('calculatePilotPath', () => {
     ]
     const path = calculatePilotPath('p1', heats)
     expect(path).toHaveLength(1)
-    expect(path[0]).toEqual({ fromHeatId: 'h1', toHeatId: 'h2', isElimination: true })
+    expect(path[0]).toEqual({ fromHeatId: 'h1', toHeatId: 'h2', isElimination: true, pilotId: 'p1' })
+  })
+
+  it('should include pilotId in each path segment', () => {
+    const heats: Heat[] = [
+      createMockHeat({ id: 'h1', heatNumber: 1, pilotIds: ['p1'], status: 'completed' }),
+      createMockHeat({ id: 'h2', heatNumber: 2, pilotIds: ['p1'], status: 'completed' })
+    ]
+    const path = calculatePilotPath('p1', heats)
+    expect(path).toHaveLength(1)
+    expect(path[0]).toHaveProperty('pilotId', 'p1')
   })
 })

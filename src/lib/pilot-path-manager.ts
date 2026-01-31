@@ -4,6 +4,7 @@ export interface PathSegment {
   fromHeatId: string
   toHeatId: string
   isElimination: boolean
+  pilotId: string
 }
 
 export const SYNTHWAVE_COLORS = [
@@ -58,7 +59,8 @@ export function calculatePilotPath(pilotId: string, heats: Heat[]): PathSegment[
     segments.push({
       fromHeatId: fromHeat.id,
       toHeatId: toHeat.id,
-      isElimination
+      isElimination,
+      pilotId
     })
   }
 
