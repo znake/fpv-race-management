@@ -59,6 +59,7 @@ export function BracketTree({
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
   const showPilotPaths = useTournamentStore(state => state.showPilotPaths)
+  const togglePilotPaths = useTournamentStore(state => state.togglePilotPaths)
   // Phase 2: fullBracketStructure entfernt - heats[] ist jetzt Single Source of Truth
   const getTop4Pilots = useTournamentStore(state => state.getTop4Pilots)
   const canEditHeat = useTournamentStore(state => state.canEditHeat)
@@ -171,6 +172,24 @@ export function BracketTree({
       }
     }
   }, [heats, placementHeat])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'p') return
+      if (selectedHeat || placementHeat) return
+      
+      const activeElement = document.activeElement
+      const isInputFocused = activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement?.getAttribute('contenteditable') === 'true'
+      if (isInputFocused) return
+      
+      togglePilotPaths()
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedHeat, placementHeat, togglePilotPaths])
 
   const handleHeatClick = (heatId: string) => {
     const heat = heats.find(h => h.id === heatId)
@@ -321,6 +340,8 @@ export function BracketTree({
           containerRef={zoomContainerRef}
           heatRefs={heatRefsMap.current}
           scale={zoomState.scale}
+          translateX={zoomState.translateX}
+          translateY={zoomState.translateY}
           disabled={disableConnectors}
         />
 
@@ -330,6 +351,8 @@ export function BracketTree({
           pilots={pilots}
           containerRef={zoomContainerRef}
           scale={zoomState.scale}
+          translateX={zoomState.translateX}
+          translateY={zoomState.translateY}
           visible={showPilotPaths && !disableConnectors}
           hoveredPilotId={hoveredPilotId}
           onPilotHover={setHoveredPilotId}

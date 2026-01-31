@@ -95,6 +95,9 @@ interface SVGConnectorLinesProps {
   containerRef: React.RefObject<HTMLDivElement | null>
   heatRefs: Map<string, HTMLDivElement | null>
   scale?: number
+  /** Translation values - trigger redraw when panning */
+  translateX?: number
+  translateY?: number
   /** When true, skip all drawing operations (used during victory ceremony overlay) */
   disabled?: boolean
 }
@@ -112,6 +115,8 @@ export function SVGConnectorLines({
   containerRef: _containerRef,
   heatRefs: _heatRefs,
   scale = 1,
+  translateX: _translateX,
+  translateY: _translateY,
   disabled = false
 }: SVGConnectorLinesProps) {
   const managerRef = useRef<ConnectorManager | null>(null)
@@ -217,7 +222,6 @@ export function SVGConnectorLines({
     manager.redraw()
   }
 
-  // Update when heats change
   useEffect(() => {
     if (disabled) return
     // Debounce heat updates slightly
@@ -225,7 +229,7 @@ export function SVGConnectorLines({
         updateConnections()
     }, 50)
     return () => clearTimeout(timer)
-  }, [heats, disabled])
+  }, [heats, disabled, _translateX, _translateY])
 
   return (
     <svg

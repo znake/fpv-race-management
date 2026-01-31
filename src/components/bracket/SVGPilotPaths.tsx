@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import type { Heat, Pilot } from '../../types'
 import { calculatePilotPath, assignPilotColor } from '../../lib/pilot-path-manager'
 
@@ -7,6 +7,9 @@ interface SVGPilotPathsProps {
   pilots: Pilot[]
   containerRef: React.RefObject<HTMLDivElement | null>
   scale?: number
+  /** Translation values - trigger redraw when panning */
+  translateX?: number
+  translateY?: number
   visible: boolean
   hoveredPilotId?: string | null
   onPilotHover?: (pilotId: string | null) => void
@@ -27,6 +30,7 @@ interface RenderedPath {
   color: string
   pilotId: string
   isElimination: boolean
+  showMarker: boolean
 }
 
 export function SVGPilotPaths({
@@ -34,38 +38,13 @@ export function SVGPilotPaths({
   pilots,
   containerRef,
   scale = 1,
+  translateX: _translateX,
+  translateY: _translateY,
   visible,
-  hoveredPilotId: externalHoveredPilotId,
-  onPilotHover
+  hoveredPilotId,
 }: SVGPilotPathsProps) {
   const [paths, setPaths] = useState<RenderedPath[]>([])
   const [isReady, setIsReady] = useState(false)
-  const [internalHoveredPilotId, setInternalHoveredPilotId] = useState<string | null>(null)
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const hoveredPilotId = externalHoveredPilotId ?? internalHoveredPilotId
-
-  const handleMouseEnter = (pilotId: string) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    hoverTimeoutRef.current = setTimeout(() => {
-      if (onPilotHover) {
-        onPilotHover(pilotId)
-      } else {
-        setInternalHoveredPilotId(pilotId)
-      }
-    }, 50)
-  }
-
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    hoverTimeoutRef.current = setTimeout(() => {
-      if (onPilotHover) {
-        onPilotHover(null)
-      } else {
-        setInternalHoveredPilotId(null)
-      }
-    }, 50)
-  }
 
   // Wait for DOM to be ready
   useEffect(() => {
@@ -74,7 +53,6 @@ export function SVGPilotPaths({
     }, 100)
     return () => {
       clearTimeout(timer)
-      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     }
   }, [])
 
@@ -152,46 +130,27 @@ export function SVGPilotPaths({
           if (!fromPos || !toPos) return
 
           const OFFSET = 8
-          const deltaX = toPos.centerX - fromPos.centerX
-          const deltaY = toPos.centerY - fromPos.centerY
-          const isVerticalLayout = Math.abs(deltaY) > Math.abs(deltaX) * 0.5
+          const HORIZONTAL_SEGMENT = 240
+          
+          const startX = fromPos.right + OFFSET
+          const startY = fromPos.centerY
+          const endX = toPos.left - OFFSET
+          const endY = toPos.centerY
+          
+          const cp1x = startX + HORIZONTAL_SEGMENT
+          const cp1y = startY
+          const cp2x = endX - HORIZONTAL_SEGMENT
+          const cp2y = endY
 
-          let d: string
-
-          if (isVerticalLayout) {
-            const HORIZONTAL_EXIT = 25
-            const startX = fromPos.right + OFFSET
-            const startY = fromPos.centerY
-            const endX = toPos.left - OFFSET
-            const endY = toPos.centerY
-            
-            const cp1x = startX + HORIZONTAL_EXIT
-            const cp1y = startY + Math.abs(deltaY) * 0.5
-            const cp2x = endX - HORIZONTAL_EXIT
-            const cp2y = endY
-
-            d = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
-          } else {
-            const startX = fromPos.right + OFFSET
-            const startY = fromPos.centerY
-            const endX = toPos.left - OFFSET
-            const endY = toPos.centerY
-            
-            const curveStrength = 40
-            const cp1x = startX + curveStrength
-            const cp1y = startY + deltaY * 0.3
-            const cp2x = endX - curveStrength
-            const cp2y = endY - deltaY * 0.3
-
-            d = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
-          }
+          const d = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
 
           newPaths.push({
             id: `${pilot.id}-${index}`,
             d,
             color,
             pilotId: pilot.id,
-            isElimination: segment.isElimination
+            isElimination: segment.isElimination,
+            showMarker: segment.showMarker
           })
         })
       })
@@ -204,7 +163,7 @@ export function SVGPilotPaths({
     // Re-calculate on resize
     window.addEventListener('resize', calculatePaths)
     return () => window.removeEventListener('resize', calculatePaths)
-  }, [visible, isReady, heats, pilots, scale, containerRef])
+  }, [visible, isReady, heats, pilots, scale, containerRef, _translateX, _translateY])
 
   if (!visible) return null
 
@@ -217,7 +176,7 @@ export function SVGPilotPaths({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 2,
+        zIndex: 10,
         overflow: 'visible'
       }}
     >
@@ -267,15 +226,13 @@ export function SVGPilotPaths({
               ? 'pilot-path-faded'
               : ''
           }`}
-          markerEnd={path.isElimination ? "url(#pilot-x)" : "url(#pilot-arrow)"}
+          markerEnd={path.showMarker 
+            ? (path.isElimination ? "url(#pilot-x)" : "url(#pilot-arrow)") 
+            : undefined}
           style={{
             color: path.color,
-            transition: 'opacity 150ms, stroke-width 150ms',
-            pointerEvents: 'auto',
-            cursor: 'pointer'
+            transition: 'opacity 150ms, stroke-width 150ms'
           }}
-          onMouseEnter={() => handleMouseEnter(path.pilotId)}
-          onMouseLeave={handleMouseLeave}
         />
       ))}
     </svg>
