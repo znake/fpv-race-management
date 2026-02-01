@@ -6,11 +6,14 @@
  * - Podium layout with size gradients (180px → 100px)
  * - Gold/Silver/Bronze/Cyan styling
  * - Animated glow effects
+ * - Confetti celebration effect
  * - "Neues Turnier" button
  * 
  * Story 5-1: Finale & Siegerehrung
  */
 
+import { useEffect, useRef } from 'react'
+import confetti from 'canvas-confetti'
 import type { Pilot, Top4Pilots } from '../types'
 import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -140,6 +143,38 @@ function PodiumCard({
  */
 export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryCeremonyProps) {
   const isMobile = useIsMobile()
+  const hasTriggeredConfetti = useRef(false)
+  
+  useEffect(() => {
+    if (hasTriggeredConfetti.current) return
+    hasTriggeredConfetti.current = true
+    
+    const duration = 4000
+    const end = Date.now() + duration
+    
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: ['#FFD700', '#C0C0C0', '#CD7F32', '#00CED1']
+      })
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: ['#FFD700', '#C0C0C0', '#CD7F32', '#00CED1']
+      })
+      
+      if (Date.now() < end) {
+        requestAnimationFrame(frame)
+      }
+    }
+    
+    frame()
+  }, [])
   
   return (
     <section 
