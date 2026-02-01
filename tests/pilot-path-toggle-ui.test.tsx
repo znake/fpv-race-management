@@ -31,8 +31,8 @@ describe('PilotPathToggle', () => {
     render(<PilotPathToggle />)
     
     const toggle = screen.getByTestId('pilot-path-toggle')
-    expect(toggle).toHaveClass('bg-night-light')
-    expect(toggle.querySelector('span')).toHaveClass('translate-x-0.5')
+    expect(toggle).toHaveClass('pilot-path-toggle-button')
+    expect(toggle).toHaveAttribute('data-active', 'false')
   })
 
   it('reflects showPilotPaths state (on)', () => {
@@ -43,8 +43,8 @@ describe('PilotPathToggle', () => {
     render(<PilotPathToggle />)
     
     const toggle = screen.getByTestId('pilot-path-toggle')
-    expect(toggle).toHaveClass('bg-neon-cyan/50')
-    expect(toggle.querySelector('span')).toHaveClass('translate-x-5')
+    expect(toggle).toHaveClass('pilot-path-toggle-button')
+    expect(toggle).toHaveAttribute('data-active', 'true')
   })
 
   it('calls togglePilotPaths when clicked', () => {
@@ -55,9 +55,9 @@ describe('PilotPathToggle', () => {
     expect(mockTogglePilotPaths).toHaveBeenCalledTimes(1)
   })
 
-  it('has correct positioning classes', () => {
+  it('has correct CSS class for positioning', () => {
     const { container } = render(<PilotPathToggle />)
     const wrapper = container.firstChild
-    expect(wrapper).toHaveClass('fixed', 'bottom-20', 'right-4')
+    expect(wrapper).toHaveClass('pilot-path-toggle')
   })
 })

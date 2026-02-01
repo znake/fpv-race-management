@@ -1342,6 +1342,70 @@
     color: var(--steel);
     margin-left: 5px;
   }
+
+  /* Pilot Path Toggle - matches ZoomIndicator styling */
+  .pilot-path-toggle {
+    position: fixed;
+    bottom: 60px;
+    left: 20px;
+    background: var(--night);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    color: var(--neon-cyan);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
+  }
+
+  /* Hide pilot path toggle on mobile devices */
+  @media (max-width: 768px) {
+    .pilot-path-toggle {
+      display: none;
+    }
+  }
+
+  .pilot-path-toggle-label {
+    color: var(--neon-cyan);
+    font-weight: 600;
+  }
+
+  .pilot-path-toggle-button {
+    width: 40px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--night-light);
+    border: 1px solid var(--neon-cyan);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+
+  .pilot-path-toggle-button[data-active="true"] {
+    background: rgba(5, 217, 232, 0.3);
+  }
+
+  .pilot-path-toggle-button:hover {
+    background: rgba(5, 217, 232, 0.2);
+  }
+
+  .pilot-path-toggle-knob {
+    width: 16px;
+    height: 16px;
+    background: var(--neon-cyan);
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    transition: transform 0.2s ease;
+  }
+
+  .pilot-path-toggle-button[data-active="true"] .pilot-path-toggle-knob {
+    transform: translateX(18px);
+  }
 }
 
 /* Reduced Motion Preferences */
