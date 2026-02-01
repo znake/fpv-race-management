@@ -87,8 +87,8 @@ export function BracketTree({
   // Mobile gets slower, smoother animation (800ms vs 500ms) - synced with CSS
   const autoFocusDuration = isMobile ? 800 : 500
   
-  // Get store action for finding next active heat
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
+  const getNextHeat = useTournamentStore(state => state.getNextHeat)
 
   // Refs for SVG connector lines - maps heat IDs to their DOM elements
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
@@ -459,6 +459,7 @@ export function BracketTree({
         <PlacementEntryModal
           heat={placementHeat}
           pilots={pilots}
+          nextHeat={getNextHeat()}
           isOpen={!!placementHeat}
           onClose={() => setPlacementHeat(null)}
           onSubmitResults={(heatId, rankings) => {

@@ -15,6 +15,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 type PlacementEntryModalProps = {
   heat: Heat
   pilots: Pilot[]
+  nextHeat?: Heat
   isOpen: boolean
   onClose: () => void
   onSubmitResults: (
@@ -36,6 +37,7 @@ type PlacementEntryModalProps = {
 export function PlacementEntryModal({
   heat,
   pilots,
+  nextHeat,
   isOpen,
   onClose,
   onSubmitResults
@@ -66,6 +68,17 @@ export function PlacementEntryModal({
   const heatPilots = heat.pilotIds
     .map((id) => pilots.find((p) => p.id === id))
     .filter(Boolean) as Pilot[]
+
+  const nextHeatPilots = nextHeat?.pilotIds?.length
+    ? nextHeat.pilotIds
+        .map((id, index) => ({
+          pilot: pilots.find((p) => p.id === id),
+          channel: getChannelForPosition(index, nextHeat.pilotIds.length)
+        }))
+        .filter((entry): entry is { pilot: Pilot; channel: ReturnType<typeof getChannelForPosition> } => 
+          entry.pilot !== undefined
+        )
+    : []
 
   // Min rankings required: Math.min(2, pilotCount)
   const minRankingsRequired = Math.min(2, heatPilots.length)
@@ -284,10 +297,7 @@ export function PlacementEntryModal({
         const newBuffer = timeDigitBufferRef.current.slice(0, -1)
         timeDigitBufferRef.current = newBuffer
         setDisplayedTimeDigits(newBuffer)
-
-        if (!newBuffer) {
-          lastClickedPilotIdRef.current = null
-        }
+        setValidationError(null)
 
         return
       }
@@ -386,8 +396,8 @@ export function PlacementEntryModal({
         <h2 className={`font-display text-chrome tracking-wider ${isMobile ? 'text-2xl mb-1' : 'text-5xl mb-3'}`}>
           {getHeatName()}
         </h2>
-        <p className={`font-ui text-steel ${isMobile ? 'text-sm' : 'text-2xl'}`}>
-          Klicke auf die Piloten um Platzierungen zu vergeben
+        <p className={`font-ui text-steel/60 ${isMobile ? 'text-xs' : 'text-base'}`}>
+          Pilot anklicken für Platzierung, danach 3 Ziffern für Zeit eingeben
         </p>
       </div>
 
@@ -503,11 +513,25 @@ export function PlacementEntryModal({
         </p>
       </div>
 
-      {!isMobile && (
-        <div className="mt-8 text-center">
-          <p className="font-ui text-lg text-steel/60">
-            1-4 = Direkter Rang | Enter = Zeit bestätigen | Escape = Reset
+
+
+      {nextHeatPilots.length > 0 && (
+        <div className={`${isMobile ? 'mt-4' : 'mt-6'} text-center border-t border-steel/20 pt-4`}>
+          <p className={`font-ui text-chrome ${isMobile ? 'text-sm mb-2' : 'text-xl mb-3'}`}>
+            Nächster Heat – bitte bereit machen:
           </p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            {nextHeatPilots.map(({ pilot, channel }) => (
+              <div key={pilot.id} className="flex items-center gap-2">
+                <span className="channel-badge bg-zinc-700 text-xs px-1.5 py-0.5 rounded font-mono text-steel">
+                  {formatChannel(channel)}
+                </span>
+                <span className={`font-display text-chrome ${isMobile ? 'text-lg' : 'text-3xl'}`}>
+                  {pilot.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
