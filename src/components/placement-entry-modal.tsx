@@ -422,17 +422,18 @@ export function PlacementEntryModal({
               onClick={() => toggleRank(pilot.id)}
 
               className={`
-                relative bg-night text-center cursor-pointer
-                border-2 rounded-xl
-                transition-all duration-200 ease-out
-                focus:outline-none focus:ring-2 focus:ring-neon-cyan/50
-                hover:-translate-y-0.5
-                ${isMobile ? 'p-3' : 'p-6'}
-                ${hasRank 
-                  ? getRankBorderClasses(rank!)
-                  : 'border-steel hover:border-neon-cyan'
-                }
-              `}
+                                relative bg-night text-center cursor-pointer
+                                border-2 rounded-xl select-none
+                                transition-all duration-200 ease-out
+                                focus:outline-none focus:ring-2 focus:ring-neon-cyan/50
+                                hover:-translate-y-0.5
+                                ${isMobile ? 'p-3' : 'p-6'}
+                                ${hasRank 
+                                  ? getRankBorderClasses(rank!)
+                                  : 'border-steel hover:border-neon-cyan'
+                                }
+                              `}
+                              style={{ touchAction: 'manipulation' }}
             >
               {/* Rank Badge */}
               {hasRank && (
@@ -450,15 +451,16 @@ export function PlacementEntryModal({
               {/* Pilot Photo - responsive size */}
               <div className={`relative mx-auto ${isMobile ? 'mb-3' : 'mb-6'} ${avatarSize}`}>
                 <div className={`${avatarSize} rounded-full overflow-hidden bg-gradient-to-br from-neon-pink to-neon-magenta`}>
-                  <img
-                    src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
-                    alt={pilot.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
-                    }}
-                  />
+              <img
+                                    src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
+                                    alt={pilot.name}
+                                    className="w-full h-full object-cover pointer-events-none"
+                                    loading="lazy"
+                                    draggable={false}
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                                    }}
+                                  />
                 </div>
               </div>
 
