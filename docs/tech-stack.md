@@ -1,7 +1,8 @@
 # Technologie-Stack
 
-**Generiert:** 2026-01-19
+**Generiert:** 2026-02-02
 **Projekt:** FPV Racing Heats Manager
+**Scan-Level:** Exhaustive
 
 ---
 
@@ -13,6 +14,8 @@
 | **Framework** | React | 18.3.1 |
 | **Sprache** | TypeScript | 5.5.4 |
 | **Build-Tool** | Vite | 5.4.8 |
+| **State** | Zustand | 4.5.5 |
+| **Styling** | Tailwind CSS | 3.4.14 |
 | **Testing** | Vitest | 2.1.4 |
 
 ---
@@ -67,6 +70,7 @@
 | Paket | Version | Zweck |
 |-------|---------|-------|
 | `papaparse` | 5.5.3 | CSV-Parsing |
+| `canvas-confetti` | 1.9.4 | ✨ NEU: Siegerehrung-Konfetti-Animation |
 
 ---
 

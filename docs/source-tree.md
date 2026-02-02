@@ -1,8 +1,9 @@
 # Source Tree Analyse
 
-**Generiert:** 2026-01-22
+**Generiert:** 2026-02-02
 **Projekt:** FPV Racing Heats Manager
 **Scan-Level:** Exhaustive
+**Quelldateien:** 64
 
 ---
 
@@ -10,13 +11,16 @@
 
 ```
 heats/
-├── src/                          # Hauptquellcode
-│   ├── components/               # React-Komponenten
+├── src/                          # Hauptquellcode (64 Dateien)
+│   ├── components/               # React-Komponenten (~30)
 │   │   ├── bracket/              # Tournament-Bracket-Visualisierung
 │   │   │   ├── BracketTree.tsx           # Haupt-Bracket-Komponente
 │   │   │   ├── SVGConnectorLines.tsx     # SVG-Verbindungslinien
+│   │   │   ├── SVGPilotPaths.tsx         # ✨ NEU: Piloten-Pfad-Visualisierung (Bezier-Kurven)
+│   │   │   ├── PilotPathToggle.tsx       # ✨ NEU: Toggle für Piloten-Pfade (Taste P)
 │   │   │   ├── ZoomIndicator.tsx         # Zoom-Controls
 │   │   │   ├── PoolDisplay.tsx           # Pool-Anzeige (WB/LB)
+│   │   │   ├── types.ts                  # Bracket-spezifische Types
 │   │   │   ├── heat-boxes/               # Heat-Box-Komponenten
 │   │   │   │   ├── BracketHeatBox.tsx        # Basis Heat-Box
 │   │   │   │   ├── FilledBracketHeatBox.tsx  # Gefüllter Heat
@@ -56,22 +60,26 @@ heats/
 │   ├── stores/                   # Zustand State Management
 │   │   └── tournamentStore.ts    # Haupt-Store (~1800 Zeilen)
 │   │
-│   ├── lib/                      # Utility-Funktionen & Business-Logik
-│   │   ├── bracket-logic.ts      # Double-Elimination Logik
-│   │   ├── bracket-constants.ts  # Bracket-Konstanten
+│   ├── lib/                      # Utility-Funktionen & Business-Logik (13 Module)
+│   │   ├── bracket-logic.ts      # Double-Elimination Logik & Pool-Helper
+│   │   ├── bracket-constants.ts  # Bracket-Konstanten (HEAT_ID_PREFIXES, POOL_THRESHOLDS)
 │   │   ├── bracket-layout-calculator.ts  # Layout-Berechnung
-│   │   ├── heat-completion.ts    # Heat-Completion Helper
-│   │   ├── heat-distribution.ts  # Heat-Aufteilung (3er/4er)
+│   │   ├── heat-completion.ts    # Heat-Completion & Next-Heat-Generierung (~900 LOC)
+│   │   ├── heat-distribution.ts  # Heat-Aufteilung (3er/4er Optimierung)
+│   │   ├── channel-assignment.ts # ✨ NEU: Intelligente Raceband-Kanal-Zuweisung (R1,R3,R4,R6,R8)
+│   │   ├── pilot-path-manager.ts # ✨ NEU: Piloten-Pfad-Berechnung für SVG
 │   │   ├── export-import.ts      # JSON/CSV Export & Import
-│   │   ├── csv-parser.ts         # CSV-Parsing
+│   │   ├── csv-parser.ts         # CSV-Parsing mit PapaParse
 │   │   ├── svg-connector-manager.ts  # SVG-Linien Management
 │   │   ├── ui-helpers.ts         # UI-Hilfsfunktionen
-│   │   ├── schemas.ts            # Zod Validierungsschemas
-│   │   └── utils.ts              # Allgemeine Utilities
+│   │   ├── schemas.ts            # Zod Validierungsschemas (Pilot, Ranking, CSV)
+│   │   ├── demo-data.ts          # Demo-Daten für Tests
+│   │   └── utils.ts              # Allgemeine Utilities (shuffleArray)
 │   │
-│   ├── hooks/                    # Custom React Hooks
+│   ├── hooks/                    # Custom React Hooks (3)
 │   │   ├── usePilots.ts          # Piloten-Management
-│   │   └── useZoomPan.ts         # Zoom & Pan
+│   │   ├── useZoomPan.ts         # Zoom & Pan für Bracket
+│   │   └── useIsMobile.ts        # ✨ NEU: Mobile-Detection für responsive UI
 │   │
 │   ├── types/                    # TypeScript-Typdefinitionen
 │   │   ├── index.ts              # Barrel exports
@@ -153,12 +161,14 @@ heats/
 ### Business-Logik
 | Datei | Beschreibung |
 |-------|--------------|
-| `src/lib/bracket-logic.ts` | Pool-basierte WB/LB Heat-Generierung |
-| `src/lib/heat-completion.ts` | Heat-Abschluss-Logik |
-| `src/lib/heat-distribution.ts` | 3er/4er Heat-Aufteilung |
+| `src/lib/bracket-logic.ts` | Pool-basierte WB/LB Heat-Generierung, Bracket-Type-Inferenz |
+| `src/lib/heat-completion.ts` | Heat-Abschluss-Logik, `processRankingsByBracket()`, `generateNextHeats()` |
+| `src/lib/heat-distribution.ts` | 3er/4er Heat-Aufteilung (Optimierung: max 4er-Heats) |
+| `src/lib/channel-assignment.ts` | ✨ NEU: Intelligente Kanal-Zuweisung (R1,R3,R4,R6,R8), `optimizePilotOrder()` |
+| `src/lib/pilot-path-manager.ts` | ✨ NEU: Berechnet Piloten-Reise durch das Bracket für SVG-Visualisierung |
 | `src/lib/export-import.ts` | JSON/CSV Export & Import |
 | `src/lib/csv-parser.ts` | CSV-Parsing mit PapaParse |
-| `src/lib/schemas.ts` | Zod Validierung für Piloten & CSV |
+| `src/lib/schemas.ts` | Zod Validierung für Piloten, Rankings & CSV |
 
 ### UI-Komponenten (Hauptkomponenten)
 | Datei | Beschreibung |

@@ -1,8 +1,9 @@
 # FPV Racing Heats - Dokumentation
 
 **Projekt:** FPV Racing Tournament Heats Manager
-**Version:** Phase 4 (Januar 2026)
-**Scan-Datum:** 2026-01-19
+**Version:** Phase 4 (Februar 2026)
+**Scan-Datum:** 2026-02-02
+**Scan-Level:** Exhaustive
 
 ---
 
@@ -10,8 +11,8 @@
 
 | Dokument | Beschreibung |
 |----------|--------------|
+| [README](./README.md) | **Aktuellste Dokumentation** - Benutzerhandbuch |
 | [Getting Started](./getting-started.md) | Schnelleinstieg & Installation |
-| [PRD](./prd.md) | Product Requirements Document |
 | [Architektur Deep-Dive](./architecture-deep-dive.md) | Architektur-Entscheidungen & Patterns |
 
 ---
@@ -22,9 +23,10 @@
 
 | Dokument | Beschreibung | Zuletzt aktualisiert |
 |----------|--------------|---------------------|
+| [README](./README.md) | Umfassendes Benutzerhandbuch mit Screenshots | 2026-01-31 |
 | [Getting Started](./getting-started.md) | Installation, Setup, Turnier-Ablauf | 2026-01-19 |
-| [Source Tree](./source-tree.md) | Verzeichnisstruktur & Datei-Beschreibungen | 2026-01-19 |
-| [Tech Stack](./tech-stack.md) | Technologien, Dependencies, Design System | 2026-01-19 |
+| [Source Tree](./source-tree.md) | Verzeichnisstruktur & Datei-Beschreibungen | 2026-02-02 |
+| [Tech Stack](./tech-stack.md) | Technologien, Dependencies, Design System | 2026-02-02 |
 
 ### Architektur
 
@@ -79,10 +81,26 @@ Die BMAD-Workflow-Artefakte befinden sich in `_bmad-output/`:
 |--------|------|
 | **Projekt-Typ** | Web (React/TypeScript/Vite) |
 | **Repository-Typ** | Monolith |
-| **Source-Dateien** | ~40 TypeScript/TSX |
-| **Test-Dateien** | 17 |
+| **Source-Dateien** | 64 TypeScript/TSX |
+| **Components** | ~30 |
+| **Hooks** | 3 |
+| **Lib-Module** | 13 |
+| **Test-Dateien** | 17+ |
 | **Epics** | 14 |
 | **User Stories** | 90+ |
+
+---
+
+## Neue Features (seit letztem Scan)
+
+| Feature | Beschreibung |
+|---------|--------------|
+| ✨ **SVG Pilot Paths** | Bezier-Kurven zeigen Piloten-Reise durch das Bracket |
+| ✨ **Channel Optimization** | Intelligente Raceband-Kanal-Zuweisung (R1, R3, R4, R6, R8) |
+| ✨ **Pool Aggregation** | Optimierte LB-Heat-Generierung mit korrekter Piloten-Sammlung |
+| ✨ **Confetti Victory** | canvas-confetti Animation bei Siegerehrung |
+| ✨ **Lap Time Entry** | Optionale Rundenzeiten-Erfassung pro Pilot |
+| ✨ **PWA Support** | Progressive Web App für Vollbild auf Mobilgeräten |
 
 ---
 
