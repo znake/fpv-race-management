@@ -308,44 +308,6 @@ function getPilotStatus(
 }
 
 /**
- * Gets pilot's current bracket (Winner/Loser/-)
- */
-function getPilotBracket(pilot: Pilot, heats: Heat[]): string {
-  // Find pilot's most recent completed heat
-  const pilotHeats = heats
-    .filter(h => h.pilotIds.includes(pilot.id) && h.status === 'completed')
-    .sort((a, b) => b.heatNumber - a.heatNumber)
-  
-  if (pilotHeats.length === 0) return '-'
-  
-  const lastHeat = pilotHeats[0]
-  
-  if (lastHeat.bracketType === 'grand_finale' || lastHeat.bracketType === 'finale') {
-    return 'Grand Finale'
-  }
-  if (lastHeat.bracketType === 'winner') {
-    return 'Winner'
-  }
-  if (lastHeat.bracketType === 'loser') {
-    return 'Loser'
-  }
-  if (lastHeat.bracketType === 'qualification' || !lastHeat.bracketType) {
-    // Check where they went from quali
-    const laterHeat = heats.find(h => 
-      h.pilotIds.includes(pilot.id) && 
-      h.bracketType && 
-      h.bracketType !== 'qualification'
-    )
-    if (laterHeat) {
-      return laterHeat.bracketType === 'winner' ? 'Winner' : 'Loser'
-    }
-    return '-'
-  }
-  
-  return '-'
-}
-
-/**
  * Gets pilot's placement (1-4 or -)
  */
 function getPilotPlacement(
@@ -413,33 +375,6 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
   })
   
   return results.join(' | ')
-}
-
-/**
- * Gets next pending heat for a pilot
- */
-function getNextHeat(pilot: Pilot, heats: Heat[]): string {
-  const nextHeat = heats
-    .filter(h =>
-      h.pilotIds.includes(pilot.id) &&
-      (h.status === 'pending' || h.status === 'active')
-    )
-    .sort((a, b) => a.heatNumber - b.heatNumber)[0]
-  
-  if (!nextHeat) return '-'
-  
-  // Format heat name
-  if (nextHeat.bracketType === 'grand_finale' || nextHeat.bracketType === 'finale') {
-    return 'Grand Finale'
-  } else if (nextHeat.bracketType === 'winner') {
-    const round = nextHeat.roundNumber || 1
-    return nextHeat.isFinale ? 'WB-Finale' : `WB-R${round}-H${nextHeat.heatNumber}`
-  } else if (nextHeat.bracketType === 'loser') {
-    const round = nextHeat.roundNumber || 1
-    return nextHeat.isFinale ? 'LB-Finale' : `LB-R${round}-H${nextHeat.heatNumber}`
-  } else {
-    return `Quali-H${nextHeat.heatNumber}`
-  }
 }
 
 /**
@@ -636,27 +571,23 @@ export function generateCSVExport(
   const placementMap = buildPlacementMap(options.top4)
   
   // Header row
-  const header = 'Pilot,Status,Platzierung,Ranggruppe,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
-  
+  const header = 'Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse'
+
   // Data rows
   const rows = pilots.map(pilot => {
     const status = getPilotStatus(pilot, heats, isCompleted)
     const placement = getPilotPlacement(pilot, heats, placementMap)
     const placementGroup = getPlacementGroup(pilot, heats, pilots, placementMap)
-    const bracket = getPilotBracket(pilot, heats)
     const heatsFlown = getHeatsFlown(pilot, heats)
     const results = formatHeatResults(pilot, heats)
-    const nextHeat = getNextHeat(pilot, heats)
-    
+
     return [
       escapeCSVField(pilot.name),
       escapeCSVField(status),
       placement,
       placementGroup,
-      escapeCSVField(bracket),
       String(heatsFlown),
-      escapeCSVField(results),
-      escapeCSVField(nextHeat)
+      escapeCSVField(results)
     ].join(',')
   })
   
