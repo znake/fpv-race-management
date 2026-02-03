@@ -4,7 +4,7 @@
 
 Eine spezialisierte Web-App zur Durchführung von FPV-Drohnenrennen-Turnieren, entwickelt für die FPVOOE (FPV Austria/OOE) Racing Community. Optimiert für Beamer-Präsentation bei Live-Events mit Synthwave-Design und animierten visuellen Effekten.
 
-![Bracket-Visualisierung](./images/Bracket-Visualisierung.png)
+![Bracket-Visualisierung](./docs/images/Bracket-Visualisierung.png)
 
 ---
 
@@ -109,7 +109,7 @@ Unterstützte Spalten: `Name`, `Bild-URL` (oder `imageUrl`), `Instagram` (option
 - **Duplikaterkennung** - Warnung bei doppelten Namen (case-insensitive)
 - **Ausgeschieden markieren** - Piloten während des Turniers als "dropped out" markieren
 
-![Pilotenmanagement](./images/Pilotenmanagement.png)
+![Pilotenmanagement](./docs/images/Pilotenmanagement.png)
 
 ---
 
@@ -140,7 +140,7 @@ In der **Heat-Zuweisung** vor Turnierstart:
 - **Shuffle-Funktion** - Piloten zufällig neu verteilen
 - **Validierung** - Warnung bei zu vollen (>4) oder leeren Heats
 
-![Heataufteilung](./images/Heataufteilung.png)
+![Heataufteilung](./docs/images/Heataufteilung.png)
 
 ---
 
@@ -227,14 +227,14 @@ Für Turniere mit Zeitnehmung können zusätzlich **Rundenzeiten** pro Pilot erf
 
 Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind im CSV-Export enthalten.
 
-![Platzierungen eingeben](./images/Platzierungen.png)
+![Platzierungen eingeben](./docs/images/Platzierungen.png)
 
 #### Phase 4: Grand Finale
 
 - Automatisch generiert wenn WB und LB abgeschlossen sind
 - 4 Finalisten kämpfen um den Sieg
 
-![Finale](./images/Finale.png)
+![Finale](./docs/images/Finale.png)
 
 #### Phase 5: Siegerehrung
 
@@ -242,7 +242,7 @@ Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind 
 - Gold/Silber/Bronze/Cyan Styling mit Animationen
 - **"Neues Turnier"** Button zum Zurücksetzen
 
-![Siegerehrung](./images/Sigerehrung.png)
+![Siegerehrung](./docs/images/Sigerehrung.png)
 
 ---
 
@@ -284,7 +284,7 @@ Mit dem **Toggle links unten** (oder Taste `P`) lassen sich die Flugwege aller P
 - **Detail-Ansicht**: Mit der Maus über einen Piloten fahren hebt dessen Pfad hervor
 - **Eliminierung**: Pfade enden mit einem X-Marker, wenn der Pilot ausgeschieden ist
 
-![Piloten-Pfade](./images/Pfade.png)
+![Piloten-Pfade](./docs/images/Pfade.png)
 
 #### Channel-Anzeige & Optimierung
 
@@ -416,17 +416,31 @@ heats/
 
 | Dokument | Inhalt |
 |----------|--------|
-| [Getting Started](./getting-started.md) | Detaillierte Installationsanleitung |
-| [Architektur](./architecture.md) | Technische Architektur-Entscheidungen |
-| [Architecture Deep-Dive](./architecture-deep-dive.md) | Vertiefende technische Details |
-| [Tech-Stack](./tech-stack.md) | Verwendete Technologien |
-| [Source Tree](./source-tree.md) | Vollständige Verzeichnisstruktur |
-| [PRD](./prd.md) | Product Requirements Document |
-| [Store API](./store-api.md) | Zustand Store Dokumentation |
+| [Getting Started](./docs/getting-started.md) | Detaillierte Installationsanleitung |
+| [Architektur](./docs/architecture.md) | Technische Architektur-Entscheidungen |
+| [Architecture Deep-Dive](./docs/architecture-deep-dive.md) | Vertiefende technische Details |
+| [Tech-Stack](./docs/tech-stack.md) | Verwendete Technologien |
+| [Source Tree](./docs/source-tree.md) | Vollständige Verzeichnisstruktur |
+| [PRD](./docs/prd.md) | Product Requirements Document |
+| [Store API](./docs/store-api.md) | Zustand Store Dokumentation |
 
 ---
 
 ## Lizenz
+
+Dieses Projekt ist **dual lizenziert**:
+
+1. **Hobby / Non‑Commercial (kostenlos)**
+   - Lizenz: **PolyForm Noncommercial 1.0.0**
+   - Gilt für private oder gemeinnützige FPV‑Rennen ohne Startgelder und ohne Sponsoring.
+   - Lizenztext: https://polyformproject.org/licenses/noncommercial/1.0.0/
+
+2. **Kommerzielle Nutzung (lizenzpflichtig)**
+   - Erforderlich, sobald **Startgelder** erhoben werden oder **Sponsoren** beteiligt sind.
+   - Kommerzielle Lizenz ist separat zu erwerben (auf Anfrage: **jakobfliegt@gmail.com**).
+
+**Definition „kommerziell“ (für dieses Projekt):**
+Eine Nutzung gilt als kommerziell, wenn Veranstaltungen mit Startgeldern oder Sponsoring durchgeführt werden.
 
 Entwickelt für FPVOOE - FPV Austria Racing Community
 
