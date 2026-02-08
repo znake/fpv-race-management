@@ -208,7 +208,6 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 #### Platzierungseingabe
 
 - **Click-to-Rank**: Einfach Piloten in Reihenfolge anklicken
-- **Tastaturkürzel**: Ziffern 1-4 für schnelle Eingabe
 - Alle Piloten müssen eine eindeutige Platzierung haben
 - Keine doppelten Platzierungen erlaubt
 
@@ -216,7 +215,7 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 
 Für Turniere mit Zeitnehmung können zusätzlich **Rundenzeiten** pro Pilot erfasst werden:
 
-1. **Platzierung eingeben** - Pilot anklicken oder Taste 1-4 drücken
+1. **Platzierung eingeben** - Pilot anklicken
 2. **Zeit eingeben** - Nach Vergabe der Platzierung Ziffern tippen (z.B. `123` für 1:23)
 3. **Bestätigen** - Enter drücken oder nächsten Piloten platzieren
 
@@ -254,6 +253,7 @@ Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind 
 - **Pan** durch Ziehen mit der Maus
 - **Zoom-Indicator** zeigt aktuelle Zoomstufe
 - **Doppelklick** setzt Zoom zurück
+- **Fit-to-View Toggle** (`Z`) - Erstes Drücken zoomt heraus und zeigt das gesamte Bracket. Erneutes Drücken springt zur vorherigen Zoom-Position zurück. So kann man schnell zwischen Übersicht und Detail wechseln.
 
 #### Farbcodierung
 
@@ -347,7 +347,7 @@ Die App bietet Export- und Import-Funktionen im Footer-Bereich.
 | `Scroll` | Zoom im Bracket |
 | `Drag` | Pan im Bracket |
 | `Doppelklick` | Zoom zurücksetzen |
-| `1-4` | Schnelle Platzierungseingabe |
+| `Z` | Bracket-Übersicht ein-/auszoomen (Toggle) |
 | `P` | Piloten-Pfade ein-/ausblenden |
 | `Escape` | Modal schließen |
 

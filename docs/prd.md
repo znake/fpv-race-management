@@ -134,7 +134,7 @@ Da FPV Racing Heats ein Community-Tool ist, gelten Community-Ziele statt klassis
 | JSON/CSV Export | Turnier-Backup (JSON) und Ergebnisliste (CSV) exportieren |
 | JSON Import | Turnier-Stand aus Backup wiederherstellen |
 | PWA | Als App installierbar auf iOS/Android mit Vollbildmodus |
-| Keyboard Shortcuts | Schnelle Eingabe (1-4, P, Escape) |
+| Keyboard Shortcuts | Schnelle Eingabe (P, Escape) |
 | Rundenzeiten | Optionale Zeiterfassung pro Pilot nach Heat |
 
 ### Growth Features (Post-MVP)
@@ -166,7 +166,7 @@ Diesmal hat er FPV Racing Heats als PWA auf seinem iPad installiert – läuft i
 
 Ein Klick auf "Turnier starten", die App schlägt die Heat-Aufteilung vor: 4-4-4-4-4-3. Thomas sieht, dass Lisa und Max in denselben Heat fallen – er verschiebt Lisa per Drag & Drop in einen anderen Heat. Dann klickt er "Shuffle" für eine zufällige Verteilung. Die Channel-Optimierung sorgt dafür, dass Piloten wo möglich auf ihrem bevorzugten Kanal bleiben.
 
-Der erste Heat läuft. Nach dem Rennen drückt Thomas schnell die Tasten 1 und 2 für die ersten beiden Plätze – viel schneller als Klicken. Er gibt noch die Rundenzeiten ein (123 für 1:23). Das Bracket aktualisiert sich sofort. Er zoomt etwas heraus um den Überblick zu behalten.
+Der erste Heat läuft. Nach dem Rennen klickt Thomas die Piloten in der Reihenfolge ihrer Platzierung an und gibt die Rundenzeiten ein (123 für 1:23). Das Bracket aktualisiert sich sofort. Er zoomt etwas heraus um den Überblick zu behalten.
 
 Nach drei Heats merkt er: Kein einziger Pilot hat gefragt wann er dran ist. Er exportiert kurz ein JSON-Backup – sicher ist sicher. Am Ende des Tages exportiert er die Ergebnisse als CSV für die Vereins-Homepage. "Das war der entspannteste Turniertag seit Jahren."
 
@@ -215,7 +215,7 @@ Diese Journeys zeigen, welche Capabilities die App braucht:
 | **Drag & Drop Heat-Zuweisung** | Thomas | Manuelle Anpassung möglich |
 | **Shuffle-Funktion** | Thomas | Zufällige faire Verteilung |
 | **Channel-Optimierung** | Thomas & Lisa | Weniger Kanalwechsel, schnellere Vorbereitung |
-| **Keyboard Shortcuts (1-4)** | Thomas | Schnellere Ergebniseingabe |
+| **Keyboard Shortcuts** | Thomas | Schnellere Ergebniseingabe |
 | **Rundenzeiten** | Thomas & Lisa | Zeitmessung für Ranglisten |
 | **Zoom/Pan im Bracket** | Thomas & Lisa | Navigation in komplexen Turnieren |
 | **Piloten-Pfade** | Lisa & Familie Huber | Nachvollziehbare Turnier-Historie |
@@ -313,7 +313,6 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 
 | Kürzel | Aktion |
 |--------|--------|
-| `1-4` | Schnelle Platzierungseingabe |
 | `P` | Piloten-Pfade ein-/ausblenden |
 | `Escape` | Modal schließen |
 | `Scroll` | Zoom im Bracket |
@@ -493,9 +492,8 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 
 ### Keyboard Shortcuts
 
-- **FR35i:** Benutzer kann Platzierungen mit Tasten 1-4 eingeben
-- **FR35j:** Benutzer kann Piloten-Pfade mit Taste P ein-/ausblenden
-- **FR35k:** Benutzer kann Modals mit Escape schließen
+- **FR35i:** Benutzer kann Piloten-Pfade mit Taste P ein-/ausblenden
+- **FR35j:** Benutzer kann Modals mit Escape schließen
 
 ### Branding
 
