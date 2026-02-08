@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import type { Heat } from '../../types'
-import { ConnectorManager } from '../../lib/svg-connector-manager'
+import type { Heat } from '@/types'
+import { groupHeatsByRound } from '@/lib/bracket-utils'
+import { ConnectorManager } from '@/lib/svg-connector-manager'
 
 // Legacy Exports für Tests
 export interface ConnectorLine {
@@ -168,15 +169,9 @@ export function SVGConnectorLines({
     const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
     const lbFinale = findLBFinale(heats)
 
-    const heatsByRound = new Map<number, Heat[]>()
-    wbHeats.forEach(heat => {
-      const round = heat.roundNumber ?? 1
-      const heatsInRound = heatsByRound.get(round) || []
-      heatsInRound.push(heat)
-      heatsByRound.set(round, heatsInRound)
-    })
-    
-    const rounds = Array.from(heatsByRound.keys()).sort((a, b) => a - b)
+    const roundEntries = groupHeatsByRound(wbHeats)
+    const heatsByRound = new Map(roundEntries)
+    const rounds = roundEntries.map(([round]) => round)
     
     for (let i = 0; i < rounds.length; i++) {
       const currentRound = rounds[i]
