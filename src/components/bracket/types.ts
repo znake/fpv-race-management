@@ -70,4 +70,5 @@ export interface ZoomIndicatorProps {
   scale: number
   onZoomIn: () => void
   onZoomOut: () => void
+  onFitToView?: () => void
 }

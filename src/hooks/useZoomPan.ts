@@ -63,6 +63,14 @@ export interface CenterOnElementOptions {
 }
 
 /**
+ * Options for fitToView function
+ */
+export interface FitToViewOptions {
+  padding?: number   // Default: 40px padding around content
+  duration?: number  // Default: 500ms
+}
+
+/**
  * UseZoomPan Return Interface
  */
 export interface UseZoomPanReturn {
@@ -72,10 +80,12 @@ export interface UseZoomPanReturn {
   isPanning: boolean
   isDragging: boolean
   isAnimating: boolean
+  isTransforming: boolean
   zoomIn: () => void
   zoomOut: () => void
   reset: () => void
   centerOnElement: (element: HTMLElement, options?: CenterOnElementOptions) => void
+  fitToView: (options?: FitToViewOptions) => void
 }
 
 /**
@@ -138,6 +148,18 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   const [isDragging, setIsDragging] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isTouchPanning, setIsTouchPanning] = useState(false)
+  const [isTransforming, setIsTransforming] = useState(false)
+  const transformDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const markTransforming = useCallback(() => {
+    setIsTransforming(true)
+    if (transformDebounceRef.current) {
+      clearTimeout(transformDebounceRef.current)
+    }
+    transformDebounceRef.current = setTimeout(() => {
+      setIsTransforming(false)
+    }, 200)
+  }, [])
 
   const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -165,6 +187,8 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
+    markTransforming()
+
     const wrapperRect = wrapper.getBoundingClientRect()
     const mouseX = clientX - wrapperRect.left + wrapper.scrollLeft
     const mouseY = clientY - wrapperRect.top + wrapper.scrollTop
@@ -184,7 +208,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     })
 
     onScaleChange?.(newScale)
-  }, [state, minScale, maxScale, onScaleChange, clampTranslation])
+  }, [state, minScale, maxScale, onScaleChange, clampTranslation, markTransforming])
 
   /**
    * AC2: Wheel Handler (Ctrl/Cmd + Scroll for Zoom, normal scroll for Pan)
@@ -207,6 +231,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       } else {
         // Normal two-finger scroll on trackpad → Pan
         e.preventDefault()
+        markTransforming()
         const newTranslateX = state.translateX - e.deltaX
         const newTranslateY = state.translateY - e.deltaY
         const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
@@ -220,7 +245,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
     wrapper.addEventListener('wheel', handleWheel, { passive: false })
     return () => wrapper.removeEventListener('wheel', handleWheel)
-  }, [state.scale, state.translateX, state.translateY, step, zoomAtPoint, clampTranslation])
+  }, [state.scale, state.translateX, state.translateY, step, zoomAtPoint, clampTranslation, markTransforming])
   
   /**
    * AC8: Touch Event Handlers (Pinch-to-Zoom, One/Two-Finger Pan)
@@ -290,6 +315,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
           e.preventDefault()
           touchStartRef.current.hasMoved = true
           setIsTouchPanning(true)
+          markTransforming()
           
           const newTranslateX = touchStartRef.current!.translateX + dx
           const newTranslateY = touchStartRef.current!.translateY + dy
@@ -305,6 +331,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       } else if (e.touches.length === 2) {
         // Two-finger pinch zoom + pan
         e.preventDefault()
+        markTransforming()
         const touch1 = e.touches[0]
         const touch2 = e.touches[1]
         const newDistance = getTouchDistance(touch1, touch2)
@@ -444,6 +471,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
     const handlePointerMove = (e: PointerEvent) => {
       if (isDragging && e.pointerId === dragStartRef.current.pointerId) {
+        markTransforming()
         const dx = e.clientX - dragStartRef.current.x
         const dy = e.clientY - dragStartRef.current.y
         const newTranslateX = dragStartRef.current.translateX + dx
@@ -554,12 +582,15 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     
     const clamped = clampTranslation(newTranslateX, newTranslateY, clampedScale, wrapper, container)
 
-    // flushSync ensures .animating class is applied BEFORE transform values change
+    if (transformDebounceRef.current) {
+      clearTimeout(transformDebounceRef.current)
+    }
+
     flushSync(() => {
       setIsAnimating(true)
+      setIsTransforming(true)
     })
 
-    // Wait for browser to apply .animating class and activate CSS transition
     requestAnimationFrame(() => {
       setState({
         scale: clampedScale,
@@ -571,15 +602,73 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       
       animationTimeoutRef.current = setTimeout(() => {
         setIsAnimating(false)
+        setIsTransforming(false)
       }, duration)
     })
   }, [state.scale, minScale, maxScale, onScaleChange, clampTranslation])
 
-  // Cleanup animation timeout on unmount
+  const fitToView = useCallback((options: FitToViewOptions = {}) => {
+    const { padding = 40, duration = 500 } = options
+
+    const wrapper = wrapperRef.current
+    const container = containerRef.current
+    if (!wrapper || !container) return
+
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const contentWidth = container.scrollWidth
+    const contentHeight = container.scrollHeight
+
+    if (contentWidth === 0 || contentHeight === 0) return
+
+    const availableWidth = wrapperRect.width - padding * 2
+    const availableHeight = wrapperRect.height - padding * 2
+
+    const scaleX = availableWidth / contentWidth
+    const scaleY = availableHeight / contentHeight
+    const targetScale = Math.max(minScale, Math.min(maxScale, Math.min(scaleX, scaleY)))
+
+    const scaledWidth = contentWidth * targetScale
+    const scaledHeight = contentHeight * targetScale
+    const newTranslateX = (wrapperRect.width - scaledWidth) / 2
+    const newTranslateY = (wrapperRect.height - scaledHeight) / 2
+
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current)
+    }
+    if (transformDebounceRef.current) {
+      clearTimeout(transformDebounceRef.current)
+    }
+
+    const finalState = {
+      scale: targetScale,
+      translateX: newTranslateX,
+      translateY: newTranslateY
+    }
+
+    flushSync(() => {
+      setIsAnimating(true)
+      setIsTransforming(true)
+    })
+
+    requestAnimationFrame(() => {
+      setState(finalState)
+
+      onScaleChange?.(targetScale)
+
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+        setIsTransforming(false)
+      }, duration)
+    })
+  }, [minScale, maxScale, onScaleChange])
+
   useEffect(() => {
     return () => {
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current)
+      }
+      if (transformDebounceRef.current) {
+        clearTimeout(transformDebounceRef.current)
       }
     }
   }, [])
@@ -601,9 +690,11 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     isPanning,
     isDragging,
     isAnimating,
+    isTransforming,
     zoomIn,
     zoomOut,
     reset,
-    centerOnElement
+    centerOnElement,
+    fitToView
   }
 }

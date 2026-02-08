@@ -76,7 +76,9 @@ export function BracketTree({
     zoomIn,
     zoomOut,
     reset,
-    centerOnElement
+    centerOnElement,
+    fitToView,
+    isTransforming
   } = useZoomPan()
   
   // Mobile detection for reduced zoom on auto-center
@@ -174,7 +176,6 @@ export function BracketTree({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== 'p') return
       if (selectedHeat || placementHeat) return
       
       const activeElement = document.activeElement
@@ -183,12 +184,17 @@ export function BracketTree({
         activeElement?.getAttribute('contenteditable') === 'true'
       if (isInputFocused) return
       
-      togglePilotPaths()
+      const key = e.key.toLowerCase()
+      if (key === 'p') {
+        togglePilotPaths()
+      } else if (key === 'z') {
+        fitToView()
+      }
     }
     
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedHeat, placementHeat, togglePilotPaths])
+  }, [selectedHeat, placementHeat, togglePilotPaths, fitToView])
 
   const handleHeatClick = (heatId: string) => {
     const heat = heats.find(h => h.id === heatId)
@@ -335,7 +341,7 @@ export function BracketTree({
           scale={zoomState.scale}
           translateX={zoomState.translateX}
           translateY={zoomState.translateY}
-          visible={showPilotPaths && !disableConnectors}
+          visible={showPilotPaths && !disableConnectors && !isTransforming}
           hoveredPilotId={hoveredPilotId}
           onPilotHover={setHoveredPilotId}
         />
@@ -418,6 +424,7 @@ export function BracketTree({
         scale={zoomState.scale}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
+        onFitToView={fitToView}
       />
 
       <PilotPathToggle />
