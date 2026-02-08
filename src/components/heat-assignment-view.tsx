@@ -35,9 +35,11 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
   // Validation: check for invalid heats
   const hasOverfilledHeats = heats.some(h => h.pilotIds.length > 4)
   const hasEmptyHeats = heats.some(h => h.pilotIds.length === 0)
-  const hasInvalidHeats = hasOverfilledHeats || hasEmptyHeats
+  const hasUndersizedHeats = heats.some(h => h.pilotIds.length > 0 && h.pilotIds.length < 3)
+  const hasInvalidHeats = hasOverfilledHeats || hasEmptyHeats || hasUndersizedHeats
   const overfilledHeatNumbers = heats.filter(h => h.pilotIds.length > 4).map(h => h.heatNumber)
   const emptyHeatNumbers = heats.filter(h => h.pilotIds.length === 0).map(h => h.heatNumber)
+  const undersizedHeatNumbers = heats.filter(h => h.pilotIds.length > 0 && h.pilotIds.length < 3).map(h => h.heatNumber)
 
   // DnD handler
   const handleDragEnd = (event: DragEndEvent) => {
@@ -118,6 +120,13 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
           <p className="font-ui text-lg font-semibold">
             Heat {emptyHeatNumbers.join(', ')} hat keine Piloten. 
             Bitte Piloten hinzufügen oder neu mischen.
+          </p>
+        </div>
+      )}
+      {hasUndersizedHeats && (
+        <div className="mb-6 p-4 rounded-xl border-2 bg-gold/10 border-gold text-gold">
+          <p className="font-ui text-lg font-semibold">
+            Heat {undersizedHeatNumbers.join(', ')} hat weniger als 3 Piloten. Mindestens 3 Piloten pro Heat erforderlich.
           </p>
         </div>
       )}

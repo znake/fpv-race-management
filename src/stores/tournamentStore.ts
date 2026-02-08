@@ -565,15 +565,18 @@ export const useTournamentStore = create<TournamentState>()(
         const rankedPilotIds = new Set(rankings.map(r => r.pilotId))
         const unrankedPilots = heat.pilotIds.filter(id => !rankedPilotIds.has(id))
         
-        if (unrankedPilots.length > 0) {
-          // Find the next available rank (after the highest assigned rank)
-          const usedRanks = new Set(rankings.map(r => r.rank))
-          const availableRanks = ([3, 4] as const).filter(r => !usedRanks.has(r))
-          
-          // Assign unranked pilots to bottom ranks
-          unrankedPilots.forEach((pilotId, index) => {
-            if (index < availableRanks.length) {
-              completeRankings.push({ pilotId, rank: availableRanks[index] })
+         if (unrankedPilots.length > 0) {
+           // Find the next available rank (after the highest assigned rank)
+           const usedRanks = new Set(rankings.map(r => r.rank))
+           // Ränge dynamisch je nach Heat-Größe (3er/4er) berechnen (statt fix [3,4])
+           const maxRank = heat.pilotIds.length as 2 | 3 | 4
+           const allRanks = Array.from({ length: maxRank }, (_, i) => (i + 1) as 1 | 2 | 3 | 4)
+           const availableRanks = allRanks.filter(r => !usedRanks.has(r))
+           
+           // Assign unranked pilots to bottom ranks
+           unrankedPilots.forEach((pilotId, index) => {
+             if (index < availableRanks.length) {
+               completeRankings.push({ pilotId, rank: availableRanks[index] })
             }
           })
           
@@ -1177,24 +1180,13 @@ export const useTournamentStore = create<TournamentState>()(
           heatNumber++
         }
 
-        // Restliche Piloten in 2er-Heats (wenn >= 2)
-        if (cursor + 2 <= pilots.length) {
-          const chunk = pilots.slice(cursor, cursor + 2)
-          lbHeats.push({
-            id: crypto.randomUUID(),
-            heatNumber,
-            pilotIds: chunk,
-            status: 'pending',
-            bracketType: 'loser',
-            roundNumber
-          })
-          cursor += 2
-          heatNumber++
-        }
-
         // Heats zum Store hinzufügen
         if (lbHeats.length > 0) {
-          set({ heats: [...heats, ...lbHeats] })
+          const assignedPilotIds = new Set(lbHeats.flatMap(h => h.pilotIds))
+          // Wichtig: Wenn nach 4er-/3er-Heats 1-2 Piloten übrig bleiben, bleiben sie im loserPool (keine 2er-Heats)
+          const updatedLoserPool = loserPool.filter(pilotId => !assignedPilotIds.has(pilotId))
+
+          set({ heats: [...heats, ...lbHeats], loserPool: updatedLoserPool })
         }
 
         return lbHeats
