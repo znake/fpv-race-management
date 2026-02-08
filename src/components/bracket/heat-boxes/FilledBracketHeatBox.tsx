@@ -119,7 +119,7 @@ export function FilledBracketHeatBox({
           
           return (
             <div key={pilot.id} className="pilot-row-wrapper">
-              <span className="channel-badge-outer">
+              <span id={`channel-badge-${pilot.id}-${bracketHeat.id}`} className="channel-badge-outer">
                 {formatChannel(channel)}
               </span>
               <div className={cn('pilot-row', rowClass, 'flex-1')}>

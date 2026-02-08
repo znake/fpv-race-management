@@ -100,6 +100,21 @@ export function SVGPilotPaths({
         }
       }
 
+      const getChannelBadgePosition = (pilotId: string, heatId: string): Position | null => {
+        const badgeElement = document.getElementById(`channel-badge-${pilotId}-${heatId}`)
+        if (!badgeElement) return null
+
+        const rect = badgeElement.getBoundingClientRect()
+        return {
+          centerX: (rect.left - containerRect.left + rect.width / 2) / scale,
+          centerY: (rect.top - containerRect.top + rect.height / 2) / scale,
+          top: (rect.top - containerRect.top) / scale,
+          bottom: (rect.bottom - containerRect.top) / scale,
+          left: (rect.left - containerRect.left) / scale,
+          right: (rect.right - containerRect.left) / scale
+        }
+      }
+
       const getPosition = (elementId: string): Position | null => {
         const element = document.getElementById(elementId)
         if (!element) return null
@@ -125,7 +140,9 @@ export function SVGPilotPaths({
           const fromPos = getRankBadgePosition(segment.pilotId, segment.fromHeatId) 
             ?? getPilotAvatarPosition(segment.pilotId, segment.fromHeatId) 
             ?? getPosition(segment.fromHeatId)
-          const toPos = getPilotAvatarPosition(segment.pilotId, segment.toHeatId) ?? getPosition(segment.toHeatId)
+          const toPos = getChannelBadgePosition(segment.pilotId, segment.toHeatId)
+            ?? getPilotAvatarPosition(segment.pilotId, segment.toHeatId) 
+            ?? getPosition(segment.toHeatId)
 
           if (!fromPos || !toPos) return
 
@@ -216,7 +233,7 @@ export function SVGPilotPaths({
           strokeWidth={hoveredPilotId === path.pilotId ? 2.5 : 1.5}
           fill="none"
           opacity={
-            hoveredPilotId === null ? 0.6 : hoveredPilotId === path.pilotId ? 1 : 0.15
+            hoveredPilotId === null ? 0.4 : hoveredPilotId === path.pilotId ? 1 : 0.15
           }
           data-pilot-id={path.pilotId}
           className={`pilot-path ${

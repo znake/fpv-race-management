@@ -135,7 +135,7 @@ export function BracketHeatBox({
               onMouseEnter={() => onPilotHover?.(pilot.id)}
               onMouseLeave={() => onPilotHover?.(null)}
             >
-              <span className="channel-badge-outer">
+              <span id={`channel-badge-${pilot.id}-${heat.id}`} className="channel-badge-outer">
                 {formatChannel(channel)}
               </span>
               <div className={cn('pilot-row', rowClass, 'flex-1')}>
