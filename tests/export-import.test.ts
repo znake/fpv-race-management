@@ -137,7 +137,7 @@ describe('export-import utilities', () => {
 
     const csv = generateCSVExport(state)
     const [header, row] = csv.split('\n')
-    expect(header).toBe('Pilot,Status,Platzierung,Ranggruppe,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat')
+    expect(header).toBe('Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse')
     expect(row).toContain('WB-R1-H1: 1.')
   })
 

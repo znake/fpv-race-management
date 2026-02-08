@@ -101,6 +101,7 @@ export interface ParsedImportData {
   pilotCount: number
   heatCount: number
   phase: string
+  version: number
 }
 
 function isValidTournamentPhase(value: unknown): value is TournamentPhase {
@@ -163,7 +164,9 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
     
     // Zustand persist format: { state: {...}, version: number }
     const state = parsed.state || parsed
-    
+
+    const version: number = typeof parsed.version === 'number' ? parsed.version : 0
+     
     // Validate required fields
     if (!state.pilots || !Array.isArray(state.pilots)) {
       throw new Error('Ungültige Struktur: pilots Array fehlt')
@@ -196,6 +199,10 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
     if (!isValidTournamentPhase(phaseValue)) {
       throw new Error('Ungültige Struktur: tournamentPhase fehlerhaft')
     }
+
+    if (version > 0) {
+      throw new Error('Import-Version ' + version + ' wird nicht unterstützt. Bitte App aktualisieren.')
+    }
     
     // Map phase to German label
     const phaseLabels: Record<string, string> = {
@@ -210,7 +217,8 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
       rawData: jsonString,
       pilotCount,
       heatCount,
-      phase: phaseLabels[phaseValue] || phaseValue
+      phase: phaseLabels[phaseValue] || phaseValue,
+      version
     }
   } catch (error) {
     console.error('JSON Import Parse Error:', error)
@@ -545,7 +553,7 @@ function getPlacementGroup(
   /**
    * Generates CSV export from tournament state
    * 
-   * Columns: Pilot, Status, Platzierung, Ranggruppe, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
+   * Columns: Pilot, Status, Platzierung, Ranggruppe, Heats Geflogen, Ergebnisse
    */
 export interface CSVExportOptions {
   top4?: Top4Pilots | null
@@ -570,7 +578,7 @@ export function generateCSVExport(
   const placementMap = buildPlacementMap(options.top4)
   
   // Header row
-  const header = 'Pilot,Status,Platzierung,Ranggruppe,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
+  const header = 'Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse'
 
   // Data rows
   const rows = pilots.map(pilot => {
@@ -585,10 +593,8 @@ export function generateCSVExport(
       escapeCSVField(status),
       placement,
       placementGroup,
-      '-',
       String(heatsFlown),
-      escapeCSVField(results),
-      '-'
+      escapeCSVField(results)
     ].join(',')
   })
   
