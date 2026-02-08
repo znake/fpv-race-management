@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { useTournamentStore } from '../../stores/tournamentStore'
-import type { Pilot, Heat, TournamentPhase } from '../../types'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import type { Pilot, Heat, TournamentPhase } from '@/types'
 import { HeatDetailModal } from '../heat-detail-modal'
 import { PlacementEntryModal } from '../placement-entry-modal'
 import { VictoryCeremony } from '../victory-ceremony'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 // US-14.8: Zoom & Pan
-import { useZoomPan } from '../../hooks/useZoomPan'
-import { useIsMobile } from '../../hooks/useIsMobile'
+import { useZoomPan } from '@/hooks/useZoomPan'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { ZoomIndicator } from './ZoomIndicator'
 
 // US-14.10: Layout Calculator
-import { calculateBracketDimensions } from '../../lib/bracket-layout-calculator'
+import { calculateBracketDimensions } from '@/lib/bracket-layout-calculator'
 
 // Import heat box components
 import { GrandFinaleSection } from './sections/GrandFinaleSection'
@@ -21,8 +21,7 @@ import { SVGPilotPaths } from './SVGPilotPaths'
 import { PilotPathToggle } from './PilotPathToggle'
 
 import { QualiSection } from './sections/QualiSection'
-import { WinnerBracketSection } from './sections/WinnerBracketSection'
-import { LoserBracketSection } from './sections/LoserBracketSection'
+import { BracketSection } from './sections/BracketSection'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -249,19 +248,6 @@ export function BracketTree({
     return heats.filter(h => !h.bracketType || h.bracketType === 'qualification')
   }
 
-  const getWBHeats = () => {
-    // Refactored: Verwendet nur heats[] mit bracketType
-    return heats.filter(h => h.bracketType === 'winner')
-  }
-
-  const getLBHeats = () => {
-    // Get LB heats (dynamic + from rounds)
-    return heats.filter(h => 
-      (h.bracketType === 'loser' || h.id.startsWith('lb-heat-')) && 
-      !h.isFinale
-    )
-  }
-
   const getWBFinale = () => {
     return heats.find(h => h.bracketType === 'winner' && h.isFinale)
   }
@@ -279,15 +265,11 @@ export function BracketTree({
 
   // Collect data for rendering
   const qualiHeats = getQualiHeats()
-  // Note: wbHeats not used directly - WinnerBracketSection handles WB heats
-  void getWBHeats() // Keep function available for future use
-  const lbHeats = getLBHeats()
   const wbFinale = getWBFinale()
   const lbFinale = getLBFinale()
   const grandFinale = getGrandFinale()
 
   // LB heats are now handled by LoserBracketSection using fullBracketStructure.loserBracket
-  void lbHeats
 
   // Calculate dimensions using new calculator
   const { containerWidth, wbColumnWidth, lbColumnWidth } = useMemo(() => 
@@ -369,14 +351,13 @@ export function BracketTree({
         
         {/* 2. WB + LB side-by-side */}
         <div className="bracket-columns-wrapper">
-          {/* WB Column (links) */}
-          <WinnerBracketSection
+          <BracketSection
+            type="winner"
             heats={heats}
             pilots={pilots}
             onHeatClick={handleHeatClick}
-            registerHeatRef={(id, el) => {
+            registerHeatRef={(id: string, el: HTMLDivElement | null) => {
               registerHeatRef(id, el)
-              // Track WB Finale ref for GF positioning
               if (wbFinale && id === wbFinale.id) {
                 wbFinaleRef.current = el
               }
@@ -385,14 +366,13 @@ export function BracketTree({
             onPilotHover={showPilotPaths ? setHoveredPilotId : undefined}
           />
           
-          {/* LB Column (rechts) */}
-          <LoserBracketSection
+          <BracketSection
+            type="loser"
             heats={heats}
             pilots={pilots}
             onHeatClick={handleHeatClick}
-            registerHeatRef={(id, el) => {
+            registerHeatRef={(id: string, el: HTMLDivElement | null) => {
               registerHeatRef(id, el)
-              // Track LB Finale ref for GF positioning
               if (lbFinale && id === lbFinale.id) {
                 lbFinaleRef.current = el
               }
