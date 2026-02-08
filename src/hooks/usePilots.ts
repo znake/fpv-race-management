@@ -1,5 +1,5 @@
-import { useTournamentStore } from '../stores/tournamentStore'
-import { pilotSchema, type PilotInput } from '../lib/schemas'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import { pilotSchema, type PilotInput } from '@/lib/schemas'
 import { useRef } from 'react'
 
 /**
@@ -87,7 +87,6 @@ export function usePilots() {
         if (existingPilot) {
           // For CSV import, we'll overwrite existing pilots by default
           // This could be enhanced with user choice in the future
-          console.log(`Überschreibe existierenden Piloten: ${existingPilot.name}`)
         }
 
         // Add pilot to store
@@ -104,8 +103,6 @@ export function usePilots() {
       // Performance logging
       if (duration > 5000) {
         console.warn(`CSV Import dauerte ${duration.toFixed(2)}ms (> 5s NFR für ${csvPilots.length} Piloten)`)
-      } else {
-        console.log(`CSV Import abgeschlossen: ${successCount} Piloten in ${duration.toFixed(2)}ms`)
       }
 
       return {

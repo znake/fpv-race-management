@@ -11,7 +11,7 @@
  * - WinnerPool-Berechnung
  */
 
-import type { Heat } from '../types'
+import type { Heat } from '@/types'
 import { HEAT_ID_PREFIXES } from './bracket-constants'
 import { optimizePilotOrder } from './channel-assignment'
 import type { Pilot } from './schemas'
@@ -60,6 +60,7 @@ export function inferBracketType(heat: Heat): Heat['bracketType'] {
   }
 
   // Generic bracket prefixes (fallback for legacy tests)
+  // Used by tests that don't set explicit bracketType (e.g. tests/heat-completion.test.ts)
   if (id.startsWith('wb-') || id.includes('winner')) {
     return 'winner'
   }
@@ -69,6 +70,7 @@ export function inferBracketType(heat: Heat): Heat['bracketType'] {
   }
 
   // Legacy test compatibility: 'finale-1' etc. treated as grand finale
+  // Used by tests/finale-ceremony.test.tsx and others that use simple IDs
   if (id.startsWith('finale-') || id === 'finale') {
     return 'grand_finale'
   }
