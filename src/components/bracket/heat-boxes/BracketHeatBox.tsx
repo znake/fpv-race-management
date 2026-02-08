@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { cn } from '../../../lib/utils'
-import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
-import { formatChannel, getChannelForPosition } from '../../../lib/channel-assignment'
+import { cn } from '@/lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
+import { formatChannel, getChannelForPosition } from '@/lib/channel-assignment'
 import type { BracketHeatBoxProps } from '../types'
 
 /**

@@ -14,9 +14,9 @@
 
 import { useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
-import type { Pilot, Top4Pilots } from '../types'
-import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
-import { useIsMobile } from '../hooks/useIsMobile'
+import type { Pilot, Top4Pilots } from '@/types'
+import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface VictoryCeremonyProps {
   top4: Top4Pilots

@@ -12,7 +12,7 @@ export type {
 } from './csv';
 
 // Schema Types (re-export from schemas)
-export type { Pilot, PilotInput, Ranking, RankPosition, HeatResults } from '../lib/schemas';
+export type { Pilot, PilotInput, Ranking, RankPosition, HeatResults } from '@/lib/schemas';
 
 // Tournament Types
 export type {

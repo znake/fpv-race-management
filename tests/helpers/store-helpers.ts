@@ -1,4 +1,4 @@
-import { useTournamentStore } from '../../src/stores/tournamentStore';
+import { useTournamentStore } from '@/stores/tournamentStore';
 import { act, renderHook } from '@testing-library/react';
 
 /**

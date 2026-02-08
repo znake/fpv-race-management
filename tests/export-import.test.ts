@@ -6,8 +6,8 @@ import {
   exportJSON,
   parseImportedJSON,
   generateCSVExport
-} from '../src/lib/export-import'
-import type { TournamentStateData } from '../src/types'
+} from '@/lib/export-import'
+import type { TournamentStateData } from '@/types'
 
 // Mock URL methods for Node environment
 const originalCreateObjectURL = globalThis.URL.createObjectURL

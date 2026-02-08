@@ -1,6 +1,6 @@
 import { PilotAvatar } from '../ui/pilot-avatar'
-import { cn } from '../../lib/utils'
-import type { Pilot } from '../../stores/tournamentStore'
+import { cn } from '@/lib/utils'
+import type { Pilot } from '@/stores/tournamentStore'
 
 export interface PoolDisplayProps {
   title: string

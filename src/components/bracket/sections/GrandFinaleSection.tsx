@@ -1,5 +1,5 @@
 import { GrandFinaleHeatBox } from './GrandFinaleHeatBox'
-import type { Heat, Pilot } from '../../../types'
+import type { Heat, Pilot } from '@/types'
 
 /**
  * Grand Finale Section - visueller Höhepunkt

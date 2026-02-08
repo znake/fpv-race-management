@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import type { Heat } from '../types'
-import type { Pilot } from '../lib/schemas'
+import type { Heat } from '@/types'
+import type { Pilot } from '@/lib/schemas'
 import { Clock, X } from 'lucide-react'
-import { useTournamentStore } from '../stores/tournamentStore'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, formatLapTime, parseLapTimeDigits } from '../lib/ui-helpers'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, formatLapTime, parseLapTimeDigits } from '@/lib/ui-helpers'
 import { Modal } from './ui/modal'
-import { useIsMobile } from '../hooks/useIsMobile'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface HeatDetailModalProps {
   heat: Heat

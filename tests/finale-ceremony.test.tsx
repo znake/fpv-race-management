@@ -12,9 +12,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { useTournamentStore } from '../src/stores/tournamentStore'
-import { VictoryCeremony } from '../src/components/victory-ceremony'
-import type { Pilot } from '../src/lib/schemas'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import { VictoryCeremony } from '@/components/victory-ceremony'
+import type { Pilot } from '@/lib/schemas'
 
 // Reset store before each test
 beforeEach(() => {

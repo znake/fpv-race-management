@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { parseCSV } from '../lib/csv-parser'
-import { debounce, cn } from '../lib/utils'
-import { pilotSchema } from '../lib/schemas'
+import { parseCSV } from '@/lib/csv-parser'
+import { debounce, cn } from '@/lib/utils'
+import { pilotSchema } from '@/lib/schemas'
 import { Modal } from './ui/modal'
-import type { CSVImportResult, CSVImportState, DuplicatePilot } from '../types/csv'
+import type { CSVImportResult, CSVImportState, DuplicatePilot } from '@/types/csv'
 
 interface CSVImportProps {
   onImport: (pilots: Array<{ name: string; imageUrl?: string; instagramHandle?: string }>) => void

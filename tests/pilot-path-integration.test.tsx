@@ -1,45 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { BracketTree } from '../src/components/bracket/BracketTree'
-import { useTournamentStore } from '../src/stores/tournamentStore'
-import type { Pilot, Heat } from '../src/types'
+import { BracketTree } from '@/components/bracket/BracketTree'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import type { Pilot, Heat } from '@/types'
 
-vi.mock('../src/stores/tournamentStore', () => ({
+vi.mock('@/stores/tournamentStore', () => ({
   useTournamentStore: vi.fn()
 }))
 
-vi.mock('../src/components/bracket/SVGPilotPaths', () => ({
+vi.mock('@/components/bracket/SVGPilotPaths', () => ({
   SVGPilotPaths: ({ visible }: { visible: boolean }) => (
     visible ? <div data-testid="svg-pilot-paths" /> : null
   )
 }))
 
-vi.mock('../src/components/bracket/PilotPathToggle', () => ({
+vi.mock('@/components/bracket/PilotPathToggle', () => ({
   PilotPathToggle: () => <div data-testid="pilot-path-toggle" />
 }))
 
-vi.mock('../src/components/bracket/SVGConnectorLines', () => ({
+vi.mock('@/components/bracket/SVGConnectorLines', () => ({
   SVGConnectorLines: () => <div data-testid="svg-connector-lines" />
 }))
 
-vi.mock('../src/components/bracket/sections/QualiSection', () => ({
+vi.mock('@/components/bracket/sections/QualiSection', () => ({
   QualiSection: () => <div data-testid="quali-section" />
 }))
 
-vi.mock('../src/components/bracket/sections/WinnerBracketSection', () => ({
+vi.mock('@/components/bracket/sections/WinnerBracketSection', () => ({
   WinnerBracketSection: () => <div data-testid="wb-section" />
 }))
 
-vi.mock('../src/components/bracket/sections/LoserBracketSection', () => ({
+vi.mock('@/components/bracket/sections/LoserBracketSection', () => ({
   LoserBracketSection: () => <div data-testid="lb-section" />
 }))
 
-vi.mock('../src/components/bracket/sections/GrandFinaleSection', () => ({
+vi.mock('@/components/bracket/sections/GrandFinaleSection', () => ({
   GrandFinaleSection: () => <div data-testid="gf-section" />
 }))
 
-vi.mock('../src/components/bracket/ZoomIndicator', () => ({
+vi.mock('@/components/bracket/ZoomIndicator', () => ({
   ZoomIndicator: () => <div data-testid="zoom-indicator" />
 }))
 

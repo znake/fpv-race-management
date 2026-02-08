@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Heat } from '../types'
-import type { Pilot } from '../lib/schemas'
+import type { Heat } from '@/types'
+import type { Pilot } from '@/lib/schemas'
 import { Modal } from './ui/modal'
 import {
   getRankBadgeClasses,
@@ -8,9 +8,9 @@ import {
   FALLBACK_PILOT_IMAGE,
   parseLapTimeDigits,
   formatPartialTimeEntry
-} from '../lib/ui-helpers'
-import { formatChannel, getChannelForPosition } from '../lib/channel-assignment'
-import { useIsMobile } from '../hooks/useIsMobile'
+} from '@/lib/ui-helpers'
+import { formatChannel, getChannelForPosition } from '@/lib/channel-assignment'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 type PlacementEntryModalProps = {
   heat: Heat

@@ -11,9 +11,9 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useTournamentStore } from '../src/stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 import { createMockPilots } from './helpers/mock-factories'
-import type { Ranking } from '../src/lib/schemas'
+import type { Ranking } from '@/lib/schemas'
 
 describe('Story 13-1: Runden-basierte WB Progression', () => {
   beforeEach(() => {

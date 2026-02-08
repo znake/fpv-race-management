@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { cn } from '../../lib/utils';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ModalProps {
   isOpen: boolean;

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { pilotSchema, type PilotInput } from '../lib/schemas'
+import { pilotSchema, type PilotInput } from '@/lib/schemas'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { usePilots } from '../hooks/usePilots'
+import { usePilots } from '@/hooks/usePilots'
 
 type AddPilotFormProps = {
   onSuccess?: () => void

@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useTournamentStore } from '../src/stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 
 // Helper to create minimal heats array for tests (replaces fullBracketStructure)
 function createMinimalHeats(options: {

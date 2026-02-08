@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
-import { useTournamentStore } from '../src/stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 import { resetTournamentStore, createMockPilots, resetMockPilotCounter } from './helpers'
 
 describe('Heat Assignment Actions (Story 3.3)', () => {

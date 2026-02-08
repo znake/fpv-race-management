@@ -5,9 +5,9 @@ import {
   getChannelForPosition,
   getChannelsForHeat,
   optimizePilotOrder,
-} from '../src/lib/channel-assignment'
+} from '@/lib/channel-assignment'
 
-import type { Pilot } from '../src/lib/schemas'
+import type { Pilot } from '@/lib/schemas'
 
 describe('getChannelsForHeat', () => {
   it('should return correct channels for 4 pilots', () => {

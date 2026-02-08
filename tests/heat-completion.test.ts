@@ -13,8 +13,8 @@ import {
   determineCurrentHeatIndex,
   checkHasActiveWBHeats,
   type HeatCompletionState
-} from '../src/lib/heat-completion'
-import type { Heat } from '../src/types'
+} from '@/lib/heat-completion'
+import type { Heat } from '@/types'
 
 // Helper to create a mock heat
 function createMockHeat(overrides: Partial<Heat> = {}): Heat {

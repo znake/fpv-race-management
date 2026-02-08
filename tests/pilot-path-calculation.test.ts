@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { calculatePilotPath, assignPilotColor, isEliminatedInHeat, SYNTHWAVE_COLORS } from '../src/lib/pilot-path-manager'
-import type { Heat } from '../src/types/tournament'
+import { calculatePilotPath, assignPilotColor, isEliminatedInHeat, SYNTHWAVE_COLORS } from '@/lib/pilot-path-manager'
+import type { Heat } from '@/types/tournament'
 
 function createMockHeat(overrides: Partial<Heat> = {}): Heat {
   return {

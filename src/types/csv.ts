@@ -1,4 +1,4 @@
-import type { PilotInput } from '../lib/schemas'
+import type { PilotInput } from '@/lib/schemas'
 
 export interface CSVRow {
   Name: string

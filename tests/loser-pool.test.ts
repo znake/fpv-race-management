@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useTournamentStore } from '../src/stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 import { resetTournamentStore } from './helpers'
 
 describe('Loser Pool State & Actions', () => {

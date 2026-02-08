@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core'
-import type { Heat } from '../types'
-import type { Pilot } from '../lib/schemas'
-import { useTournamentStore } from '../stores/tournamentStore'
-import { cn } from '../lib/utils'
+import type { Heat } from '@/types'
+import type { Pilot } from '@/lib/schemas'
+import { useTournamentStore } from '@/stores/tournamentStore'
+import { cn } from '@/lib/utils'
 import { HeatCard } from './ui/heat-card'
 import { Modal } from './ui/modal'
 

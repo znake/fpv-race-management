@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, cleanup } from '@testing-library/react'
-import { useTournamentStore } from '../src/stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 import { resetTournamentStore, setupTournamentWithPilots, setupRunningTournament } from './helpers'
 
 describe('Story 7.1: Reset-Funktionen', () => {

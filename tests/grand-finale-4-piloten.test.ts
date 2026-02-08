@@ -11,9 +11,9 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useTournamentStore, INITIAL_TOURNAMENT_STATE } from '../src/stores/tournamentStore'
-import type { Heat, PilotBracketState } from '../src/types/tournament'
-import type { Pilot } from '../src/lib/schemas'
+import { useTournamentStore, INITIAL_TOURNAMENT_STATE } from '@/stores/tournamentStore'
+import type { Heat, PilotBracketState } from '@/types/tournament'
+import type { Pilot } from '@/lib/schemas'
 
 // Reset store before each test
 beforeEach(() => {

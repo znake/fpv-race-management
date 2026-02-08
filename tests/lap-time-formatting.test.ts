@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatLapTime, parseLapTimeDigits, formatPartialTimeEntry } from '../src/lib/ui-helpers'
+import { formatLapTime, parseLapTimeDigits, formatPartialTimeEntry } from '@/lib/ui-helpers'
 
 describe('lap time formatting', () => {
   describe('formatLapTime', () => {

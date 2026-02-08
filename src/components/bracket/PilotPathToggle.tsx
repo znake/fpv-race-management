@@ -1,4 +1,4 @@
-import { useTournamentStore } from '../../stores/tournamentStore'
+import { useTournamentStore } from '@/stores/tournamentStore'
 
 export function PilotPathToggle() {
   const { showPilotPaths, togglePilotPaths } = useTournamentStore()

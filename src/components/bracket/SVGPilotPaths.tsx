@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Heat, Pilot } from '../../types'
-import { calculatePilotPath, assignPilotColor } from '../../lib/pilot-path-manager'
+import type { Heat, Pilot } from '@/types'
+import { calculatePilotPath, assignPilotColor } from '@/lib/pilot-path-manager'
 
 interface SVGPilotPathsProps {
   heats: Heat[]

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom'
-import { AppFooter } from '../src/components/app-footer'
+import { AppFooter } from '@/components/app-footer'
 
 describe('AppFooter', () => {
   it('renders Import/Export buttons', () => {

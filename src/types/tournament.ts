@@ -1,6 +1,6 @@
 // src/types/tournament.ts
 
-import type { Pilot, HeatResults } from '../lib/schemas'
+import type { Pilot, HeatResults } from '@/lib/schemas'
 // Phase 3: fullBracketStructure entfernt - heats[] ist Single Source of Truth
 
 /**

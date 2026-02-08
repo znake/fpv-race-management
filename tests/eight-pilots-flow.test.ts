@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useTournamentStore, INITIAL_TOURNAMENT_STATE } from '../src/stores/tournamentStore'
+import { useTournamentStore, INITIAL_TOURNAMENT_STATE } from '@/stores/tournamentStore'
 
 describe('8 Piloten Turnier Flow', () => {
   beforeEach(() => {

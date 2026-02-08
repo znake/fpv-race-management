@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { PlacementEntryModal } from '../src/components/placement-entry-modal'
+import { PlacementEntryModal } from '@/components/placement-entry-modal'
 import { createMockPilots, resetMockPilotCounter } from './helpers/mock-factories'
-import type { Heat } from '../src/types'
+import type { Heat } from '@/types'
 
 describe('PlacementEntryModal', () => {
   const mockOnClose = vi.fn()

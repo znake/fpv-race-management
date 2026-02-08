@@ -1,6 +1,6 @@
-import { getPilotBracketOrigin } from '../../../lib/bracket-logic'
-import { cn } from '../../../lib/utils'
-import { FALLBACK_PILOT_IMAGE } from '../../../lib/ui-helpers'
+import { getPilotBracketOrigin } from '@/lib/bracket-logic'
+import { cn } from '@/lib/utils'
+import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
 import type { GrandFinaleHeatBoxProps } from '../types'
 
 /**

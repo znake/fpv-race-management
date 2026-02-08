@@ -1,4 +1,4 @@
-import type { Heat, Pilot } from '../../types'
+import type { Heat, Pilot } from '@/types'
 
 // Phase 4: Bracket-Structure-Generator entfernt
 // BracketType wird jetzt als einfacher Union-Type definiert

@@ -1,5 +1,5 @@
 import Papa from 'papaparse'
-import type { CSVImportResult, CSVImportError } from '../types/csv'
+import type { CSVImportResult, CSVImportError } from '@/types/csv'
 
 /**
  * Raw CSV row type with all possible column variations

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { cn } from '../../lib/utils';
-import { FALLBACK_PILOT_IMAGE } from '../../lib/ui-helpers';
+import { cn } from '@/lib/utils';
+import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers';
 
 interface PilotAvatarProps {
   imageUrl?: string;

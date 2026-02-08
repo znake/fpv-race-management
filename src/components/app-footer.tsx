@@ -6,7 +6,7 @@
  */
 
 import { useRef } from 'react'
-import { useIsMobile } from '../hooks/useIsMobile'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 type TournamentPhase = 'setup' | 'heat-assignment' | 'running' | 'finale' | 'completed'
 
