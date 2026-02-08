@@ -30,7 +30,7 @@ type PlacementEntryModalProps = {
  * 
  * Features:
  * - Click-to-rank pilot cards
- * - Keyboard shortcuts (1-4 for direct rank, Escape to reset)
+ * - Keyboard shortcuts (Escape to reset)
  * - Pre-fills existing rankings if heat.results exists
  * - Grid layout adapts to 3 or 4 pilots
  */
@@ -201,36 +201,7 @@ export function PlacementEntryModal({
     }
   }, [rankings, heatPilots.length, openTimeEntryWindow])
 
-  // Assign a direct rank (for keyboard shortcuts)
-  const assignDirectRank = useCallback((pilotId: string, rank: 1 | 2 | 3 | 4) => {
-    if (rank > heatPilots.length) return
-    
-    setRankings((prev) => {
-      const newRankings = new Map(prev)
-      
-      // Remove any existing pilot with this rank
-      for (const [id, r] of newRankings) {
-        if (r === rank) {
-          newRankings.delete(id)
-          break
-        }
-      }
-      
-      // Remove the pilot's current rank if they have one
-      const currentRank = newRankings.get(pilotId)
-      if (currentRank !== undefined) {
-        newRankings.delete(pilotId)
-      }
-      
-      // Assign the new rank
-      newRankings.set(pilotId, rank)
-      
-      return newRankings
-    })
 
-    // Opening a time window here enables a "rank via keyboard, time via digits" flow.
-    openTimeEntryWindow(pilotId)
-  }, [heatPilots.length, openTimeEntryWindow])
 
   const resetRankings = useCallback(() => {
     setRankings(new Map())
@@ -263,8 +234,6 @@ export function PlacementEntryModal({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const isTimeEntryActive = lastClickedPilotIdRef.current !== null
-      const focusedPilotId = document.activeElement?.getAttribute('data-pilot-id')
-
       // PRIORITY 1: Time entry mode active + Enter → finalize time entry
       if (isTimeEntryActive && e.key === 'Enter') {
         e.preventDefault()
@@ -316,14 +285,7 @@ export function PlacementEntryModal({
         return
       }
 
-      // PRIORITY 5: Pilot focused + NO time entry + 1-4 → assign direct rank
-      if (focusedPilotId && !isTimeEntryActive && ['1', '2', '3', '4'].includes(e.key)) {
-        e.preventDefault()
-        assignDirectRank(focusedPilotId, parseInt(e.key) as 1 | 2 | 3 | 4)
-        return
-      }
-
-      // PRIORITY 6: Escape (no time entry) → reset rankings or close modal
+      // PRIORITY 5: Escape (no time entry) → reset rankings or close modal
       if (e.key === 'Escape') {
         if (rankingsSizeRef.current > 0) {
           e.preventDefault()
@@ -335,7 +297,7 @@ export function PlacementEntryModal({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, assignDirectRank, resetRankings, finalizeTimeEntry])
+  }, [isOpen, resetRankings, finalizeTimeEntry])
 
   useEffect(() => {
     if (!isOpen) {

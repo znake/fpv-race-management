@@ -387,31 +387,5 @@ describe('Toggle-to-Rank UI Logic (Component Integration)', () => {
     expect(isFinishEnabled()).toBe(true)
   })
 
-  it('direct rank assignment should replace existing holder', () => {
-    const rankings = new Map<string, number>([
-      ['pilot-a', 1],
-      ['pilot-b', 2]
-    ])
-    
-    // Simulate direct rank assignment (keyboard 1 on pilot-c)
-    const assignDirectRank = (pilotId: string, rank: number) => {
-      // Remove existing holder of this rank
-      for (const [id, r] of rankings) {
-        if (r === rank) {
-          rankings.delete(id)
-          break
-        }
-      }
-      // Remove pilot's current rank if any
-      rankings.delete(pilotId)
-      // Assign new rank
-      rankings.set(pilotId, rank)
-    }
-    
-    assignDirectRank('pilot-c', 1)
-    
-    expect(rankings.get('pilot-c')).toBe(1)
-    expect(rankings.has('pilot-a')).toBe(false) // Pilot A lost rank 1
-    expect(rankings.get('pilot-b')).toBe(2) // Unchanged
-  })
+
 })

@@ -564,63 +564,6 @@ describe('PlacementEntryModal', () => {
     })
   })
 
-  describe('Keyboard shortcuts', () => {
-    it('should assign direct rank via number keys when pilot is focused', () => {
-      render(
-        <PlacementEntryModal
-          heat={mockHeat}
-          pilots={mockPilots}
-          isOpen={true}
-          onClose={mockOnClose}
-          onSubmitResults={mockOnSubmitResults}
-        />
-      )
-
-      const pilotCard = screen.getByTestId(`pilot-card-${mockPilots[0].id}`)
-      
-      // Focus the pilot card
-      pilotCard.focus()
-      
-      // Press "2" key
-      fireEvent.keyDown(window, { key: '2' })
-
-      // Rank 2 should be assigned
-      expect(screen.queryByText('2')).not.toBeNull()
-    })
-
-    it('should ignore rank assignment when pressing rank higher than pilot count', () => {
-      const threePilots = mockPilots.slice(0, 3)
-      const threePilotHeat: Heat = {
-        ...mockHeat,
-        pilotIds: threePilots.map(p => p.id),
-      }
-
-      render(
-        <PlacementEntryModal
-          heat={threePilotHeat}
-          pilots={threePilots}
-          isOpen={true}
-          onClose={mockOnClose}
-          onSubmitResults={mockOnSubmitResults}
-        />
-      )
-
-      const pilotCard = screen.getByTestId(`pilot-card-${threePilots[0].id}`)
-      
-      // Focus the pilot card
-      pilotCard.focus()
-      
-      // Press "4" key - should be ignored since only 3 pilots
-      fireEvent.keyDown(window, { key: '4' })
-
-      // No rank badge should appear
-      expect(screen.queryByText('4')).toBeNull()
-      expect(screen.queryByText('1')).toBeNull()
-      expect(screen.queryByText('2')).toBeNull()
-      expect(screen.queryByText('3')).toBeNull()
-    })
-  })
-
   describe('3-pilot heats', () => {
     it('should enable submit with 2 rankings for 3-pilot heat', () => {
       const threePilots = mockPilots.slice(0, 3)
