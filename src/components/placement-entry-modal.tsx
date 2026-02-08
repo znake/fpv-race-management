@@ -513,6 +513,12 @@ export function PlacementEntryModal({
           {rankings.size >= minRankingsRequired && rankings.size < heatPilots.length && `${rankings.size}/${heatPilots.length} Ränge vergeben`}
           {rankings.size === heatPilots.length && 'Alle Ränge vergeben!'}
         </p>
+
+        {rankings.size >= minRankingsRequired && rankings.size < heatPilots.length && (
+          <p className={`font-ui text-steel/60 italic ${isMobile ? 'text-xs' : 'text-base'}`}>
+            Nicht vergebene Plätze werden automatisch hinten aufgefüllt.
+          </p>
+        )}
       </div>
 
 
