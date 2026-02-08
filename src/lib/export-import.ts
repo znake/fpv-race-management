@@ -5,7 +5,7 @@
  * Story 1: Core utility functions for JSON/CSV export and JSON import
  */
 
-import type { TournamentStateData, Heat, Pilot, Top4Pilots, TournamentPhase } from '../types'
+import type { TournamentStateData, Heat, Pilot, Top4Pilots, TournamentPhase } from '@/types'
 import { formatLapTime } from './ui-helpers'
 
 // localStorage key used by Zustand persist middleware
@@ -270,8 +270,7 @@ function getPilotStatus(
   heats: Heat[],
   isCompleted: boolean
 ): string {
-  // Check if pilot is dropped out (manually withdrawn)
-  if (pilot.droppedOut || pilot.status === 'withdrawn') {
+  if (pilot.status === 'withdrawn') {
     return 'Zurückgezogen'
   }
   
@@ -469,7 +468,7 @@ function calculateGroupBounds(
   heats: Heat[],
   allPilots: Pilot[]
 ): { start: number; end: number } {
-  const activePilots = allPilots.filter(p => !p.droppedOut && p.status !== 'withdrawn')
+  const activePilots = allPilots.filter(p => p.status !== 'withdrawn')
   const totalPilots = activePilots.length
 
   // Collect all elimination phases with counts
@@ -543,11 +542,11 @@ function getPlacementGroup(
   return `${groupBounds.start}-${groupBounds.end}`
 }
 
-/**
- * Generates CSV export from tournament state
- * 
- * Columns: Pilot, Status, Platzierung, Ranggruppe, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
- */
+  /**
+   * Generates CSV export from tournament state
+   * 
+   * Columns: Pilot, Status, Platzierung, Ranggruppe, Bracket, Heats Geflogen, Ergebnisse, Nächster Heat
+   */
 export interface CSVExportOptions {
   top4?: Top4Pilots | null
 }
@@ -571,7 +570,7 @@ export function generateCSVExport(
   const placementMap = buildPlacementMap(options.top4)
   
   // Header row
-  const header = 'Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse'
+  const header = 'Pilot,Status,Platzierung,Ranggruppe,Bracket,Heats Geflogen,Ergebnisse,Nächster Heat'
 
   // Data rows
   const rows = pilots.map(pilot => {
@@ -586,8 +585,10 @@ export function generateCSVExport(
       escapeCSVField(status),
       placement,
       placementGroup,
+      '-',
       String(heatsFlown),
-      escapeCSVField(results)
+      escapeCSVField(results),
+      '-'
     ].join(',')
   })
   

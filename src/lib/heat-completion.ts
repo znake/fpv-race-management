@@ -8,9 +8,9 @@
  * Story 1.6: submitHeatResults() aufteilen
  */
 
-import type { Heat } from '../types'
-import type { TournamentPhase } from '../types/tournament'
-import type { Ranking } from '../lib/schemas'
+import type { Heat } from '@/types'
+import type { TournamentPhase } from '@/types/tournament'
+import type { Ranking } from '@/lib/schemas'
 
 import { createLBHeatFromPool, isGrandFinaleBracketType } from './bracket-logic'
 import { isTopRank } from './bracket-constants'
@@ -321,7 +321,7 @@ export function determineCurrentHeatIndex(heats: Heat[]): number {
 // Story 1.6: Heat Generation Logic
 // ============================================================================
 
-import type { PilotBracketState } from '../types/tournament'
+import type { PilotBracketState } from '@/types/tournament'
 import { HEAT_ID_PREFIXES, POOL_THRESHOLDS } from './bracket-constants'
 
 /**
@@ -899,22 +899,4 @@ export function appendGeneratedHeats(heats: Heat[], newHeats: Heat[]): Heat[] {
   return [...heats, ...newHeats]
 }
 
-// ============================================================================
-// Legacy exports for test compatibility (deprecated, will be removed)
-// ============================================================================
 
-export function processQualiHeatCompletion(): HeatCompletionResult {
-  throw new Error('processQualiHeatCompletion is deprecated - use submitHeatResults directly')
-}
-
-export function processWBHeatCompletion(): HeatCompletionResult {
-  throw new Error('processWBHeatCompletion is deprecated - use submitHeatResults directly')
-}
-
-export function processLBHeatCompletion(): HeatCompletionResult {
-  throw new Error('processLBHeatCompletion is deprecated - use submitHeatResults directly')
-}
-
-export function processFinaleCompletion(): HeatCompletionResult {
-  throw new Error('processFinaleCompletion is deprecated - use submitHeatResults directly')
-}

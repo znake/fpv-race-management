@@ -1,4 +1,4 @@
-import type { Pilot } from '../../src/lib/schemas';
+import type { Pilot } from '@/lib/schemas';
 
 let pilotCounter = 0;
 
@@ -21,7 +21,6 @@ export function createMockPilot(overrides?: Partial<Pilot>): Pilot {
     imageUrl: `https://example.com/pilot${pilotCounter}.jpg`,
     instagramHandle: undefined,
     status: 'active',
-    droppedOut: false,
     ...overrides,
   };
 }

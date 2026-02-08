@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useDroppable, useDraggable } from '@dnd-kit/core'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 import { PilotAvatar } from './pilot-avatar'
 import { RankBadge } from './rank-badge'
-import { sortPilotsByRank, getHeatBorderClasses, getPilotRowClass } from '../../lib/ui-helpers'
-import type { Pilot, HeatResults } from '../../lib/schemas'
+import { sortPilotsByRank, getHeatBorderClasses, getPilotRowClass } from '@/lib/ui-helpers'
+import type { Pilot, HeatResults } from '@/lib/schemas'
 import type { BracketType } from '../bracket/types'
 
 export interface HeatCardProps {
@@ -79,8 +79,8 @@ export function HeatCard({
     )
   }, [status, results, pilotIds, pilots, heatPilots])
 
-  const activePilots = heatPilots.filter(p => !p.droppedOut && p.status !== 'withdrawn')
-  const withdrawnPilots = heatPilots.filter(p => p.droppedOut || p.status === 'withdrawn')
+  const activePilots = heatPilots.filter(p => p.status !== 'withdrawn')
+  const withdrawnPilots = heatPilots.filter(p => p.status === 'withdrawn')
   const hasBye = activePilots.length < 4
 
   // Use displayHeatNumber if provided (from actual heats[]), otherwise fall back to heatNumber
@@ -612,14 +612,14 @@ function DetailVariant({
   className?: string
 }) {
   const getPilotStyling = (pilot: Pilot) => {
-    if (pilot.droppedOut || pilot.status === 'withdrawn') {
+    if (pilot.status === 'withdrawn') {
       return 'opacity-60 line-through'
     }
     return ''
   }
 
   const getPilotBadge = (pilot: Pilot) => {
-    if (pilot.droppedOut || pilot.status === 'withdrawn') {
+    if (pilot.status === 'withdrawn') {
       return (
         <span className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full font-bold">
           AUSGEFALLEN

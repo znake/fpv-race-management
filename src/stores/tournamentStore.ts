@@ -1,21 +1,21 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Pilot, Ranking } from '../lib/schemas'
-import type { Heat, TournamentPhase } from '../types'
-import { calculateHeatDistribution } from '../lib/heat-distribution'
+import type { Pilot, Ranking } from '@/lib/schemas'
+import type { Heat, TournamentPhase } from '@/types'
+import { calculateHeatDistribution } from '@/lib/heat-distribution'
 
 // Re-export types for backward compatibility
 export type { Heat, TournamentPhase }
-import { shuffleArray } from '../lib/utils'
+import { shuffleArray } from '@/lib/utils'
 // Phase 3: fullBracketStructure komplett entfernt - heats[] ist Single Source of Truth
 
 // Story 1.6: Extrahierte Helper-Funktionen
-import { inferBracketType, isGrandFinaleBracketType, calculateAvailableWinnerPool } from '../lib/bracket-logic'
+import { inferBracketType, isGrandFinaleBracketType, calculateAvailableWinnerPool } from '@/lib/bracket-logic'
 import {
   processRankingsByBracket,
   generateNextHeats
-} from '../lib/heat-completion'
-import { getChannelForPosition } from '../lib/channel-assignment'
+} from '@/lib/heat-completion'
+import { getChannelForPosition } from '@/lib/channel-assignment'
 
 // Story 1.1: Initial State als wiederverwendbare Konstante
 // Ermöglicht DRY Reset-Funktionen (Story 1.2)
@@ -46,7 +46,7 @@ export const INITIAL_TOURNAMENT_STATE = {
 }
 
 // Pilot interface export
-export type { Pilot } from '../lib/schemas'
+export type { Pilot } from '@/lib/schemas'
 
 // Note: Heat interface is defined at the top of this file (before helper functions)
 // to allow usage in createWBHeatFromPool and createLBHeatFromPool
@@ -257,7 +257,6 @@ export const useTournamentStore = create<TournamentState>()(
         const updatedPilots = [...pilots]
         updatedPilots[pilotIndex] = { 
           ...updatedPilots[pilotIndex], 
-          droppedOut: true,
           status: 'withdrawn'
         }
         set({ pilots: updatedPilots })
@@ -292,7 +291,7 @@ export const useTournamentStore = create<TournamentState>()(
       generateHeats: (seed) => {
         const { pilots } = get()
 
-        const activePilots = pilots.filter((p) => p.status !== 'withdrawn' && !p.droppedOut)
+        const activePilots = pilots.filter((p) => p.status !== 'withdrawn')
         const { fourPlayerHeats, threePlayerHeats } = calculateHeatDistribution(activePilots.length)
 
         const shuffled = shuffleArray(activePilots, seed)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { Pilot } from '../lib/schemas'
-import { FALLBACK_PILOT_IMAGE } from '../lib/ui-helpers'
+import type { Pilot } from '@/lib/schemas'
+import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
 import { Modal } from './ui/modal'
 
 type PilotCardProps = {
@@ -36,7 +36,7 @@ export function PilotCard({
 
   // US-2.3: Rang-spezifische Farben
   const getRankBorderClass = () => {
-    if (pilot.droppedOut) return 'border-steel opacity-60'
+    if (pilot.status === 'withdrawn') return 'border-steel opacity-60'
     if (rank === 1) return 'border-gold' // Gold für Rang 1
     if (rank === 2) return 'border-neon-cyan' // Cyan für Rang 2
     if (rank === 3 || rank === 4) return 'border-neon-pink' // Pink für Rang 3+4
@@ -45,7 +45,7 @@ export function PilotCard({
   }
 
   const getRankGlowClass = () => {
-    if (pilot.droppedOut) return ''
+    if (pilot.status === 'withdrawn') return ''
     if (rank === 1) return 'shadow-glow-gold animate-[glow-pulse-gold_2s_ease-in-out_infinite]'
     if (rank === 2) return 'shadow-glow-cyan animate-[glow-pulse-cyan_2s_ease-in-out_infinite]'
     if (rank === 3 || rank === 4 || selected) return 'shadow-glow-pink'
@@ -54,7 +54,7 @@ export function PilotCard({
 
   // US-2.3: Animated border for selected state
   const getSelectedClass = () => {
-    if (rank && !pilot.droppedOut) return 'pilot-card-selected'
+    if (rank && pilot.status !== 'withdrawn') return 'pilot-card-selected'
     return ''
   }
 
@@ -148,7 +148,7 @@ export function PilotCard({
         onClick={handleCardClick}
       >
         {/* Rank Badge - Beamer-optimiert (min 32px Zahl für Beamer-Lesbarkeit - AC5) */}
-        {showRank && rank && !pilot.droppedOut && (
+        {showRank && rank && pilot.status !== 'withdrawn' && (
           <div className={`
             absolute -top-2 -right-2
             ${size === 'large' ? 'w-14 h-14' : 'w-12 h-12'}
@@ -161,8 +161,8 @@ export function PilotCard({
           </div>
         )}
 
-        {/* Dropped Out Badge */}
-        {pilot.droppedOut && (
+        {/* Withdrawn Badge */}
+        {pilot.status === 'withdrawn' && (
           <div className="absolute -top-2 -right-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
             AUSGEFALLEN
           </div>
@@ -199,7 +199,7 @@ export function PilotCard({
                 🗑️
               </button>
             )}
-            {tournamentStarted && !pilot.droppedOut && (
+            {tournamentStarted && pilot.status !== 'withdrawn' && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()

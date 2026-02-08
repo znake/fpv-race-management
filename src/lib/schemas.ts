@@ -6,7 +6,6 @@ export interface Pilot {
   imageUrl?: string
   instagramHandle?: string
   status?: 'active' | 'withdrawn'
-  droppedOut?: boolean // @deprecated - use status instead
   lastChannel?: 1 | 3 | 4 | 6 | 8 // Last used Raceband channel for smart assignment
 }
 
