@@ -3,7 +3,9 @@
   "started_at": "2026-01-31T07:19:12.061Z",
   "completed_at": "2026-01-31T08:55:00.000Z",
   "session_ids": [
-    "ses_3ed14764cffeomu16FnV1KuqDB"
+    "ses_3ed14764cffeomu16FnV1KuqDB",
+    "ses_3c3a4901effeOazp619eaG6QHm",
+    "ses_3c379fb73ffe0uXX1qVysRPTS7"
   ],
   "plan_name": "pilot-path-visualization",
   "status": "completed"
