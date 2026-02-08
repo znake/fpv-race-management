@@ -1,17 +1,17 @@
 import { useState, useCallback } from 'react'
-import { useIsMobile } from './hooks/useIsMobile'
-import { PilotCard } from './components/pilot-card'
-import { AddPilotForm } from './components/add-pilot-form'
-import { CSVImport } from './components/csv-import'
-import { Header } from './components/header'
-import { TournamentStartDialog } from './components/tournament-start-dialog'
-import { HeatAssignmentView } from './components/heat-assignment-view'
-import { BracketTree } from './components/bracket-tree'
-import { ResetConfirmationDialog } from './components/reset-confirmation-dialog'
-import { AppFooter } from './components/app-footer'
-import { ImportConfirmDialog } from './components/import-confirm-dialog'
-import { usePilots } from './hooks/usePilots'
-import { useTournamentStore } from './stores/tournamentStore'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { PilotCard } from '@/components/pilot-card'
+import { AddPilotForm } from '@/components/add-pilot-form'
+import { CSVImport } from '@/components/csv-import'
+import { Header } from '@/components/header'
+import { TournamentStartDialog } from '@/components/tournament-start-dialog'
+import { HeatAssignmentView } from '@/components/heat-assignment-view'
+import { BracketTree } from '@/components/bracket'
+import { ResetConfirmationDialog } from '@/components/reset-confirmation-dialog'
+import { AppFooter } from '@/components/app-footer'
+import { ImportConfirmDialog } from '@/components/import-confirm-dialog'
+import { usePilots } from '@/hooks/usePilots'
+import { useTournamentStore } from '@/stores/tournamentStore'
 import {
   exportJSON,
   exportCSV,
@@ -19,8 +19,8 @@ import {
   importJSON,
   createTournamentStateSnapshot,
   type ParsedImportData
-} from './lib/export-import'
-import { loadDemoPilots } from './lib/demo-data'
+} from '@/lib/export-import'
+import { loadDemoPilots } from '@/lib/demo-data'
 
 type Tab = 'piloten' | 'turnier'
 
