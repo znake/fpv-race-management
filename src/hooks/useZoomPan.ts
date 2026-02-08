@@ -86,6 +86,7 @@ export interface UseZoomPanReturn {
   reset: () => void
   centerOnElement: (element: HTMLElement, options?: CenterOnElementOptions) => void
   fitToView: (options?: FitToViewOptions) => void
+  animateToState: (targetState: ZoomPanState, duration?: number) => void
 }
 
 /**
@@ -662,6 +663,30 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     })
   }, [minScale, maxScale, onScaleChange])
 
+  const animateToState = useCallback((targetState: ZoomPanState, duration = 500) => {
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current)
+    }
+    if (transformDebounceRef.current) {
+      clearTimeout(transformDebounceRef.current)
+    }
+
+    flushSync(() => {
+      setIsAnimating(true)
+      setIsTransforming(true)
+    })
+
+    requestAnimationFrame(() => {
+      setState(targetState)
+      onScaleChange?.(targetState.scale)
+
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+        setIsTransforming(false)
+      }, duration)
+    })
+  }, [onScaleChange])
+
   useEffect(() => {
     return () => {
       if (animationTimeoutRef.current) {
@@ -695,6 +720,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     zoomOut,
     reset,
     centerOnElement,
-    fitToView
+    fitToView,
+    animateToState
   }
 }

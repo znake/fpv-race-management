@@ -99,6 +99,8 @@ interface SVGConnectorLinesProps {
   /** Translation values - trigger redraw when panning */
   translateX?: number
   translateY?: number
+  /** When true, skip drawing during CSS animation - redraw when it ends */
+  isAnimating?: boolean
   /** When true, skip all drawing operations (used during victory ceremony overlay) */
   disabled?: boolean
 }
@@ -118,9 +120,11 @@ export function SVGConnectorLines({
   scale = 1,
   translateX: _translateX,
   translateY: _translateY,
+  isAnimating = false,
   disabled = false
 }: SVGConnectorLinesProps) {
   const managerRef = useRef<ConnectorManager | null>(null)
+  const prevAnimatingRef = useRef(false)
 
   // Initialize ConnectorManager
   useEffect(() => {
@@ -149,12 +153,28 @@ export function SVGConnectorLines({
 
   // Handle Scale
   useEffect(() => {
-    if (disabled) return
+    if (disabled || isAnimating) return
     if (managerRef.current) {
       managerRef.current.setScale(scale)
       managerRef.current.debouncedRedraw()
     }
-  }, [scale, disabled])
+  }, [scale, disabled, isAnimating])
+
+  // Clear SVG during animation, redraw after (getBoundingClientRect is only correct at final position)
+  useEffect(() => {
+    const wasAnimating = prevAnimatingRef.current
+    prevAnimatingRef.current = isAnimating
+
+    if (isAnimating) {
+      const svg = document.getElementById('connector-svg')
+      if (svg) svg.innerHTML = ''
+    }
+
+    if (wasAnimating && !isAnimating && !disabled && managerRef.current) {
+      managerRef.current.setScale(scale)
+      updateConnections()
+    }
+  }, [isAnimating, disabled, scale])
 
   // Update Connections Logic
   const updateConnections = () => {
@@ -218,13 +238,12 @@ export function SVGConnectorLines({
   }
 
   useEffect(() => {
-    if (disabled) return
-    // Debounce heat updates slightly
+    if (disabled || isAnimating) return
     const timer = setTimeout(() => {
         updateConnections()
     }, 50)
     return () => clearTimeout(timer)
-  }, [heats, disabled, _translateX, _translateY])
+  }, [heats, disabled, isAnimating, _translateX, _translateY])
 
   return (
     <svg

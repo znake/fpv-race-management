@@ -1332,9 +1332,7 @@
   }
 
   .zoom-indicator .fit-to-view-btn {
-    margin-left: 2px;
-    border-left: 1px solid rgba(5, 217, 232, 0.3);
-    padding-left: 10px;
+    margin-left: 12px;
   }
 
   .zoom-level {

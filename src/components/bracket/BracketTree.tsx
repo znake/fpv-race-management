@@ -78,7 +78,8 @@ export function BracketTree({
     reset,
     centerOnElement,
     fitToView,
-    isTransforming
+    isTransforming,
+    animateToState
   } = useZoomPan()
   
   // Mobile detection for reduced zoom on auto-center
@@ -90,6 +91,21 @@ export function BracketTree({
   
   const getActiveHeat = useTournamentStore(state => state.getActiveHeat)
   const getNextHeat = useTournamentStore(state => state.getNextHeat)
+
+  const savedZoomState = useRef<{ scale: number; translateX: number; translateY: number } | null>(null)
+  const isFittedToView = useRef(false)
+
+  const handleFitToViewToggle = useCallback(() => {
+    if (isFittedToView.current && savedZoomState.current) {
+      animateToState(savedZoomState.current)
+      isFittedToView.current = false
+      savedZoomState.current = null
+    } else {
+      savedZoomState.current = { ...zoomState }
+      isFittedToView.current = true
+      fitToView()
+    }
+  }, [zoomState, fitToView, animateToState])
 
   // Refs for SVG connector lines - maps heat IDs to their DOM elements
   const heatRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map())
@@ -188,13 +204,13 @@ export function BracketTree({
       if (key === 'p') {
         togglePilotPaths()
       } else if (key === 'z') {
-        fitToView()
+        handleFitToViewToggle()
       }
     }
     
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedHeat, placementHeat, togglePilotPaths, fitToView])
+  }, [selectedHeat, placementHeat, togglePilotPaths, handleFitToViewToggle])
 
   const handleHeatClick = (heatId: string) => {
     const heat = heats.find(h => h.id === heatId)
@@ -330,6 +346,7 @@ export function BracketTree({
           scale={zoomState.scale}
           translateX={zoomState.translateX}
           translateY={zoomState.translateY}
+          isAnimating={isAnimating}
           disabled={disableConnectors}
         />
 
@@ -424,7 +441,7 @@ export function BracketTree({
         scale={zoomState.scale}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
-        onFitToView={fitToView}
+        onFitToView={handleFitToViewToggle}
       />
 
       <PilotPathToggle />
