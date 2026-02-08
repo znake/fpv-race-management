@@ -12,8 +12,7 @@ export { FilledBracketHeatBox } from './heat-boxes/FilledBracketHeatBox'
 // Phase 4: Legacy Layout-Komponenten entfernt (HeatsSection, BracketRoundColumn, DynamicLBHeatsSection)
 
 // Sections
-export { WinnerBracketSection } from './sections/WinnerBracketSection'
-export { LoserBracketSection } from './sections/LoserBracketSection'
+export { BracketSection } from './sections/BracketSection'
 export { GrandFinaleSection } from './sections/GrandFinaleSection'
 export { GrandFinaleHeatBox } from './sections/GrandFinaleHeatBox'
 
