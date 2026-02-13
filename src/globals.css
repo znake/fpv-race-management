@@ -491,9 +491,7 @@
     margin: 0;
     position: relative;
     overflow: hidden;
-    /* Responsive height: fills available viewport space minus header/footer */
-    min-height: calc(100vh - 90px);
-    /* Full-width Container */
+    height: calc(100vh - 90px);
     width: 100%;
     min-width: 0;
   }
@@ -807,13 +805,17 @@
 
   .channel-badge-outer {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 7px;
-    color: var(--steel);
-    background: #3f3f46;
-    padding: 0 2px;
+    font-size: 8px;
+    line-height: 14px;
+    color: #c0c0c0;
+    background: #27272a;
     border-radius: 2px;
     flex-shrink: 0;
     margin-right: 2px;
+    width: 16px;
+    height: 14px;
+    text-align: center;
+    padding: 0;
   }
 
   .pilot-row-wrapper:not(:has(.top, .bottom, .champ)) .channel-badge-outer {
@@ -1236,11 +1238,8 @@
     overflow: hidden;
     position: relative;
     cursor: default;
-    /* Full height: fills available space minus header/footer */
-    min-height: calc(100vh - 90px);
-    /* AC8: Prevent browser zoom/scroll gestures - handled by JS */
+    height: 100%;
     touch-action: none;
-    /* Prevent text selection during pan */
     user-select: none;
     -webkit-user-select: none;
   }

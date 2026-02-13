@@ -428,7 +428,7 @@ export function PlacementEntryModal({
 
               {/* Pilot Name with Channel Badge */}
               <div className={`flex items-center justify-center w-full ${isMobile ? 'mb-1' : 'mb-2'}`}>
-                <span className="channel-badge bg-zinc-700 text-xs px-1 rounded font-mono text-steel mr-2 flex-shrink-0">
+                <span className="channel-badge bg-zinc-800 text-xs px-1 rounded font-mono text-zinc-300 mr-2 flex-shrink-0">
                   {formatChannel(channel)}
                 </span>
                 <div className={`font-display font-bold text-chrome truncate ${isMobile ? 'text-base' : 'text-3xl'}`}>
@@ -493,7 +493,7 @@ export function PlacementEntryModal({
           <div className="flex justify-center gap-4 flex-wrap">
             {nextHeatPilots.map(({ pilot, channel }) => (
               <div key={pilot.id} className="flex items-center gap-2">
-                <span className="channel-badge bg-zinc-700 text-xs px-1.5 py-0.5 rounded font-mono text-steel">
+                <span className="channel-badge bg-zinc-800 text-xs px-1.5 py-0.5 rounded font-mono text-zinc-300">
                   {formatChannel(channel)}
                 </span>
                 <span className={`font-display text-chrome ${isMobile ? 'text-lg' : 'text-3xl'}`}>
