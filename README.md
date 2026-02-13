@@ -216,13 +216,14 @@ Das Loser Bracket wartet auf die entsprechenden Winner Bracket Runden, damit kei
 Für Turniere mit Zeitnehmung können zusätzlich **Rundenzeiten** pro Pilot erfasst werden:
 
 1. **Platzierung eingeben** - Pilot anklicken
-2. **Zeit eingeben** - Nach Vergabe der Platzierung Ziffern tippen (z.B. `123` für 1:23)
+2. **Zeit eingeben** - Nach Vergabe der Platzierung 3-5 Ziffern tippen (z.B. `123` für 1:23)
 3. **Bestätigen** - Enter drücken oder nächsten Piloten platzieren
 
-**Zeitformat:**
-- 1-2 Ziffern: Sekunden (z.B. `5` → 0:05, `45` → 0:45)
-- 3-4 Ziffern: Minuten:Sekunden (z.B. `123` → 1:23, `959` → 9:59)
-- Bereich: 0:01 bis 9:59
+**Zeitformat (immer Minute zuerst):**
+- 3 Ziffern: M:SS (z.B. `045` → 0:45, `123` → 1:23)
+- 4 Ziffern: M:SS.z (z.B. `1234` → 1:23.4)
+- 5 Ziffern: M:SS.zh (z.B. `12345` → 1:23.45)
+- Bereich: 0:20 bis 9:59.99
 
 Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind im CSV-Export enthalten.
 
