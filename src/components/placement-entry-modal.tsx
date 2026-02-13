@@ -108,23 +108,19 @@ export function PlacementEntryModal({
     const buffer = timeDigitBufferRef.current
 
     if (pilotId && buffer) {
-      let seconds = 0
-      if (buffer.length <= 2) {
-        seconds = parseInt(buffer, 10)
-      } else {
-        seconds = parseInt(buffer.slice(1), 10)
-      }
-      
-      if (seconds > 59) {
-        setValidationError('Sekunden max. 59')
-        setShakeOverlay(true)
-        setTimeout(() => setShakeOverlay(false), 400)
-        return
+      if (buffer.length >= 3) {
+        const seconds = parseInt(buffer.slice(1, 3), 10)
+        if (seconds > 59) {
+          setValidationError('Sekunden max. 59')
+          setShakeOverlay(true)
+          setTimeout(() => setShakeOverlay(false), 400)
+          return
+        }
       }
       
       const parsedMs = parseLapTimeDigits(buffer)
       if (parsedMs === null) {
-        setValidationError('Ungültige Zeit (20s - 9:59)')
+        setValidationError('Ungültige Zeit (0:20 - 9:59.99, min. 3 Ziffern)')
         setShakeOverlay(true)
         setTimeout(() => setShakeOverlay(false), 400)
         return
@@ -245,8 +241,8 @@ export function PlacementEntryModal({
       if (isTimeEntryActive && /^[0-9]$/.test(e.key)) {
         e.preventDefault()
 
-        if (timeDigitBufferRef.current.length >= 3) {
-          setValidationError('Max. 3 Ziffern')
+        if (timeDigitBufferRef.current.length >= 5) {
+          setValidationError('Max. 5 Ziffern')
           setShakeOverlay(true)
           setTimeout(() => setShakeOverlay(false), 400)
           return
@@ -359,7 +355,7 @@ export function PlacementEntryModal({
           {getHeatName()}
         </h2>
         <p className={`font-ui text-steel/60 ${isMobile ? 'text-xs' : 'text-base'}`}>
-          Pilot anklicken für Platzierung, danach 3 Ziffern für Zeit eingeben
+          Pilot anklicken für Platzierung, danach 3-5 Ziffern für Zeit eingeben
         </p>
       </div>
 

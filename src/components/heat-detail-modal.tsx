@@ -34,8 +34,14 @@ export function HeatDetailModal({
   const msToDigits = (ms: number): string => {
     const minutes = Math.floor(ms / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
-    if (minutes === 0) return String(seconds)
-    return `${minutes}${String(seconds).padStart(2, '0')}`
+    const remainderMs = ms % 1000
+    const hundredths = Math.floor(remainderMs / 10)
+
+    const base = `${minutes}${String(seconds).padStart(2, '0')}`
+
+    if (hundredths === 0) return base
+    if (hundredths % 10 === 0) return `${base}${Math.floor(hundredths / 10)}`
+    return `${base}${hundredths.toString().padStart(2, '0')}`
   }
 
   const handleOpenTimeEdit = (pilotId: string, currentMs?: number) => {
@@ -141,7 +147,7 @@ export function HeatDetailModal({
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            maxLength={3}
+                            maxLength={5}
                             value={timeInputValue}
                             onChange={(e) => setTimeInputValue(e.target.value.replace(/\D/g, ''))}
                             onKeyDown={(e) => {
