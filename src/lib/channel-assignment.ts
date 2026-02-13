@@ -1,12 +1,12 @@
 import type { Pilot } from './schemas'
 
-type RacebandChannel = 1 | 3 | 4 | 6 | 8
+type RacebandChannel = 1 | 3 | 6 | 8
 
 export function getChannelsForHeat(pilotCount: number): number[] {
   if (pilotCount <= 0) return []
   if (pilotCount === 1) return [1]
-  if (pilotCount === 2) return [1, 8]
-  if (pilotCount === 3) return [1, 4, 8]
+  if (pilotCount === 2) return [1, 3]
+  if (pilotCount === 3) return [1, 3, 6]
   // default to 4-wide
   return [1, 3, 6, 8]
 }

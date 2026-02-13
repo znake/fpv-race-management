@@ -15,11 +15,11 @@ describe('getChannelsForHeat', () => {
   })
 
   it('should return correct channels for 3 pilots', () => {
-    expect(getChannelsForHeat(3)).toEqual([1, 4, 8])
+    expect(getChannelsForHeat(3)).toEqual([1, 3, 6])
   })
 
   it('should return correct channels for 2 pilots', () => {
-    expect(getChannelsForHeat(2)).toEqual([1, 8])
+    expect(getChannelsForHeat(2)).toEqual([1, 3])
   })
 
   it('should return correct channels for 1 pilot', () => {
@@ -41,8 +41,8 @@ describe('getChannelForPosition', () => {
 
   it('should return correct channels for 3 pilots positions', () => {
     expect(getChannelForPosition(0, 3)).toBe(1)
-    expect(getChannelForPosition(1, 3)).toBe(4)
-    expect(getChannelForPosition(2, 3)).toBe(8)
+    expect(getChannelForPosition(1, 3)).toBe(3)
+    expect(getChannelForPosition(2, 3)).toBe(6)
   })
 
   it('should throw for out-of-range positions', () => {
@@ -54,7 +54,7 @@ describe('getChannelForPosition', () => {
 describe('formatChannel', () => {
   it('should format channels as raceband strings', () => {
     expect(formatChannel(1)).toBe('R1')
-    expect(formatChannel(4)).toBe('R4')
+    expect(formatChannel(3)).toBe('R3')
     expect(formatChannel(8)).toBe('R8')
   })
 })
