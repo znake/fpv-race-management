@@ -163,63 +163,79 @@ export function getPilotRowClass(
 }
 
 /**
- * Format milliseconds as M:SS lap time string
+ * Format milliseconds as M:SS or M:SS.th lap time string
  * @param ms - Time in milliseconds
- * @returns Formatted string like "0:45" or "1:23"
+ * @returns Formatted string like "0:45", "1:23", "1:23.4", or "1:23.45"
  */
 export function formatLapTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  const remainderMs = ms % 1000
+
+  const base = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
+  if (remainderMs === 0) {
+    return base
+  }
+
+  const hundredths = Math.floor(remainderMs / 10)
+  if (hundredths % 10 === 0) {
+    return `${base}.${Math.floor(hundredths / 10)}`
+  }
+  return `${base}.${hundredths.toString().padStart(2, '0')}`
 }
 
 /**
- * Format partial digit input as M:SS preview for time entry overlay.
- * Examples: "" → "", "1" → "0:01", "12" → "0:12", "123" → "1:23"
+ * Format partial digit input as M:SS.th preview for time entry overlay.
+ * Always MSS format: "0" → "0:__", "04" → "0:4_", "045" → "0:45", "0456" → "0:45.6", "04567" → "0:45.67"
  */
 export function formatPartialTimeEntry(digits: string): string {
   if (!digits) return ''
   
-  const truncated = digits.slice(0, 3)
+  const truncated = digits.slice(0, 5)
   
   if (truncated.length === 1) {
-    return `0:0${truncated}`
+    return `${truncated}:__`
   } else if (truncated.length === 2) {
-    return `0:${truncated}`
-  } else {
+    return `${truncated[0]}:${truncated[1]}_`
+  } else if (truncated.length === 3) {
     return `${truncated[0]}:${truncated.slice(1)}`
+  } else if (truncated.length === 4) {
+    return `${truncated[0]}:${truncated.slice(1, 3)}.${truncated[3]}`
+  } else {
+    return `${truncated[0]}:${truncated.slice(1, 3)}.${truncated.slice(3, 5)}`
   }
 }
 
 /**
- * Parse digit string to milliseconds
- * @param digits - 2-3 digit string (SS or MSS format)
- * @returns Milliseconds or null if invalid/out of range
+ * Parse digit string (MSS, MSSt, MSSTh) to milliseconds.
+ * Always expects M as first digit, SS as next two, then optional t (tenth) and h (hundredth).
+ * Examples: "045" → 45000, "123" → 83000, "1234" → 83400, "12345" → 83450
+ * @returns Milliseconds or null if invalid/out of range (20s – 9:59.99)
  */
 export function parseLapTimeDigits(digits: string): number | null {
-  if (!/^\d{2,3}$/.test(digits)) {
+  if (!/^\d{3,5}$/.test(digits)) {
     return null
   }
 
-  let minutes = 0
-  let seconds = 0
+  const minutes = parseInt(digits[0], 10)
+  const seconds = parseInt(digits.slice(1, 3), 10)
+  let fractionalMs = 0
 
-  if (digits.length === 2) {
-    seconds = parseInt(digits, 10)
-  } else {
-    minutes = parseInt(digits[0], 10)
-    seconds = parseInt(digits.slice(1), 10)
+  if (digits.length === 4) {
+    fractionalMs = parseInt(digits[3], 10) * 100
+  } else if (digits.length === 5) {
+    fractionalMs = parseInt(digits.slice(3, 5), 10) * 10
   }
 
   if (seconds > 59) {
     return null
   }
 
-  const ms = (minutes * 60 + seconds) * 1000
+  const ms = (minutes * 60 + seconds) * 1000 + fractionalMs
 
-  // Validation: 20s to 9:59
-  if (ms < 20000 || ms > 599000) {
+  if (ms < 20000 || ms > 599990) {
     return null
   }
 
