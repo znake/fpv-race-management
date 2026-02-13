@@ -1,4 +1,5 @@
 import { getPilotBracketOrigin } from '@/lib/bracket-logic'
+import { formatChannel, getChannelForPosition } from '@/lib/channel-assignment'
 import { cn } from '@/lib/utils'
 import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
 import type { GrandFinaleHeatBoxProps } from '../types'
@@ -57,44 +58,48 @@ export function GrandFinaleHeatBox({
         const isChamp = rank === 1
         const rowClass = isChamp ? 'champ' : ''
 
+        const originalIndex = heat.pilotIds.indexOf(pilot.id)
+        const channel = getChannelForPosition(originalIndex, heat.pilotIds.length)
+
         return (
           <div 
             key={pilot.id} 
-            className={`pilot-row ${rowClass}`}
+            className="pilot-row-wrapper"
             onMouseEnter={() => onPilotHover?.(pilot.id)}
             onMouseLeave={() => onPilotHover?.(null)}
           >
-            {/* AC9: Pilot-Avatar */}
-            <img
-              id={`pilot-avatar-${pilot.id}-${heat.id}`}
-              className="pilot-avatar"
-              src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
-              alt={pilot.name}
-              style={{
-                borderColor: origin === 'wb' ? 'var(--winner-green)' : 'var(--loser-red)'
-              }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
-              }}
-            />
-
-            {/* AC10: Pilot-Name */}
-            <span className="pilot-name">
-              {isChamp ? <strong>{pilot.name}</strong> : pilot.name}
+            <span id={`channel-badge-${pilot.id}-${heat.id}`} className="channel-badge-outer">
+              {formatChannel(channel)}
             </span>
+            <div className={cn('pilot-row', rowClass, 'flex-1')}>
+              <img
+                id={`pilot-avatar-${pilot.id}-${heat.id}`}
+                className="pilot-avatar"
+                src={pilot.imageUrl || FALLBACK_PILOT_IMAGE}
+                alt={pilot.name}
+                style={{
+                  borderColor: origin === 'wb' ? 'var(--winner-green)' : 'var(--loser-red)'
+                }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = FALLBACK_PILOT_IMAGE
+                }}
+              />
 
-            {/* AC8: WB/LB Pilot-Tags */}
-            <span
-              data-testid={`pilot-tag-${pilot.id}`}
-              className={`pilot-tag ${origin}`}
-            >
-              {origin.toUpperCase()}
-            </span>
+              <span className="pilot-name">
+                {isChamp ? <strong>{pilot.name}</strong> : pilot.name}
+              </span>
 
-            {/* AC11: Rank-Badge */}
-            {rank && (
-              <span className={`rank-badge r${rank}`}>{rank}</span>
-            )}
+              <span
+                data-testid={`pilot-tag-${pilot.id}`}
+                className={`pilot-tag ${origin}`}
+              >
+                {origin.toUpperCase()}
+              </span>
+
+              {rank && (
+                <span className={`rank-badge r${rank}`}>{rank}</span>
+              )}
+            </div>
           </div>
         )
       })}
