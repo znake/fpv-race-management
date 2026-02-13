@@ -149,24 +149,70 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
     if (hasTriggeredConfetti.current) return
     hasTriggeredConfetti.current = true
     
-    const duration = 4000
+    const colors = ['#FFD700', '#C0C0C0', '#CD7F32', '#00CED1', '#FF69B4', '#9B59B6']
+    const duration = 6000
     const end = Date.now() + duration
+
+    // Initial big burst from center
+    confetti({
+      particleCount: 150,
+      spread: 360,
+      origin: { x: 0.5, y: 0.4 },
+      colors,
+      startVelocity: 45,
+      gravity: 0.8,
+      ticks: 300,
+      scalar: 1.2,
+    })
     
+    // Continuous stream from multiple origins across the screen
     const frame = () => {
+      // Left side
       confetti({
-        particleCount: 3,
+        particleCount: 4,
         angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.7 },
-        colors: ['#FFD700', '#C0C0C0', '#CD7F32', '#00CED1']
+        spread: 70,
+        origin: { x: 0, y: 0.5 },
+        colors,
+        startVelocity: 35,
+        gravity: 0.7,
+        ticks: 250,
       })
+      // Right side
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 70,
+        origin: { x: 1, y: 0.5 },
+        colors,
+        startVelocity: 35,
+        gravity: 0.7,
+        ticks: 250,
+      })
+      // Top center rain
       confetti({
         particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.7 },
-        colors: ['#FFD700', '#C0C0C0', '#CD7F32', '#00CED1']
+        angle: 270,
+        spread: 160,
+        origin: { x: 0.5, y: -0.1 },
+        colors,
+        startVelocity: 20,
+        gravity: 1.2,
+        ticks: 200,
       })
+      // Random bursts across screen
+      if (Math.random() < 0.3) {
+        confetti({
+          particleCount: 30,
+          spread: 100,
+          origin: { x: Math.random(), y: Math.random() * 0.5 },
+          colors,
+          startVelocity: 25,
+          gravity: 0.9,
+          ticks: 200,
+          scalar: 1.1,
+        })
+      }
       
       if (Date.now() < end) {
         requestAnimationFrame(frame)
