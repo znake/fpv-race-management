@@ -288,11 +288,12 @@ Mit dem **Toggle links unten** (oder Taste `P`) lassen sich die Flugwege aller P
 
 #### Channel-Anzeige & Optimierung
 
-Jeder Pilot im Heat erhält einen **Raceband-Channel** (R1, R3, R4, R6, R8) basierend auf seiner Position:
+Jeder Pilot im Heat erhält einen **Raceband-Channel** (R1, R3, R6, R8) basierend auf seiner Position:
 
 | Heat-Größe | Channels |
 |------------|----------|
-| 3 Piloten | R1, R4, R8 |
+| 2 Piloten | R1, R3 |
+| 3 Piloten | R1, R3, R6 |
 | 4 Piloten | R1, R3, R6, R8 |
 
 Die Channels werden als **Badges** direkt im Bracket angezeigt.
