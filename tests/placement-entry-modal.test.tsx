@@ -295,6 +295,7 @@ describe('PlacementEntryModal', () => {
 
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
+      fireEvent.keyDown(window, { key: '0' })
       fireEvent.keyDown(window, { key: '5' })
       fireEvent.keyDown(window, { key: '9' })
       fireEvent.keyDown(window, { key: 'Enter' })
@@ -322,6 +323,7 @@ describe('PlacementEntryModal', () => {
 
       fireEvent.click(screen.getByTestId(`pilot-card-${mockPilots[0].id}`))
 
+      fireEvent.keyDown(window, { key: '0' })
       fireEvent.keyDown(window, { key: '5' })
       fireEvent.keyDown(window, { key: '9' })
       fireEvent.keyDown(window, { key: 'Escape' })
@@ -453,10 +455,10 @@ describe('PlacementEntryModal', () => {
       fireEvent.keyDown(window, { key: '1' })
 
       expect(screen.getByTestId('time-entry-overlay')).not.toBeNull()
-      expect(screen.getByText('0:01')).not.toBeNull()
+      expect(screen.getByText('1:__')).not.toBeNull()
 
       fireEvent.keyDown(window, { key: '2' })
-      expect(screen.getByText('0:12')).not.toBeNull()
+      expect(screen.getByText('1:2_')).not.toBeNull()
 
       fireEvent.keyDown(window, { key: '3' })
       expect(screen.getByText('1:23')).not.toBeNull()
@@ -481,10 +483,10 @@ describe('PlacementEntryModal', () => {
       expect(screen.getByText('1:23')).not.toBeNull()
 
       fireEvent.keyDown(window, { key: 'Backspace' })
-      expect(screen.getByText('0:12')).not.toBeNull()
+      expect(screen.getByText('1:2_')).not.toBeNull()
 
       fireEvent.keyDown(window, { key: 'Backspace' })
-      expect(screen.getByText('0:01')).not.toBeNull()
+      expect(screen.getByText('1:__')).not.toBeNull()
 
       fireEvent.keyDown(window, { key: 'Backspace' })
       expect(screen.queryByTestId('time-entry-overlay')).toBeNull()
