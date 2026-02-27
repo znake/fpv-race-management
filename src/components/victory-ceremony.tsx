@@ -228,9 +228,29 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
       data-testid="victory-ceremony"
     >
       {/* Header */}
-      <h2 className={`font-display text-gold text-center tracking-wider ${isMobile ? 'text-2xl mb-4' : 'text-4xl mb-8'}`}>
+      <h2 className={`font-display text-gold text-center tracking-wider ${isMobile ? 'text-2xl mb-4' : 'text-4xl mb-6'}`}>
         SIEGEREHRUNG
       </h2>
+      
+      {/* Action Buttons */}
+      <div className={`flex justify-center ${isMobile ? 'mb-4 gap-2 flex-col items-center' : 'mb-8 gap-4'}`}>
+        {onExportCSV && (
+          <button
+            onClick={onExportCSV}
+            className={`bg-neon-cyan text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
+            data-testid="export-csv-button"
+          >
+            Export CSV
+          </button>
+        )}
+        <button
+          onClick={onNewTournament}
+          className={`btn-primary bg-neon-pink text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
+          data-testid="new-tournament-button"
+        >
+          Neues Turnier starten
+        </button>
+      </div>
       
       {/* Podium Layout */}
       <div className={`podium-grid flex flex-col items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
@@ -249,26 +269,6 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
         <div className="fourth-place">
           <PodiumCard pilot={top4.place4} place={4} isMobile={isMobile} />
         </div>
-      </div>
-      
-      {/* Action Buttons */}
-      <div className={`flex justify-center ${isMobile ? 'mt-6 gap-2 flex-col items-center' : 'mt-10 gap-4'}`}>
-        {onExportCSV && (
-          <button
-            onClick={onExportCSV}
-            className={`bg-neon-cyan text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
-            data-testid="export-csv-button"
-          >
-            Export CSV
-          </button>
-        )}
-        <button
-          onClick={onNewTournament}
-          className={`btn-primary bg-neon-pink text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
-          data-testid="new-tournament-button"
-        >
-          Neues Turnier starten
-        </button>
       </div>
     </section>
   )
