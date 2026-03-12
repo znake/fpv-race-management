@@ -635,7 +635,8 @@ export const useTournamentStore = create<TournamentState>()(
           heats: updatedHeats,
           winnerPool: newWinnerPool,
           loserPool: newLoserPool,
-          isQualificationComplete: newIsQualificationComplete
+          isQualificationComplete: newIsQualificationComplete,
+          pilots: updatedPilots
         })
 
         // Apply generated heats

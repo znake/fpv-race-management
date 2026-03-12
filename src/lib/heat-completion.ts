@@ -10,9 +10,10 @@
 
 import type { Heat } from '@/types'
 import type { TournamentPhase } from '@/types/tournament'
-import type { Ranking } from '@/lib/schemas'
+import type { Pilot, Ranking } from '@/lib/schemas'
 
 import { createLBHeatFromPool, isGrandFinaleBracketType } from './bracket-logic'
+import { optimizePilotOrder } from './channel-assignment'
 import { isTopRank } from './bracket-constants'
 
 /**
@@ -332,6 +333,7 @@ export interface HeatGenerationInput {
   winnerPool: Set<string>
   loserPool: Set<string>
   isQualificationComplete: boolean
+  pilots: Pilot[]
 }
 
 /**
@@ -361,7 +363,7 @@ export interface HeatGenerationResult {
  * @returns Generierte Heats und aktualisierte Pools
  */
 export function generateNextHeats(input: HeatGenerationInput): HeatGenerationResult {
-  const { heats, winnerPool, loserPool, isQualificationComplete } = input
+  const { heats, winnerPool, loserPool, isQualificationComplete, pilots } = input
 
   let updatedHeats = [...heats]
   const newWinnerPool = new Set(winnerPool)
@@ -573,36 +575,38 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
       
       // Generiere alle 4er-Heats
       for (let i = 0; i < fourPlayerHeats; i++) {
-        const pilots = poolArray.slice(cursor, cursor + 4)
+        const heatPilotIds = poolArray.slice(cursor, cursor + 4)
         cursor += 4
+        const optimizedIds = optimizePilotOrder(heatPilotIds, pilots)
         const wbHeat: Heat = {
           id: `${HEAT_ID_PREFIXES.WB_HEAT}${crypto.randomUUID()}`,
           heatNumber: updatedHeats.length + 1,
-          pilotIds: pilots,
+          pilotIds: optimizedIds,
           status: 'pending',
           bracketType: 'winner',
           roundNumber: wbRoundNumber
         }
         updatedHeats = [...updatedHeats, wbHeat]
         generatedHeats.push(wbHeat)
-        pilots.forEach(p => newWinnerPool.delete(p))
+        heatPilotIds.forEach(p => newWinnerPool.delete(p))
       }
       
       // Generiere alle 3er-Heats
       for (let i = 0; i < threePlayerHeats; i++) {
-        const pilots = poolArray.slice(cursor, cursor + 3)
+        const heatPilotIds = poolArray.slice(cursor, cursor + 3)
         cursor += 3
+        const optimizedIds = optimizePilotOrder(heatPilotIds, pilots)
         const wbHeat: Heat = {
           id: `${HEAT_ID_PREFIXES.WB_HEAT}${crypto.randomUUID()}`,
           heatNumber: updatedHeats.length + 1,
-          pilotIds: pilots,
+          pilotIds: optimizedIds,
           status: 'pending',
           bracketType: 'winner',
           roundNumber: wbRoundNumber
         }
         updatedHeats = [...updatedHeats, wbHeat]
         generatedHeats.push(wbHeat)
-        pilots.forEach(p => newWinnerPool.delete(p))
+        heatPilotIds.forEach(p => newWinnerPool.delete(p))
       }
     }
   }
@@ -638,11 +642,12 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   if (updatedCanGenerateWBFinale) {
     // Generate WB Finale (genau 3 pilots - Top 2 kommen weiter)
     const wbRoundNumber = getCurrentRound('winner')
-    const pilots = Array.from(newWinnerPool)
+    const finalePilotIds = Array.from(newWinnerPool)
+    const optimizedFinaleIds = optimizePilotOrder(finalePilotIds, pilots)
     const wbFinale: Heat = {
       id: `${HEAT_ID_PREFIXES.WB_FINALE}${crypto.randomUUID()}`,
       heatNumber: updatedHeats.length + 1,
-      pilotIds: pilots,
+      pilotIds: optimizedFinaleIds,
       status: 'pending',
       bracketType: 'winner',
       isFinale: true,
@@ -655,8 +660,8 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   } else if (updatedCanDirectQualifyWB) {
     // Direct Qualify: 2 Piloten → beide direkt als WB-Finalisten markieren
     // Kein Heat nötig - beide kommen ins Grand Finale
-    const pilots = Array.from(newWinnerPool)
-    pilots.forEach((pilotId) => {
+    const directQualifyPilots = Array.from(newWinnerPool)
+    directQualifyPilots.forEach((pilotId) => {
       pilotBracketStateUpdates[pilotId] = {
         bracket: 'grand_finale',
         roundReached: 0,
@@ -731,36 +736,38 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
       
       // Generiere alle 4er-Heats
       for (let i = 0; i < fourPlayerHeats; i++) {
-        const pilots = poolArray.slice(cursor, cursor + 4)
+        const heatPilotIds = poolArray.slice(cursor, cursor + 4)
         cursor += 4
+        const optimizedIds = optimizePilotOrder(heatPilotIds, pilots)
         const lbHeat: Heat = {
           id: `${HEAT_ID_PREFIXES.LB_HEAT}${crypto.randomUUID()}`,
           heatNumber: updatedHeats.length + 1,
-          pilotIds: pilots,
+          pilotIds: optimizedIds,
           status: 'pending',
           bracketType: 'loser',
           roundNumber: lbRoundNumber
         }
         updatedHeats = [...updatedHeats, lbHeat]
         generatedHeats.push(lbHeat)
-        pilots.forEach(p => newLoserPool.delete(p))
+        heatPilotIds.forEach(p => newLoserPool.delete(p))
       }
       
       // Generiere alle 3er-Heats
       for (let i = 0; i < threePlayerHeats; i++) {
-        const pilots = poolArray.slice(cursor, cursor + 3)
+        const heatPilotIds = poolArray.slice(cursor, cursor + 3)
         cursor += 3
+        const optimizedIds = optimizePilotOrder(heatPilotIds, pilots)
         const lbHeat: Heat = {
           id: `${HEAT_ID_PREFIXES.LB_HEAT}${crypto.randomUUID()}`,
           heatNumber: updatedHeats.length + 1,
-          pilotIds: pilots,
+          pilotIds: optimizedIds,
           status: 'pending',
           bracketType: 'loser',
           roundNumber: lbRoundNumber
         }
         updatedHeats = [...updatedHeats, lbHeat]
         generatedHeats.push(lbHeat)
-        pilots.forEach(p => newLoserPool.delete(p))
+        heatPilotIds.forEach(p => newLoserPool.delete(p))
       }
     }
   }
@@ -781,11 +788,12 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   if (canGenerateLBFinale) {
     // LB Finale (3-4 pilots - Top 2 kommen weiter ins Grand Finale)
     const lbRoundNumber = getCurrentRound('loser')
-    const pilots = Array.from(newLoserPool)
+    const finalePilotIds = Array.from(newLoserPool)
+    const optimizedFinaleIds = optimizePilotOrder(finalePilotIds, pilots)
     const lbFinale: Heat = {
       id: `${HEAT_ID_PREFIXES.LB_FINALE}${crypto.randomUUID()}`,
       heatNumber: updatedHeats.length + 1,
-      pilotIds: pilots,
+      pilotIds: optimizedFinaleIds,
       status: 'pending',
       bracketType: 'loser',
       isFinale: true,
@@ -800,8 +808,8 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
              updatedLbNoActiveHeats) {
     // LB Direct Qualify: 2 Piloten → beide direkt als LB-Finalisten markieren
     // Kein Heat nötig - beide kommen ins Grand Finale
-    const pilots = Array.from(newLoserPool)
-    pilots.forEach((pilotId) => {
+    const directQualifyLBPilots = Array.from(newLoserPool)
+    directQualifyLBPilots.forEach((pilotId) => {
       pilotBracketStateUpdates[pilotId] = {
         bracket: 'grand_finale',
         roundReached: 0,
@@ -867,10 +875,12 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
         pilotBracketStateUpdates[lbFinalists[1]] = { bracket: 'grand_finale', roundReached: 0, bracketOrigin: 'lb' }
       }
 
+      const gfPilotIds = [wbFinalists[0], wbFinalists[1], lbFinalists[0], lbFinalists[1]]
+      const optimizedGfIds = optimizePilotOrder(gfPilotIds, pilots)
       const grandFinale: Heat = {
         id: `${HEAT_ID_PREFIXES.GRAND_FINALE}${crypto.randomUUID()}`,
         heatNumber: updatedHeats.length + 1,
-        pilotIds: [wbFinalists[0], wbFinalists[1], lbFinalists[0], lbFinalists[1]],  // 4 Piloten!
+        pilotIds: optimizedGfIds,  // 4 Piloten!
         status: 'pending',
         bracketType: 'grand_finale',
         isFinale: true,
