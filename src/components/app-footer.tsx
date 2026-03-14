@@ -64,7 +64,7 @@ export function AppFooter({
 
       <div className={`flex justify-between items-center ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
         {/* Left side: Reset button (only shown during active tournament) */}
-        <div className="flex-1">
+        <div className="flex-1" id="footer-left-slot">
           {showResetButton && onResetTournament && (
             <button
               onClick={onResetTournament}

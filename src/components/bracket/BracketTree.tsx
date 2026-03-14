@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useTournamentStore } from '@/stores/tournamentStore'
 import type { Pilot, Heat, TournamentPhase } from '@/types'
 import { HeatDetailModal } from '../heat-detail-modal'
@@ -22,6 +23,7 @@ import { PilotPathToggle } from './PilotPathToggle'
 
 import { QualiSection } from './sections/QualiSection'
 import { BracketSection } from './sections/BracketSection'
+import { exportBracketHTML } from '@/lib/export-bracket-html'
 
 interface BracketTreeProps {
   pilots: Pilot[]
@@ -29,6 +31,7 @@ interface BracketTreeProps {
   onSubmitResults: (heatId: string, rankings: { pilotId: string; rank: 1 | 2 | 3 | 4 }[]) => void
   onNewTournament?: () => void
   onExportCSV?: () => void
+  onExportJSON?: () => void
 }
 
 /**
@@ -54,7 +57,8 @@ export function BracketTree({
   tournamentPhase,
   onSubmitResults,
   onNewTournament,
-  onExportCSV
+  onExportCSV,
+  onExportJSON
 }: BracketTreeProps) {
   const heats = useTournamentStore(state => state.heats || [])
   const showPilotPaths = useTournamentStore(state => state.showPilotPaths)
@@ -64,6 +68,7 @@ export function BracketTree({
   const canEditHeat = useTournamentStore(state => state.canEditHeat)
 
   const [hoveredPilotId, setHoveredPilotId] = useState<string | null>(null)
+  const [showCeremonyModal, setShowCeremonyModal] = useState(tournamentPhase === 'completed')
 
   // US-14.8: Zoom & Pan Hook
   const {
@@ -212,6 +217,25 @@ export function BracketTree({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedHeat, placementHeat, togglePilotPaths, handleFitToViewToggle])
 
+  const handleExportBracketHTML = useCallback(() => {
+    const hadPilotPaths = showPilotPaths
+
+    if (!hadPilotPaths) {
+      togglePilotPaths()
+    }
+
+    setTimeout(() => {
+      const container = document.getElementById('bracket-container')
+      if (container) {
+        exportBracketHTML(container)
+      }
+
+      if (!hadPilotPaths) {
+        togglePilotPaths()
+      }
+    }, 800)
+  }, [showPilotPaths, togglePilotPaths])
+
   const handleHeatClick = (heatId: string) => {
     const heat = heats.find(h => h.id === heatId)
     if (heat?.status === 'active') {
@@ -307,9 +331,8 @@ export function BracketTree({
    * 2. WB + LB side-by-side (bracket-columns-wrapper)
    * 3. Grand Finale unten (mittig)
    * 
-   * @param disableConnectors - If true, skip SVG connector line updates (used during victory ceremony)
    */
-  const renderBracketColumnsWrapper = (disableConnectors = false) => (
+  const renderBracketColumnsWrapper = () => (
     <div
       ref={zoomWrapperRef}
       className={cn(
@@ -347,7 +370,6 @@ export function BracketTree({
           translateX={zoomState.translateX}
           translateY={zoomState.translateY}
           isAnimating={isAnimating}
-          disabled={disableConnectors}
         />
 
         {/* Pilot Path Visualization Layer */}
@@ -358,7 +380,7 @@ export function BracketTree({
           scale={zoomState.scale}
           translateX={zoomState.translateX}
           translateY={zoomState.translateY}
-          visible={showPilotPaths && !disableConnectors && !isTransforming}
+          visible={showPilotPaths && !isTransforming}
           hoveredPilotId={hoveredPilotId}
           onPilotHover={setHoveredPilotId}
         />
@@ -418,19 +440,6 @@ export function BracketTree({
     </div>
   )
 
-  // Tournament Completed State - Show Victory Ceremony
-  if (tournamentPhase === 'completed' && top4 && onNewTournament) {
-    return (
-      <div className="bracket-container victory-mode">
-        <VictoryCeremony
-          top4={top4}
-          onNewTournament={onNewTournament}
-          onExportCSV={onExportCSV}
-        />
-      </div>
-    )
-  }
-
   return (
     <div className="bracket-container">
       {/* Unified Canvas: Quali + WB/LB + Grand Finale - alles zoombar/panbar */}
@@ -474,6 +483,52 @@ export function BracketTree({
             setTimeout(() => centerOnActiveHeatWithRetry(), 100)
           }}
         />
+      )}
+
+      {tournamentPhase === 'completed' && top4 && onNewTournament && showCeremonyModal && (
+        <div
+          className="fixed inset-0 bg-void/80 flex items-center justify-center z-50 overflow-y-auto py-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Siegerehrung"
+          onClick={() => setShowCeremonyModal(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setShowCeremonyModal(false) }}
+          data-testid="victory-ceremony-overlay"
+        >
+          <div role="presentation" className="my-auto" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+            <VictoryCeremony
+              top4={top4}
+              onNewTournament={onNewTournament}
+              onExportCSV={onExportCSV}
+              onExportJSON={onExportJSON}
+              onExportBracketHTML={handleExportBracketHTML}
+              onShowBracket={() => setShowCeremonyModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {tournamentPhase === 'completed' && !showCeremonyModal && document.getElementById('footer-left-slot') && createPortal(
+        <div className="flex gap-3 items-center">
+          <button
+            type="button"
+            onClick={() => setShowCeremonyModal(true)}
+            className="text-gold hover:text-gold/80 transition-colors text-xs sm:text-sm font-ui"
+            data-testid="show-ceremony-button"
+          >
+            Siegerehrung
+          </button>
+          <span className="text-steel/30">|</span>
+          <button
+            type="button"
+            onClick={handleExportBracketHTML}
+            className="text-gold hover:text-gold/80 transition-colors text-xs sm:text-sm font-ui"
+            data-testid="export-bracket-html-review-button"
+          >
+            Turnierbaum exportieren
+          </button>
+        </div>,
+        document.getElementById('footer-left-slot')!
       )}
     </div>
   )

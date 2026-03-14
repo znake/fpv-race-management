@@ -22,6 +22,9 @@ interface VictoryCeremonyProps {
   top4: Top4Pilots
   onNewTournament: () => void
   onExportCSV?: () => void
+  onExportJSON?: () => void
+  onShowBracket?: () => void
+  onExportBracketHTML?: () => void
 }
 
 /**
@@ -141,7 +144,7 @@ function PodiumCard({
  *   [2. PLATZ]  [3. PLATZ]  (left, right)
  *        [4. PLATZ]      (center, bottom, smallest)
  */
-export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryCeremonyProps) {
+export function VictoryCeremony({ top4, onNewTournament, onExportCSV, onExportJSON, onShowBracket, onExportBracketHTML }: VictoryCeremonyProps) {
   const isMobile = useIsMobile()
   const hasTriggeredConfetti = useRef(false)
   
@@ -232,26 +235,6 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
         SIEGEREHRUNG
       </h2>
       
-      {/* Action Buttons */}
-      <div className={`flex justify-center ${isMobile ? 'mb-4 gap-2 flex-col items-center' : 'mb-8 gap-4'}`}>
-        {onExportCSV && (
-          <button
-            onClick={onExportCSV}
-            className={`bg-neon-cyan text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
-            data-testid="export-csv-button"
-          >
-            Export CSV
-          </button>
-        )}
-        <button
-          onClick={onNewTournament}
-          className={`btn-primary bg-neon-pink text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
-          data-testid="new-tournament-button"
-        >
-          Neues Turnier starten
-        </button>
-      </div>
-      
       {/* Podium Layout */}
       <div className={`podium-grid flex flex-col items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
         {/* First Place - Top Center */}
@@ -269,6 +252,65 @@ export function VictoryCeremony({ top4, onNewTournament, onExportCSV }: VictoryC
         <div className="fourth-place">
           <PodiumCard pilot={top4.place4} place={4} isMobile={isMobile} />
         </div>
+      </div>
+
+      {/* Primary Actions */}
+      <div className={`flex justify-center ${isMobile ? 'mt-4 gap-2 flex-col items-center' : 'mt-8 gap-4'}`}>
+        {onShowBracket && (
+          <button
+            type="button"
+            onClick={onShowBracket}
+            className={`bg-night border-2 border-neon-cyan text-neon-cyan font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
+            data-testid="show-bracket-button"
+          >
+            Schließen
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onNewTournament}
+          className={`btn-primary bg-neon-pink text-void font-ui rounded-xl hover:scale-105 transition-transform ${isMobile ? 'text-sm px-4 py-2' : 'text-lg px-8 py-4'}`}
+          data-testid="new-tournament-button"
+        >
+          Neues Turnier starten
+        </button>
+      </div>
+
+      {/* Secondary Actions (export buttons) */}
+      <div className={`flex justify-center items-center ${isMobile ? 'mt-3 gap-2 flex-wrap' : 'mt-4 gap-3'}`}>
+        {onExportBracketHTML && (
+          <button
+            type="button"
+            onClick={onExportBracketHTML}
+            className={`text-steel hover:text-gold transition-colors font-ui ${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1.5'}`}
+            data-testid="export-bracket-html-button"
+          >
+            Turnierbaum exportieren
+          </button>
+        )}
+        {(onExportBracketHTML && (onExportCSV || onExportJSON)) && (
+          <span className="text-steel/30">|</span>
+        )}
+        {onExportCSV && (
+          <button
+            type="button"
+            onClick={onExportCSV}
+            className={`text-steel hover:text-neon-cyan transition-colors font-ui ${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1.5'}`}
+            data-testid="export-csv-button"
+          >
+            Export CSV
+          </button>
+        )}
+        {onExportJSON && (
+          <button
+            type="button"
+            onClick={onExportJSON}
+            className={`text-steel hover:text-neon-cyan transition-colors font-ui ${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1.5'}`}
+            data-testid="export-json-button"
+          >
+            Export JSON
+          </button>
+        )}
       </div>
     </section>
   )

@@ -267,6 +267,7 @@ export function App() {
               onSubmitResults={submitHeatResults}
               onNewTournament={handleNewTournament}
               onExportCSV={handleExportCSV}
+              onExportJSON={handleExportJSON}
             />
           </div>
         )
