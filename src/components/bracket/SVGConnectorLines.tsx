@@ -209,18 +209,30 @@ export function SVGConnectorLines({
         targetHeats = [wbFinale]
       }
       
-      // Map sources to targets (2 sources -> 1 target)
-      for (let j = 0; j < targetHeats.length; j++) {
-        const targetHeat = targetHeats[j]
-        const sourceHeats = heatsInCurrentRound.slice(j * 2, j * 2 + 2)
-        
-        if (sourceHeats.length > 0) {
-            const sourceIds = sourceHeats.map(h => h.id)
-            if (sourceIds.length > 1) {
-                manager.addMergeConnection(sourceIds, targetHeat.id, 'wb')
-            } else {
-                manager.addConnection(sourceIds[0], targetHeat.id, 'wb')
-            }
+      // Trace actual pilot flow: connect source → target when pilots advanced between them
+      for (const targetHeat of targetHeats) {
+        const targetPilotSet = new Set(targetHeat.pilotIds)
+        const sourceIds: string[] = []
+
+        for (const sourceHeat of heatsInCurrentRound) {
+          if (sourceHeat.pilotIds.some(pid => targetPilotSet.has(pid))) {
+            sourceIds.push(sourceHeat.id)
+          }
+        }
+
+        // Positional fallback for pending heats without pilots yet
+        if (sourceIds.length === 0) {
+          const targetIndex = targetHeats.indexOf(targetHeat)
+          const positionalSources = heatsInCurrentRound.slice(targetIndex * 2, targetIndex * 2 + 2)
+          for (const h of positionalSources) {
+            sourceIds.push(h.id)
+          }
+        }
+
+        if (sourceIds.length > 1) {
+          manager.addMergeConnection(sourceIds, targetHeat.id, 'wb')
+        } else if (sourceIds.length === 1) {
+          manager.addConnection(sourceIds[0], targetHeat.id, 'wb')
         }
       }
     }
