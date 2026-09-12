@@ -50,37 +50,3 @@ export function useIsMobile(): boolean {
 
   return isMobile
 }
-
-/**
- * useIsPortrait Hook
- * 
- * Returns true if the viewport is in portrait orientation (height > width).
- * Useful for detecting vertical 9:16 style views.
- * 
- * @returns boolean indicating if the viewport is in portrait mode
- */
-export function useIsPortrait(): boolean {
-  const [isPortrait, setIsPortrait] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) {
-      return
-    }
-
-    const mediaQuery = window.matchMedia('(orientation: portrait)')
-    
-    setIsPortrait(mediaQuery.matches)
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsPortrait(e.matches)
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange)
-    }
-  }, [])
-
-  return isPortrait
-}

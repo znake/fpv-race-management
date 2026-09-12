@@ -46,10 +46,3 @@ export const RANKING_THRESHOLDS = {
 export function isTopRank(rank: number): boolean {
   return RANKING_THRESHOLDS.TOP_RANKS.includes(rank as 1 | 2)
 }
-
-/**
- * Type helper: Prüft ob ein Rang ein Bottom-Rang ist
- */
-export function isBottomRank(rank: number): boolean {
-  return RANKING_THRESHOLDS.BOTTOM_RANKS.includes(rank as 3 | 4)
-}

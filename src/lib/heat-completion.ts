@@ -900,13 +900,3 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
     pilotBracketStateUpdates
   }
 }
-
-/**
- * Appends generated heats to the current heats array
- * Helper für Konsistenz mit bestehender Logik
- */
-export function appendGeneratedHeats(heats: Heat[], newHeats: Heat[]): Heat[] {
-  return [...heats, ...newHeats]
-}
-
-

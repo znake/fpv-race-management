@@ -76,14 +76,6 @@ export function calculateLBColumnWidth(maxHeatsInRound: number): number {
 }
 
 /**
- * US-14.4 AC6: Calculate heat width based on pilot count
- * 3-pilot heats use 120px, 4-pilot heats use 140px
- */
-export function calculateHeatWidth(pilotCount: number): number {
-  return pilotCount === 3 ? BRACKET_CONSTANTS.HEAT_WIDTH_3 : BRACKET_CONSTANTS.HEAT_WIDTH
-}
-
-/**
  * US-14.10: Calculate quali width with 3-pilot heat support
  */
 function calculateQualiWidth(pilotCount: number): number {

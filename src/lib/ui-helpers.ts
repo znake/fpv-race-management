@@ -80,24 +80,6 @@ export function sortPilotsByRank(
 }
 
 /**
- * Get pilot rank from heat results (Story 4.4 - Task 1)
- *
- * @param pilotId - Pilot ID to get rank for
- * @param heat - Heat object with results
- * @returns Pilot rank (1-4) or undefined if not ranked
- */
-export function getPilotRank(
-  pilotId: string,
-  heat: { results?: { rankings: Ranking[] } }
-): number | undefined {
-  if (!heat.results || !heat.results.rankings) {
-    return undefined
-  }
-  const ranking = heat.results.rankings.find(r => r.pilotId === pilotId)
-  return ranking?.rank
-}
-
-/**
  * Get consistent border styling for heat cards based on status
  *
  * @param status - Heat status ('pending' | 'active' | 'completed')
