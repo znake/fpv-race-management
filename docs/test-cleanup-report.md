@@ -1,89 +1,75 @@
-# Test Cleanup Report
+# Bericht zur Testbereinigung
 
 **Projekt:** FPV Racing Heats Manager
+**Stand:** 2026-09-12
+**Scope:** `tests/`
 
-**Stand:** 2026-02-06
+## Aktueller Stand
 
-**Scope:** `tests/` (Vitest)
+Die Testsuite umfasst 22 Testdateien und 319 Tests. Alle Tests sind grün und laufen in etwa 1,8 bis 2,2 Sekunden. Es gibt keine `.only`-, `.skip`- oder `.todo`-Markierungen.
 
----
+In diesem Durchgang fand keine Testkonsolidierung statt. Keine Testdatei wurde gelöscht oder geändert. Entfernt wurden ausschließlich acht nicht verwendete CSV-Fixtures.
 
-## Zusammenfassung
+## Entfernte CSV-Fixtures
 
-Es wurden keine `skip`/`todo`-Tests gefunden, aber es gibt Debug-Ausgaben und potenziell redundante Testgruppen (insb. Pilot-Path-Features), die reduziert werden können. Ziel: stabilere, schnellere Test-Suite mit weniger UI-Detailtests.
+Folgende Dateien hatten keine Code-Referenzen und wurden entfernt:
 
----
+- `tests/fixtures/beispiel-piloten.csv`
+- `tests/fixtures/testpiloten-8.csv`
+- `tests/fixtures/testpiloten-9.csv`
+- `tests/fixtures/testpiloten-10.csv`
+- `tests/fixtures/testpiloten-15.csv`
+- `tests/fixtures/testpiloten-16.csv`
+- `tests/fixtures/testpiloten-27.csv`
+- `tests/fixtures/testpiloten-32.csv`
 
-## 1) Debug/Noise in Tests
+Das Verzeichnis `tests/fixtures/` ist dadurch leer und wurde entfernt.
 
-### `tests/lb-synchronization-32-pilots.test.ts`
+## Bereits nicht mehr vorhandene Testdateien
 
-- Enthält zahlreiche `console.log`-Ausgaben (Debugging).
-- Enthält ein TODO und eine auskommentierte Assertion:
-  - `// TODO: Fix LB Finale marking - for now skip this assertion`
+Die folgenden Dateien aus dem alten Bericht existieren nicht mehr und sind daher keine offenen Bereinigungsvorschläge:
 
-**Empfehlung:**
-- Debug-Logs entfernen oder hinter einen Test-Flag stellen.
-- TODO klären: Assertion wieder aktivieren (Bug fix) oder den Test in ein stabileres Ziel umschreiben.
+- `pilot-path-toggle.test.ts`
+- `pilot-path-toggle-ui.test.tsx`
+- `pilot-path-rendering.test.tsx`
+- `pilot-path-hover.test.tsx`
+- `pilot-avatar-ids.test.tsx`
 
----
+Die früher erwähnten Hinweise zu einem TODO und `console.log`-Ausgaben in `lb-synchronization-32-pilots.test.ts` sind für den aktuellen Stand nicht mehr zutreffend und werden nicht als offene Aufgaben wiederholt.
 
-## 2) Redundante Testgruppen (Pilot Paths)
+## Aktuelle Testdateien
 
-### Betroffene Tests
+- `app-footer.test.tsx`
+- `channel-assignment.test.ts`
+- `csv-import.test.tsx`
+- `eight-pilots-flow.test.ts`
+- `export-bracket-html.test.ts`
+- `export-import.test.ts`
+- `finale-ceremony.test.tsx`
+- `grand-finale-4-piloten.test.ts`
+- `heat-assignment.test.ts`
+- `heat-completion.test.ts`
+- `heat-results.test.tsx`
+- `lap-time-formatting.test.ts`
+- `lb-heat-generation.test.ts`
+- `lb-synchronization-32-pilots.test.ts`
+- `loser-pool.test.ts`
+- `pilot-card.test.tsx`
+- `pilot-path-calculation.test.ts`
+- `pilot-path-integration.test.tsx`
+- `placement-entry-modal.test.tsx`
+- `reset-functions.test.ts`
+- `round-progression.test.ts`
+- `tournament-start.test.tsx`
 
-- `pilot-path-toggle.test.ts` (Store-State Toggle)
-- `pilot-path-toggle-ui.test.tsx` (UI-Classes/Attribute)
-- `pilot-path-integration.test.tsx` (BracketTree + Toggle + SVGPilotPaths)
-- `pilot-path-rendering.test.tsx` (DOM-Geometry + SVG Rendering)
-- `pilot-path-hover.test.tsx` (Hover/Timers/Debounce)
-- `pilot-path-calculation.test.ts` (Pure Logic: calculate/assign/isEliminated)
+## Verifikation
 
-**Beobachtung:**
-- Mehrere Tests prüfen ähnliche Dinge (Toggle/Visibility/Presence).
-- Rendering-/Hover-Tests sind stark DOM- und Timer-basiert → potenziell brittle & langsam.
+Die vollständige Testsuite wurde vor und nach der Bereinigung ausgeführt. Zusätzlich wurden `npm run build`, `npm run lint` und manuelle Referenzprüfungen mit `git grep -w` über `src/` und `tests/` ausgeführt.
 
-**Empfohlene Konsolidierung:**
-- **Behalten (High-Value):** `pilot-path-calculation.test.ts` (Pure Logic)
-- **Behalten (1 Integrationstest):** `pilot-path-integration.test.tsx` (Visibility/Toggle-Integration)
-- **Optional entfernen:**
-  - `pilot-path-toggle-ui.test.tsx`
-  - `pilot-path-rendering.test.tsx`
-  - `pilot-path-hover.test.tsx`
-  - ggf. `pilot-path-toggle.test.ts` (wenn Integrationstest reicht)
+Der Build endete mit Exit-Code 0. Der Lint-Status war bereits vor der Bereinigung rot: 48 Probleme, davon 37 Fehler und 11 Warnungen. Danach waren es 46 Probleme, davon 36 Fehler und 10 Warnungen. Es wurden keine neuen Probleme eingeführt.
 
----
+## Follow-up
 
-## 3) Low-Value UI-Detailtests
+Ein eigener Unit-Test für `src/lib/bracket-logic.ts`, den Kernalgorithmus, ist weiterhin nur transitiv abgedeckt. Ein solcher Test ist ein Kandidat für eine spätere, separate Arbeit.
 
-### `tests/pilot-avatar-ids.test.tsx`
-
-- Testet ausschließlich DOM-ID-Format für Avatare.
-- Niedriger Nutzen, außer es gab konkrete Bugs zu ID-Kollisionen.
-
-**Empfehlung:**
-- Entfernen oder durch eine einfache Snapshot/Integration ersetzen, falls nötig.
-
----
-
-## 4) Safe-Removal Checkliste (vor dem Löschen)
-
-1. **Historie prüfen:** Gab es Bugs zu genau diesem Verhalten?
-2. **Redundanz sicherstellen:** Gibt es mind. einen Test, der das Feature weiterhin abdeckt?
-3. **CI-Run:** `npm test` nach Entfernen laufen lassen.
-
----
-
-## Vorschlag für ein schlankes Ziel-Set
-
-- **Core Logic**: `heat-completion.test.ts`, `heat-assignment.test.ts`, `round-progression.test.ts`, `loser-pool.test.ts`, `lb-heat-generation.test.ts`, `channel-assignment.test.ts`, `export-import.test.ts`
-- **Core UI Flows**: `csv-import.test.tsx`, `placement-entry-modal.test.tsx`, `heat-results.test.tsx`, `app-footer.test.tsx`, `finale-ceremony.test.tsx`
-- **Pilot Paths**: `pilot-path-calculation.test.ts` + `pilot-path-integration.test.tsx`
-
----
-
-## Nächste Schritte
-
-1. Entfernen der Debug-Logs + TODO in `lb-synchronization-32-pilots.test.ts` klären.
-2. Pilot-Path Tests auf 1–2 repräsentative Tests reduzieren.
-3. Optional `pilot-avatar-ids.test.tsx` entfernen, wenn kein Bug-Hintergrund existiert.
+Weitere Testkonsolidierung war ausdrücklich nicht Teil dieses Durchgangs. Es wurden keine Abhängigkeiten oder Konfigurationen geändert.
