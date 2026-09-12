@@ -25,40 +25,6 @@ export const pilotSchema = z.object({
 export type PilotInput = z.infer<typeof pilotSchema>
 
 /**
- * CSV Import Schema with Unicode normalization
- */
-export const csvImportSchema = z.object({
-  name: z.string()
-    .min(3, 'Name muss mindestens 3 Zeichen haben')
-    .max(50, 'Name darf maximal 50 Zeichen haben')
-    .transform(val => val.normalize('NFC').trim()),
-  imageUrl: z.string()
-    .optional()
-    .transform(val => {
-      if (!val || val.trim() === '') return ''
-      return val.trim()
-    })
-    .refine(val => !val || val === '' || /^https?:\/\/.+/.test(val), 'Ungültige Bild-URL'),
-  instagramHandle: z.string()
-    .optional()
-    .transform(val => {
-      if (!val || val.trim() === '') return undefined
-      const trimmed = val.trim()
-      // Add @ if missing
-      return trimmed.startsWith('@') ? trimmed : `@${trimmed}`
-    })
-})
-
-export type CSVImportInput = z.infer<typeof csvImportSchema>
-
-/**
- * Validate CSV row with Zod schema
- */
-export function validateCSVRow(row: { name: string; imageUrl: string }) {
-  return csvImportSchema.safeParse(row)
-}
-
-/**
  * Valid rank positions in a heat (1st to 4th place)
  */
 export type RankPosition = 1 | 2 | 3 | 4
