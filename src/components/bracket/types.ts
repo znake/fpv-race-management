@@ -16,37 +16,6 @@ export interface BracketHeatBoxProps {
   onPilotHover?: (pilotId: string | null) => void
 }
 
-// Phase 4: EmptyBracketHeatBoxProps - vereinfacht ohne BracketHeat dependency
-export interface EmptyBracketHeatBoxProps {
-  bracketHeat: {
-    id: string
-    heatNumber: number
-    pilotIds: string[]
-    status: string
-    roundNumber?: number
-    bracketType?: BracketType
-    sourceHeats?: string[]
-    position?: { x: number; y: number }
-  }
-  bracketType: BracketType
-  displayHeatNumber?: number
-}
-
-// Phase 4: FilledBracketHeatBoxProps - vereinfacht
-export interface FilledBracketHeatBoxProps {
-  bracketHeat: {
-    id: string
-    heatNumber: number
-    pilotIds: string[]
-    status: string
-  }
-  pilots: Pilot[]
-  bracketType: BracketType
-  onClick?: () => void
-  displayHeatNumber?: number
-  actualHeat?: Heat
-}
-
 // GrandFinaleSectionProps - now using CSS-based centering
 export interface GrandFinaleSectionProps {
   grandFinaleHeat: Heat | null

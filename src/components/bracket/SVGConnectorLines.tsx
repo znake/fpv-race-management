@@ -3,14 +3,6 @@ import type { Heat } from '@/types'
 import { groupHeatsByRound } from '@/lib/bracket-utils'
 import { ConnectorManager } from '@/lib/svg-connector-manager'
 
-// Legacy Exports für Tests
-export interface ConnectorLine {
-  id: string
-  sourceHeatId: string
-  targetHeatId: string
-  bracketType: 'wb' | 'lb' | 'gf'
-}
-
 /**
  * Find WB Finale: either marked with isFinale, or the single heat in the highest round
  */
@@ -45,50 +37,6 @@ function findLBFinale(heats: Heat[]): Heat | undefined {
     }
   }
   return lbFinale
-}
-
-/**
- * Legacy-Funktion für Rückwärtskompatibilität und Tests
- */
-export function getHeatConnections(heats: Heat[]): ConnectorLine[] {
-  const connections: ConnectorLine[] = []
-  
-  const wbFinale = findWBFinale(heats)
-  const grandFinale = heats.find(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
-  const lbFinale = findLBFinale(heats)
-  
-  const wbHeats = heats.filter(h => h.bracketType === 'winner' && h.id !== wbFinale?.id && h.status === 'completed')
-  
-  if (wbFinale) {
-    wbHeats.forEach((heat) => {
-      connections.push({
-        id: `wb-${heat.id}-to-finale`,
-        sourceHeatId: heat.id,
-        targetHeatId: wbFinale.id,
-        bracketType: 'wb'
-      })
-    })
-  }
-  
-  if (wbFinale && grandFinale && wbFinale.status === 'completed') {
-    connections.push({
-      id: 'wb-finale-to-gf',
-      sourceHeatId: wbFinale.id,
-      targetHeatId: grandFinale.id,
-      bracketType: 'gf'
-    })
-  }
-  
-  if (lbFinale && grandFinale && lbFinale.status === 'completed') {
-    connections.push({
-      id: 'lb-finale-to-gf',
-      sourceHeatId: lbFinale.id,
-      targetHeatId: grandFinale.id,
-      bracketType: 'gf'
-    })
-  }
-  
-  return connections
 }
 
 interface SVGConnectorLinesProps {
