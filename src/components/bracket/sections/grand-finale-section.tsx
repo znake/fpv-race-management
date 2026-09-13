@@ -1,4 +1,4 @@
-import { GrandFinaleHeatBox } from './GrandFinaleHeatBox'
+import { GrandFinaleHeatBox } from './grand-finale-heat-box'
 import type { Heat, Pilot } from '@/types'
 
 /**

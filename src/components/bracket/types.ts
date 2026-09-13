@@ -16,15 +16,6 @@ export interface BracketHeatBoxProps {
   onPilotHover?: (pilotId: string | null) => void
 }
 
-// GrandFinaleSectionProps - now using CSS-based centering
-export interface GrandFinaleSectionProps {
-  grandFinaleHeat: Heat | null
-  pilots: Pilot[]
-  heats: Heat[] // For bracketOrigin lookup
-  onHeatClick: (heatId: string) => void
-  registerHeatRef?: (heatId: string, element: HTMLDivElement | null) => void
-}
-
 // Grand Finale Heat Box
 export interface GrandFinaleHeatBoxProps {
   heat: Heat

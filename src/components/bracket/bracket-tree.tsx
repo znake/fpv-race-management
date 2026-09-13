@@ -10,19 +10,19 @@ import { cn } from '@/lib/utils'
 // US-14.8: Zoom & Pan
 import { useZoomPan } from '@/hooks/useZoomPan'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { ZoomIndicator } from './ZoomIndicator'
+import { ZoomIndicator } from './zoom-indicator'
 
 // US-14.10: Layout Calculator
 import { calculateBracketDimensions } from '@/lib/bracket-layout-calculator'
 
 // Import heat box components
-import { GrandFinaleSection } from './sections/GrandFinaleSection'
-import { SVGConnectorLines } from './SVGConnectorLines'
-import { SVGPilotPaths } from './SVGPilotPaths'
-import { PilotPathToggle } from './PilotPathToggle'
+import { GrandFinaleSection } from './sections/grand-finale-section'
+import { SVGConnectorLines } from './svg-connector-lines'
+import { SVGPilotPaths } from './svg-pilot-paths'
+import { PilotPathToggle } from './pilot-path-toggle'
 
-import { QualiSection } from './sections/QualiSection'
-import { BracketSection } from './sections/BracketSection'
+import { QualiSection } from './sections/quali-section'
+import { BracketSection } from './sections/bracket-section'
 import { exportBracketHTML } from '@/lib/export-bracket-html'
 
 interface BracketTreeProps {

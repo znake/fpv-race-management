@@ -1,4 +1,4 @@
-import { BracketHeatBox } from '../heat-boxes/BracketHeatBox'
+import { BracketHeatBox } from '../heat-boxes/bracket-heat-box'
 import type { Heat, Pilot } from '@/types'
 
 interface QualiSectionProps {

@@ -1,4 +1,4 @@
-import { BracketHeatBox } from '../heat-boxes/BracketHeatBox'
+import { BracketHeatBox } from '../heat-boxes/bracket-heat-box'
 import { calculateColumnWidth, calculateLBColumnWidth, calculateRoundGap } from '@/lib/bracket-layout-calculator'
 import { groupHeatsByRound } from '@/lib/bracket-utils'
 import type { Heat, Pilot } from '@/types'
