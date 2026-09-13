@@ -27,13 +27,6 @@ vi.mock('@/components/bracket/sections/quali-section', () => ({
   QualiSection: () => <div data-testid="quali-section" />
 }))
 
-vi.mock('@/components/bracket/sections/WinnerBracketSection', () => ({
-  WinnerBracketSection: () => <div data-testid="wb-section" />
-}))
-
-vi.mock('@/components/bracket/sections/LoserBracketSection', () => ({
-  LoserBracketSection: () => <div data-testid="lb-section" />
-}))
 
 vi.mock('@/components/bracket/sections/grand-finale-section', () => ({
   GrandFinaleSection: () => <div data-testid="gf-section" />

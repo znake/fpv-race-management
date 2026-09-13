@@ -321,7 +321,7 @@ export function BracketTree({
   const lbFinale = getLBFinale()
   const grandFinale = getGrandFinale()
 
-  // LB heats are now handled by LoserBracketSection using fullBracketStructure.loserBracket
+  // WB- und LB-Heats werden von BracketSection aus heats[] gerendert.
 
   /**
    * Unified Canvas: Alles in einem zoom/pan-baren Container
