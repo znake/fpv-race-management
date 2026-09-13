@@ -53,7 +53,8 @@ export function usePilots() {
   // Single duplicate-name policy: Unicode NFC + trim + case-insensitive.
   const findDuplicatePilot = (name: string, excludeId?: string) => {
     const normalized = normalizePilotName(name)
-    return pilots.find(
+    // Read fresh store state so two mutations in the same tick cannot both pass dedup.
+    return useTournamentStore.getState().pilots.find(
       (pilot) => pilot.id !== excludeId && normalizePilotName(pilot.name) === normalized,
     )
   }
@@ -94,53 +95,75 @@ export function usePilots() {
     // Performance NFR: <5s für 60 Piloten
     const startTime = performance.now()
     let successCount = 0
+    let failedRows = 0
     const errors: PilotActionError[] = []
-    const seenNames = new Set(pilots.map((pilot) => normalizePilotName(pilot.name)))
+    const seenNames = new Set(
+      useTournamentStore.getState().pilots.map((pilot) => normalizePilotName(pilot.name)),
+    )
 
-    for (const csvPilot of csvPilots) {
-      // Validate with Zod schema
-      const validation = pilotSchema.safeParse(csvPilot)
-      if (!validation.success) {
-        console.error(`Validierungsfehler für ${csvPilot.name}:`, validation.error.errors)
-        errors.push(...toActionErrors(validation.error.errors))
-        continue // Skip invalid pilots but continue processing
+    try {
+      for (const csvPilot of csvPilots) {
+        // Validate with Zod schema
+        const validation = pilotSchema.safeParse(csvPilot)
+        if (!validation.success) {
+          console.error(`Validierungsfehler für ${csvPilot.name}:`, validation.error.errors)
+          // Field-level diagnostics may have multiple entries per row.
+          errors.push(...toActionErrors(validation.error.errors))
+          failedRows++
+          continue // Skip invalid pilots but continue processing
+        }
+
+        // Duplicate handling shares the single normalized policy (skip duplicates).
+        const normalizedName = normalizePilotName(validation.data.name)
+        if (seenNames.has(normalizedName)) {
+          errors.push({
+            field: 'name',
+            message: `Pilot "${csvPilot.name}" existiert bereits`,
+          })
+          failedRows++
+          continue
+        }
+
+        const added = addPilotToStore(validation.data)
+        if (added) {
+          successCount++
+          seenNames.add(normalizedName)
+        } else {
+          errors.push({
+            field: 'general',
+            message: `Pilot "${csvPilot.name}" konnte nicht importiert werden`,
+          })
+          failedRows++
+        }
       }
 
-      // Duplicate handling shares the single normalized policy (skip duplicates).
-      const normalizedName = normalizePilotName(validation.data.name)
-      if (seenNames.has(normalizedName)) {
-        errors.push({
-          field: 'name',
-          message: `Pilot "${csvPilot.name}" existiert bereits`,
-        })
-        continue
+      const duration = performance.now() - startTime
+
+      // Performance logging
+      if (duration > 5000) {
+        console.warn(`CSV Import dauerte ${duration.toFixed(2)}ms (> 5s NFR für ${csvPilots.length} Piloten)`)
       }
 
-      const added = addPilotToStore(validation.data)
-      if (added) {
-        successCount++
-        seenNames.add(normalizedName)
-      } else {
-        errors.push({
-          field: 'general',
-          message: `Pilot "${csvPilot.name}" konnte nicht importiert werden`,
-        })
+      return {
+        success: successCount > 0,
+        errors,
+        successCount,
+        errorCount: failedRows,
+        duration,
       }
-    }
-
-    const duration = performance.now() - startTime
-
-    // Performance logging
-    if (duration > 5000) {
-      console.warn(`CSV Import dauerte ${duration.toFixed(2)}ms (> 5s NFR für ${csvPilots.length} Piloten)`)
-    }
-
-    return {
-      success: successCount > 0,
-      errors,
-      successCount,
-      errorCount: errors.length,
-      duration,
+    } catch (error) {
+      console.error('CSV Import fehlgeschlagen:', error)
+      const duration = performance.now() - startTime
+      return {
+        success: successCount > 0,
+        errors: [
+          ...errors,
+          { field: 'general', message: 'CSV Import fehlgeschlagen' },
+        ],
+        successCount,
+        errorCount: csvPilots.length - successCount,
+        duration,
+      }
     }
   }
 
@@ -151,21 +174,23 @@ export function usePilots() {
       return actionFailure([{ field: 'general', message: 'Pilot nicht gefunden' }])
     }
 
-    // Validate updates with Zod schema
-    const validation = pilotSchema.safeParse({
-      name: updates.name || pilot.name,
-      imageUrl: updates.imageUrl || pilot.imageUrl,
-    })
+    const merged = {
+      name: updates.name ?? pilot.name,
+      imageUrl: updates.imageUrl ?? pilot.imageUrl,
+      instagramHandle: updates.instagramHandle ?? pilot.instagramHandle,
+    }
+
+    const validation = pilotSchema.safeParse(merged)
 
     if (!validation.success) {
       return actionFailure(toActionErrors(validation.error.errors))
     }
 
-    if (updates.name && findDuplicatePilot(updates.name, id)) {
+    if (updates.name !== undefined && findDuplicatePilot(validation.data.name, id)) {
       return actionFailure([{ field: 'name', message: DUPLICATE_NAME_MESSAGE }])
     }
 
-    const updated = updatePilotInStore(id, updates)
+    const updated = updatePilotInStore(id, validation.data)
     const duration = performance.now() - startTime
 
     if (duration > 50) {

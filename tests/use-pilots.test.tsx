@@ -3,6 +3,7 @@ import { act, renderHook, cleanup } from '@testing-library/react'
 import { usePilots } from '@/hooks/usePilots'
 import type { PilotActionResult } from '@/hooks/usePilots'
 import { getStoreState, resetTournamentStore } from './helpers'
+import { useTournamentStore } from '@/stores/tournamentStore'
 
 const emptyResult: PilotActionResult = { success: false, errors: [] }
 
@@ -27,6 +28,7 @@ describe('usePilots', () => {
 
   afterEach(() => {
     cleanup()
+    vi.restoreAllMocks()
     resetTournamentStore()
   })
 
@@ -101,6 +103,28 @@ describe('usePilots', () => {
       expect(result.current.pilots).toHaveLength(2)
       expect(window.alert).not.toHaveBeenCalled()
     })
+
+    it('blocks a duplicate added in the same tick using fresh store state', () => {
+      const { result } = renderHook(() => usePilots())
+
+      let first = emptyResult
+      let second = emptyResult
+      act(() => {
+        first = result.current.addPilot({
+          name: 'Same Tick Pilot',
+          imageUrl: 'https://example.com/tick1.jpg',
+        })
+        vi.mocked(window.confirm).mockReturnValue(false)
+        second = result.current.addPilot({
+          name: 'same tick pilot',
+          imageUrl: 'https://example.com/tick2.jpg',
+        })
+      })
+
+      expect(first.success).toBe(true)
+      expect(second.success).toBe(false)
+      expect(getStoreState().pilots).toHaveLength(1)
+    })
   })
 
   describe('importPilots', () => {
@@ -141,6 +165,67 @@ describe('usePilots', () => {
       expect(outcome.successCount).toBe(0)
       expect(outcome.errorCount).toBe(1)
       expect(result.current.pilots).toHaveLength(0)
+    })
+
+    it('counts a single row invalid in two fields as one failed row', async () => {
+      const { result } = renderHook(() => usePilots())
+
+      let outcome = emptyResult
+      await act(async () => {
+        outcome = await result.current.importPilots([
+          { name: 'ab', imageUrl: 'not-a-url' },
+        ])
+      })
+
+      expect(outcome.success).toBe(false)
+      expect(outcome.errorCount).toBe(1)
+      expect(outcome.errors.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('resolves with a failure result when the store action throws', async () => {
+      const addPilotSpy = vi
+        .spyOn(useTournamentStore.getState(), 'addPilot')
+        .mockImplementation(() => {
+          throw new Error('store unavailable')
+        })
+      const { result } = renderHook(() => usePilots())
+
+      let outcome = emptyResult
+      let rejection: unknown = null
+      await act(async () => {
+        try {
+          outcome = await result.current.importPilots([
+            { name: 'Throwing Pilot', imageUrl: 'https://example.com/throw.jpg' },
+          ])
+        } catch (error) {
+          rejection = error
+        }
+      })
+      addPilotSpy.mockRestore()
+
+      expect(rejection).toBeNull()
+      expect(outcome.success).toBe(false)
+      expect(outcome.successCount).toBe(0)
+      expect(outcome.errorCount).toBe(1)
+      expect(outcome.errors.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('counts a mixed valid, invalid, and duplicate batch as failed rows', async () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, { name: 'Mixed Existing', imageUrl: 'https://example.com/mixed.jpg' })
+
+      let outcome = emptyResult
+      await act(async () => {
+        outcome = await result.current.importPilots([
+          { name: 'Mixed New', imageUrl: 'https://example.com/new.jpg' },
+          { name: 'ab', imageUrl: 'https://example.com/bad.jpg' },
+          { name: 'mixed existing', imageUrl: 'https://example.com/dup.jpg' },
+        ])
+      })
+
+      expect(outcome.success).toBe(true)
+      expect(outcome.successCount).toBe(1)
+      expect(outcome.errorCount).toBe(2)
     })
   })
 
@@ -207,6 +292,62 @@ describe('usePilots', () => {
         'Bob Racer',
       ])
       expect(window.alert).not.toHaveBeenCalled()
+    })
+
+    it('rejects an empty name instead of persisting the fallback', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, { name: 'Keep Me', imageUrl: 'https://example.com/keep.jpg' })
+      const id = result.current.pilots[0].id
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { name: '' })
+      })
+
+      expect(outcome.success).toBe(false)
+      expect(getStoreState().pilots[0].name).toBe('Keep Me')
+    })
+
+    it('rejects an invalid image url', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, { name: 'Url Pilot', imageUrl: 'https://example.com/url.jpg' })
+      const id = result.current.pilots[0].id
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { imageUrl: 'not-a-url' })
+      })
+
+      expect(outcome.success).toBe(false)
+      expect(getStoreState().pilots[0].imageUrl).toBe('https://example.com/url.jpg')
+    })
+
+    it('persists a valid instagram handle update', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, { name: 'Insta Pilot', imageUrl: 'https://example.com/insta.jpg' })
+      const id = result.current.pilots[0].id
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { instagramHandle: '@insta_pilot' })
+      })
+
+      expect(outcome.success).toBe(true)
+      expect(getStoreState().pilots[0].instagramHandle).toBe('@insta_pilot')
+    })
+
+    it('rejects an invalid instagram handle', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, { name: 'Bad Insta', imageUrl: 'https://example.com/badinsta.jpg' })
+      const id = result.current.pilots[0].id
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { instagramHandle: 'no-at-sign' })
+      })
+
+      expect(outcome.success).toBe(false)
+      expect(getStoreState().pilots[0].instagramHandle).toBeUndefined()
     })
   })
 
