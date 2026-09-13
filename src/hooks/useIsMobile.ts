@@ -22,7 +22,12 @@ const MOBILE_BREAKPOINT = 768
  * @returns boolean indicating if the device is mobile-sized
  */
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return false
+    }
+    return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches
+  })
 
   useEffect(() => {
     // Check if matchMedia is available (for SSR compatibility)
@@ -31,9 +36,6 @@ export function useIsMobile(): boolean {
     }
 
     const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`)
-    
-    // Set initial value
-    setIsMobile(mediaQuery.matches)
 
     // Handler for media query changes
     const handleChange = (e: MediaQueryListEvent) => {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useMemo, useRef } from 'react'
 import { parseCSV } from '@/lib/csv-parser'
 import { debounce, cn } from '@/lib/utils'
 import { pilotSchema } from '@/lib/schemas'
@@ -24,8 +24,8 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Debounced progress update for performance
-  const debouncedProgressUpdate = useCallback(
-    debounce((progress: number) => {
+  const debouncedProgressUpdate = useMemo(
+    () => debounce((progress: number) => {
       setState(prev => ({ ...prev, progress }))
     }, 100),
     []
@@ -42,30 +42,8 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
     setState(prev => ({ ...prev, isDragging: false }))
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setState(prev => ({ ...prev, isDragging: false }))
-
-    const files = Array.from(e.dataTransfer.files)
-    const csvFile = files.find(file => file.type === 'text/csv' || file.name.endsWith('.csv'))
-
-    if (csvFile) {
-      processFile(csvFile)
-    } else {
-      alert('Bitte CSV-Datei hochladen')
-    }
-  }, [])
-
-  // Handle file selection
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      processFile(file)
-    }
-  }, [])
-
   // Process CSV file
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
       alert('Datei zu groß (max 10MB)')
       return
@@ -156,7 +134,29 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
       alert('CSV-Verarbeitung fehlgeschlagen')
       setState(prev => ({ ...prev, isProcessing: false, progress: 0 }))
     }
-  }
+  }, [existingPilots, debouncedProgressUpdate])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setState(prev => ({ ...prev, isDragging: false }))
+
+    const files = Array.from(e.dataTransfer.files)
+    const csvFile = files.find(file => file.type === 'text/csv' || file.name.endsWith('.csv'))
+
+    if (csvFile) {
+      processFile(csvFile)
+    } else {
+      alert('Bitte CSV-Datei hochladen')
+    }
+  }, [processFile])
+
+  // Handle file selection
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      processFile(file)
+    }
+  }, [processFile])
 
   // Handle duplicate resolution
   const handleDuplicateAction = (index: number, action: 'merge' | 'skip') => {

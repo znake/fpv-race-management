@@ -261,6 +261,12 @@ export function BracketTree({
 
   const selectedHeatData = heats.find(h => h.id === selectedHeat)
 
+  // Calculate dimensions using new calculator
+  const { containerWidth, wbColumnWidth, lbColumnWidth } = useMemo(() =>
+    calculateBracketDimensions(pilots.length),
+    [pilots.length]
+  )
+
   // Empty state: No pilots - Beamer-optimiert
   if (pilots.length === 0) {
     return (
@@ -316,12 +322,6 @@ export function BracketTree({
   const grandFinale = getGrandFinale()
 
   // LB heats are now handled by LoserBracketSection using fullBracketStructure.loserBracket
-
-  // Calculate dimensions using new calculator
-  const { containerWidth, wbColumnWidth, lbColumnWidth } = useMemo(() => 
-    calculateBracketDimensions(pilots.length),
-    [pilots.length]
-  )
 
   /**
    * Unified Canvas: Alles in einem zoom/pan-baren Container

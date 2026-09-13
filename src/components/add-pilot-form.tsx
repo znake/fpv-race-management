@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { pilotSchema, type PilotInput } from '@/lib/schemas'
 import { Button } from './ui/button'
@@ -13,7 +13,7 @@ type AddPilotFormProps = {
 
 export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
   const { addPilot, pilots } = usePilots()
-  const [previewUrl, setPreviewUrl] = useState('')
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
 
   const form = useForm<PilotInput>({
     resolver: zodResolver(pilotSchema),
@@ -24,11 +24,14 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
     },
   })
 
+  const watchedImageUrl = useWatch({ control: form.control, name: 'imageUrl' })
+  const previewUrl = watchedImageUrl && watchedImageUrl !== failedImageUrl ? watchedImageUrl : ''
+
   const onSubmit = (data: PilotInput) => {
     const { success } = addPilot(data)
     if (success) {
       form.reset()
-      setPreviewUrl('')
+      setFailedImageUrl(null)
       onSuccess?.()
     }
   }
@@ -38,22 +41,11 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         form.reset()
-        setPreviewUrl('')
+        setFailedImageUrl(null)
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [form])
-
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (value.imageUrl) {
-        setPreviewUrl(value.imageUrl)
-      } else {
-        setPreviewUrl('')
-      }
-    })
-    return () => subscription.unsubscribe()
   }, [form])
 
   // Edge Cases: MAX 60 → Disable Add
@@ -112,7 +104,7 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
               src={previewUrl} 
               alt="Vorschau" 
               className="w-30 h-30 object-cover rounded-full border-3 border-neon-pink shadow-glow-pink" 
-              onError={() => setPreviewUrl('')} 
+              onError={() => setFailedImageUrl(watchedImageUrl || null)}
             />
           </div>
         </div>

@@ -58,7 +58,6 @@ export function SVGPilotPaths({
 
   useEffect(() => {
     if (!visible || !isReady || !containerRef.current) {
-      setPaths([])
       return
     }
 

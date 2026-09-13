@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { Heat } from '@/types'
 import { groupHeatsByRound } from '@/lib/bracket-utils'
 import { ConnectorManager } from '@/lib/svg-connector-manager'
@@ -63,8 +63,6 @@ interface SVGConnectorLinesProps {
  */
 export function SVGConnectorLines({
   heats,
-  containerRef: _containerRef,
-  heatRefs: _heatRefs,
   scale = 1,
   translateX: _translateX,
   translateY: _translateY,
@@ -73,6 +71,7 @@ export function SVGConnectorLines({
 }: SVGConnectorLinesProps) {
   const managerRef = useRef<ConnectorManager | null>(null)
   const prevAnimatingRef = useRef(false)
+  const updateConnectionsRef = useRef<() => void>(() => {})
 
   // Initialize ConnectorManager
   useEffect(() => {
@@ -85,7 +84,7 @@ export function SVGConnectorLines({
          const container = document.getElementById('bracket-container')
          if (container) {
              managerRef.current = new ConnectorManager('bracket-container', 'connector-svg')
-             updateConnections() // Initial draw
+             updateConnectionsRef.current() // Initial draw
          }
       }
     }, 100)
@@ -120,12 +119,12 @@ export function SVGConnectorLines({
 
     if (wasAnimating && !isAnimating && !disabled && managerRef.current) {
       managerRef.current.setScale(scale)
-      updateConnections()
+      updateConnectionsRef.current()
     }
   }, [isAnimating, disabled, scale])
 
   // Update Connections Logic
-  const updateConnections = () => {
+  const updateConnections = useCallback(() => {
     const manager = managerRef.current
     if (!manager) return
 
@@ -195,7 +194,13 @@ export function SVGConnectorLines({
     }
 
     manager.redraw()
-  }
+  }, [heats])
+
+  // Keep the latest updateConnections reachable from the mount effect without
+  // re-running initialization (and recreating the ConnectorManager) on heat changes.
+  useEffect(() => {
+    updateConnectionsRef.current = updateConnections
+  }, [updateConnections])
 
   useEffect(() => {
     if (disabled || isAnimating) return
@@ -203,7 +208,7 @@ export function SVGConnectorLines({
         updateConnections()
     }, 50)
     return () => clearTimeout(timer)
-  }, [heats, disabled, isAnimating, _translateX, _translateY])
+  }, [updateConnections, heats, disabled, isAnimating, _translateX, _translateY])
 
   return (
     <svg

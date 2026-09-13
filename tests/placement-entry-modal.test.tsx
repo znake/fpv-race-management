@@ -279,6 +279,53 @@ describe('PlacementEntryModal', () => {
       expect(screen.queryByText('1')).not.toBeNull()
       expect(screen.queryByText('2')).not.toBeNull()
     })
+
+    it('should re-prefill rankings when a heat with results is reopened', () => {
+      const heatWithResults: Heat = {
+        ...mockHeat,
+        results: {
+          rankings: [
+            { pilotId: mockPilots[0].id, rank: 1 },
+            { pilotId: mockPilots[1].id, rank: 2 },
+          ],
+          completedAt: new Date().toISOString(),
+        },
+      }
+
+      const { rerender } = render(
+        <PlacementEntryModal
+          heat={heatWithResults}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+      expect(screen.queryByText('1')).not.toBeNull()
+
+      rerender(
+        <PlacementEntryModal
+          heat={heatWithResults}
+          pilots={mockPilots}
+          isOpen={false}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+      expect(screen.queryByTestId('placement-entry-modal')).toBeNull()
+
+      rerender(
+        <PlacementEntryModal
+          heat={heatWithResults}
+          pilots={mockPilots}
+          isOpen={true}
+          onClose={mockOnClose}
+          onSubmitResults={mockOnSubmitResults}
+        />
+      )
+      expect(screen.queryByText('1')).not.toBeNull()
+      expect(screen.queryByText('2')).not.toBeNull()
+    })
   })
 
   describe('Lap time digit accumulation', () => {

@@ -151,6 +151,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   const [isAnimating, setIsAnimating] = useState(false)
   const [isTouchPanning, setIsTouchPanning] = useState(false)
   const [isTransforming, setIsTransforming] = useState(false)
+  const isPanningRef = useRef(false)
   const transformDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const markTransforming = useCallback(() => {
@@ -405,7 +406,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       wrapper.removeEventListener('touchend', handleTouchEnd)
       wrapper.removeEventListener('touchcancel', handleTouchEnd)
     }
-  }, [state.scale, state.translateX, state.translateY, minScale, maxScale, onScaleChange, isTouchPanning, clampTranslation])
+  }, [state.scale, state.translateX, state.translateY, minScale, maxScale, onScaleChange, isTouchPanning, clampTranslation, markTransforming])
 
   /**
    * AC3: Space Key Handler for Pan-Mode
@@ -415,6 +416,13 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       if (e.code === 'Space' && e.target === document.body) {
         e.preventDefault()
         setIsPanning(true)
+        isPanningRef.current = true
+        // User takes control: cancel any running animation
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current)
+          animationTimeoutRef.current = null
+        }
+        setIsAnimating(false)
       }
     }
 
@@ -422,6 +430,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       if (e.code === 'Space') {
         setIsPanning(false)
         setIsDragging(false)
+        isPanningRef.current = false
       }
     }
 
@@ -510,7 +519,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       wrapper.removeEventListener('pointerup', handlePointerUp)
       wrapper.removeEventListener('pointercancel', handlePointerUp)
     }
-  }, [isPanning, isDragging, state.translateX, state.translateY, state.scale, clampTranslation])
+  }, [isPanning, isDragging, state.translateX, state.translateY, state.scale, clampTranslation, markTransforming])
 
   /**
    * AC5: Zoom to center (for buttons)
@@ -588,8 +597,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       clearTimeout(transformDebounceRef.current)
     }
 
+    const panning = isPanningRef.current
+
     flushSync(() => {
-      setIsAnimating(true)
+      setIsAnimating(!panning)
       setIsTransforming(true)
     })
 
@@ -602,10 +613,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
       onScaleChange?.(clampedScale)
       
-      animationTimeoutRef.current = setTimeout(() => {
-        setIsAnimating(false)
-        setIsTransforming(false)
-      }, duration)
+      if (!panning) {
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsAnimating(false)
+          setIsTransforming(false)
+        }, duration)
+      }
     })
   }, [state.scale, minScale, maxScale, onScaleChange, clampTranslation])
 
@@ -647,8 +660,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       translateY: newTranslateY
     }
 
+    const panning = isPanningRef.current
+
     flushSync(() => {
-      setIsAnimating(true)
+      setIsAnimating(!panning)
       setIsTransforming(true)
     })
 
@@ -657,10 +672,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
       onScaleChange?.(targetScale)
 
-      animationTimeoutRef.current = setTimeout(() => {
-        setIsAnimating(false)
-        setIsTransforming(false)
-      }, duration)
+      if (!panning) {
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsAnimating(false)
+          setIsTransforming(false)
+        }, duration)
+      }
     })
   }, [minScale, maxScale, onScaleChange])
 
@@ -672,19 +689,22 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       clearTimeout(transformDebounceRef.current)
     }
 
+    const panning = isPanningRef.current
+
     flushSync(() => {
-      setIsAnimating(true)
+      setIsAnimating(!panning)
       setIsTransforming(true)
     })
 
     requestAnimationFrame(() => {
       setState(targetState)
       onScaleChange?.(targetState.scale)
-
-      animationTimeoutRef.current = setTimeout(() => {
-        setIsAnimating(false)
-        setIsTransforming(false)
-      }, duration)
+      if (!panning) {
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsAnimating(false)
+          setIsTransforming(false)
+        }, duration)
+      }
     })
   }, [onScaleChange])
 
@@ -698,16 +718,6 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       }
     }
   }, [])
-
-  // Cancel animation if user starts panning
-  useEffect(() => {
-    if (isPanning && isAnimating) {
-      setIsAnimating(false)
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current)
-      }
-    }
-  }, [isPanning, isAnimating])
 
   return {
     state,

@@ -34,7 +34,30 @@ type PlacementEntryModalProps = {
  * - Pre-fills existing rankings if heat.results exists
  * - Grid layout adapts to 3 or 4 pilots
  */
-export function PlacementEntryModal({
+function buildInitialRankings(heat: Heat): Map<string, number> {
+  const rankings = new Map<string, number>()
+  heat.results?.rankings.forEach((ranking) => {
+    rankings.set(ranking.pilotId, ranking.rank)
+  })
+  return rankings
+}
+
+function buildInitialLapTimes(heat: Heat): Map<string, number> {
+  const lapTimes = new Map<string, number>()
+  heat.results?.rankings.forEach((ranking) => {
+    if (ranking.lapTimeMs !== undefined) {
+      lapTimes.set(ranking.pilotId, ranking.lapTimeMs)
+    }
+  })
+  return lapTimes
+}
+
+export function PlacementEntryModal(props: PlacementEntryModalProps) {
+  if (!props.isOpen) return null
+  return <PlacementEntryContent key={props.heat.id} {...props} />
+}
+
+function PlacementEntryContent({
   heat,
   pilots,
   nextHeat,
@@ -42,8 +65,8 @@ export function PlacementEntryModal({
   onClose,
   onSubmitResults
 }: PlacementEntryModalProps) {
-  const [rankings, setRankings] = useState<Map<string, number>>(new Map())
-  const [lapTimes, setLapTimes] = useState<Map<string, number>>(new Map())
+  const [rankings, setRankings] = useState<Map<string, number>>(() => buildInitialRankings(heat))
+  const [lapTimes, setLapTimes] = useState<Map<string, number>>(() => buildInitialLapTimes(heat))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [displayedTimeDigits, setDisplayedTimeDigits] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -68,6 +91,7 @@ export function PlacementEntryModal({
   const heatPilots = heat.pilotIds
     .map((id) => pilots.find((p) => p.id === id))
     .filter(Boolean) as Pilot[]
+  const heatPilotCount = heatPilots.length
 
   const nextHeatPilots = nextHeat?.pilotIds?.length
     ? nextHeat.pilotIds
@@ -83,25 +107,6 @@ export function PlacementEntryModal({
   // Min rankings required: Math.min(2, pilotCount)
   const minRankingsRequired = Math.min(2, heatPilots.length)
   const isFinishEnabled = rankings.size >= minRankingsRequired
-
-  // Initialize rankings from existing results (pre-fill for edit/reopen)
-  useEffect(() => {
-    if (isOpen && heat.results?.rankings) {
-      const existingRankings = new Map<string, number>()
-      const existingLapTimes = new Map<string, number>()
-      heat.results.rankings.forEach((r) => {
-        existingRankings.set(r.pilotId, r.rank)
-        if (r.lapTimeMs !== undefined) {
-          existingLapTimes.set(r.pilotId, r.lapTimeMs)
-        }
-      })
-      setRankings(existingRankings)
-      setLapTimes(existingLapTimes)
-    } else if (isOpen) {
-      setRankings(new Map())
-      setLapTimes(new Map())
-    }
-  }, [isOpen, heat.id, heat.results])
 
   const finalizeTimeEntry = useCallback(() => {
     const pilotId = lastClickedPilotIdRef.current
@@ -165,7 +170,7 @@ export function PlacementEntryModal({
   const toggleRank = useCallback((pilotId: string) => {
     const currentRank = rankings.get(pilotId)
     const willAssignRank =
-      currentRank === undefined && rankings.size + 1 <= heatPilots.length
+      currentRank === undefined && rankings.size + 1 <= heatPilotCount
 
     setRankings((prev) => {
       const currentRank = prev.get(pilotId)
@@ -185,7 +190,7 @@ export function PlacementEntryModal({
       } else {
         // ASSIGN: Give next free rank
         const nextRank = prev.size + 1
-        if (nextRank <= heatPilots.length) {
+        if (nextRank <= heatPilotCount) {
           return new Map(prev).set(pilotId, nextRank)
         }
         return prev
@@ -195,7 +200,7 @@ export function PlacementEntryModal({
     if (willAssignRank) {
       openTimeEntryWindow(pilotId)
     }
-  }, [rankings, heatPilots.length, openTimeEntryWindow])
+  }, [rankings, heatPilotCount, openTimeEntryWindow])
 
 
 
@@ -294,16 +299,6 @@ export function PlacementEntryModal({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, resetRankings, finalizeTimeEntry])
-
-  useEffect(() => {
-    if (!isOpen) {
-      lastClickedPilotIdRef.current = null
-      timeDigitBufferRef.current = ''
-      setDisplayedTimeDigits('')
-      setValidationError(null)
-      setEditingPilotId(null)
-    }
-  }, [isOpen])
 
   // Generate heat name (same logic as BracketHeatBox)
   const getHeatName = () => {
