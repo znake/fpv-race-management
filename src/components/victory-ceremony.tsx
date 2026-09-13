@@ -4,7 +4,7 @@
  * Displays the final podium with Top 4 placements after tournament completion.
  * Features:
  * - Podium layout with size gradients (180px → 100px)
- * - Gold/Silver/Bronze/Cyan styling
+ * - Gold/Silver/Bronze/Dunkelrot styling
  * - Animated glow effects
  * - Confetti celebration effect
  * - "Neues Turnier" button

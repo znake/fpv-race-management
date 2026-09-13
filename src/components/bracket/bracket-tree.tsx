@@ -289,7 +289,7 @@ export function BracketTree({
   }
 
   // Phase 1.3: Loading-State basiert jetzt auf tournamentStarted statt fullBracketStructure
-  // (fullBracketStructure Check bleibt vorerst für Backward-Compatibility)
+  // (fullBracketStructure wurde entfernt)
 
   // Get Top 4 for Victory Ceremony
   const top4 = tournamentPhase === 'completed' ? getTop4Pilots() : null
