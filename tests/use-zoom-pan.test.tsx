@@ -1,13 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, fireEvent, cleanup, act } from '@testing-library/react'
 import { useEffect } from 'react'
-import { useZoomPan, type ZoomPanState } from '@/hooks/useZoomPan'
+import { useZoomPan, type ZoomPanState, type FitToViewOptions, type CenterOnElementOptions } from '@/hooks/useZoomPan'
 
 interface Snapshot {
   state: ZoomPanState
   isPanning: boolean
   isAnimating: boolean
   isTransforming: boolean
+  fitToView: (options?: FitToViewOptions) => void
+  centerOnElement: (element: HTMLElement, options?: CenterOnElementOptions) => void
+  wrapper: HTMLDivElement | null
+  container: HTMLDivElement | null
   animateToState: (state: ZoomPanState, duration?: number) => void
 }
 
@@ -21,13 +25,25 @@ function Harness({ capture }: { capture: (snapshot: Snapshot) => void }) {
     isPanning,
     isAnimating,
     isTransforming,
+    fitToView,
+    centerOnElement,
     animateToState,
     wrapperRef,
     containerRef,
   } = useZoomPan()
 
   useEffect(() => {
-    capture({ state, isPanning, isAnimating, isTransforming, animateToState })
+    capture({
+      state,
+      isPanning,
+      isAnimating,
+      isTransforming,
+      fitToView,
+      centerOnElement,
+      wrapper: wrapperRef.current,
+      container: containerRef.current,
+      animateToState,
+    })
   })
 
   return (
@@ -51,6 +67,8 @@ describe('useZoomPan', () => {
 
   afterEach(() => {
     cleanup()
+    vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('starts at scale 1.5 with no translation', () => {
@@ -95,19 +113,110 @@ describe('useZoomPan', () => {
     expect(captured.current?.isPanning).toBe(false)
   })
 
-  it('cancels a running animation when Space pan mode starts', () => {
+  it('cancels a running animation and resets transform when Space pan mode starts', () => {
     renderHarness()
 
     act(() => {
       captured.current?.animateToState({ scale: 2, translateX: 0, translateY: 0 })
     })
     expect(captured.current?.isAnimating).toBe(true)
+    expect(captured.current?.isTransforming).toBe(true)
 
     fireEvent.keyDown(document.body, { code: 'Space' })
 
     expect(captured.current?.isAnimating).toBe(false)
+    expect(captured.current?.isTransforming).toBe(false)
   })
 
+  it('resets isTransforming after fitToView even while pan mode is active', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    renderHarness()
+
+    const wrapper = captured.current?.wrapper
+    const container = captured.current?.container
+    if (!wrapper || !container) throw new Error('refs not captured')
+    Object.defineProperty(container, 'scrollWidth', { value: 1000, configurable: true })
+    Object.defineProperty(container, 'scrollHeight', { value: 1000, configurable: true })
+    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue({
+      width: 800,
+      height: 600,
+      left: 0,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    fireEvent.keyDown(document.body, { code: 'Space' })
+    act(() => {
+      captured.current?.fitToView({ duration: 500 })
+    })
+    expect(captured.current?.isTransforming).toBe(true)
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(captured.current?.isTransforming).toBe(false)
+  })
+
+  it('resets isTransforming after centerOnElement even while pan mode is active', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    renderHarness()
+
+    const wrapper = captured.current?.wrapper
+    const container = captured.current?.container
+    if (!wrapper || !container) throw new Error('refs not captured')
+    Object.defineProperty(container, 'scrollWidth', { value: 1000, configurable: true })
+    Object.defineProperty(container, 'scrollHeight', { value: 1000, configurable: true })
+    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue({
+      width: 800,
+      height: 600,
+      left: 0,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+      width: 1000,
+      height: 1000,
+      left: 0,
+      top: 0,
+      right: 1000,
+      bottom: 1000,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    const target = document.createElement('div')
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({
+      width: 100,
+      height: 100,
+      left: 10,
+      top: 10,
+      right: 110,
+      bottom: 110,
+      x: 10,
+      y: 10,
+      toJSON: () => ({}),
+    })
+
+    fireEvent.keyDown(document.body, { code: 'Space' })
+    act(() => {
+      captured.current?.centerOnElement(target, { duration: 500 })
+    })
+    expect(captured.current?.isTransforming).toBe(true)
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(captured.current?.isTransforming).toBe(false)
+  })
   it('pans on a single-finger touch drag beyond the tap threshold', () => {
     const { wrapper } = renderHarness()
 

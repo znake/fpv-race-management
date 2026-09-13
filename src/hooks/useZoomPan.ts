@@ -423,6 +423,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
           animationTimeoutRef.current = null
         }
         setIsAnimating(false)
+        setIsTransforming(false)
       }
     }
 
@@ -613,12 +614,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
       onScaleChange?.(clampedScale)
       
-      if (!panning) {
-        animationTimeoutRef.current = setTimeout(() => {
+      animationTimeoutRef.current = setTimeout(() => {
+        if (!panning) {
           setIsAnimating(false)
-          setIsTransforming(false)
-        }, duration)
-      }
+        }
+        setIsTransforming(false)
+      }, duration)
     })
   }, [state.scale, minScale, maxScale, onScaleChange, clampTranslation])
 
@@ -672,12 +673,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
 
       onScaleChange?.(targetScale)
 
-      if (!panning) {
-        animationTimeoutRef.current = setTimeout(() => {
+      animationTimeoutRef.current = setTimeout(() => {
+        if (!panning) {
           setIsAnimating(false)
-          setIsTransforming(false)
-        }, duration)
-      }
+        }
+        setIsTransforming(false)
+      }, duration)
     })
   }, [minScale, maxScale, onScaleChange])
 
@@ -699,12 +700,12 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     requestAnimationFrame(() => {
       setState(targetState)
       onScaleChange?.(targetState.scale)
-      if (!panning) {
-        animationTimeoutRef.current = setTimeout(() => {
+      animationTimeoutRef.current = setTimeout(() => {
+        if (!panning) {
           setIsAnimating(false)
-          setIsTransforming(false)
-        }, duration)
-      }
+        }
+        setIsTransforming(false)
+      }, duration)
     })
   }, [onScaleChange])
 
