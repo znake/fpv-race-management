@@ -175,9 +175,9 @@ export function usePilots() {
     }
 
     const merged = {
-      name: updates.name ?? pilot.name,
-      imageUrl: updates.imageUrl ?? pilot.imageUrl,
-      instagramHandle: updates.instagramHandle ?? pilot.instagramHandle,
+      name: 'name' in updates ? updates.name : pilot.name,
+      imageUrl: 'imageUrl' in updates ? updates.imageUrl : pilot.imageUrl,
+      instagramHandle: 'instagramHandle' in updates ? updates.instagramHandle : pilot.instagramHandle,
     }
 
     const validation = pilotSchema.safeParse(merged)

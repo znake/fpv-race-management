@@ -336,6 +336,44 @@ describe('usePilots', () => {
       expect(getStoreState().pilots[0].instagramHandle).toBe('@insta_pilot')
     })
 
+    it('clears an existing instagram handle when explicitly set to undefined', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, {
+        name: 'Clearable Pilot',
+        imageUrl: 'https://example.com/clearable.jpg',
+        instagramHandle: '@clearable',
+      })
+      const id = result.current.pilots[0].id
+      expect(getStoreState().pilots[0].instagramHandle).toBe('@clearable')
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { instagramHandle: undefined })
+      })
+
+      expect(outcome.success).toBe(true)
+      expect(getStoreState().pilots[0].instagramHandle).toBeUndefined()
+    })
+
+    it('preserves an existing instagram handle when the update omits the key', () => {
+      const { result } = renderHook(() => usePilots())
+      addViaHook(result, {
+        name: 'Keep Handle Pilot',
+        imageUrl: 'https://example.com/keephandle.jpg',
+        instagramHandle: '@keephandle',
+      })
+      const id = result.current.pilots[0].id
+
+      let outcome = emptyResult
+      act(() => {
+        outcome = result.current.updatePilot(id, { name: 'Renamed Handle Pilot' })
+      })
+
+      expect(outcome.success).toBe(true)
+      expect(getStoreState().pilots[0].name).toBe('Renamed Handle Pilot')
+      expect(getStoreState().pilots[0].instagramHandle).toBe('@keephandle')
+    })
+
     it('rejects an invalid instagram handle', () => {
       const { result } = renderHook(() => usePilots())
       addViaHook(result, { name: 'Bad Insta', imageUrl: 'https://example.com/badinsta.jpg' })
