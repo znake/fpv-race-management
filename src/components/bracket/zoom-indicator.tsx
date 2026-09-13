@@ -10,7 +10,7 @@
  */
 
 import { Maximize } from 'lucide-react'
-import { ZoomIndicatorProps } from './types'
+import type { ZoomIndicatorProps } from './types'
 
 /**
  * US-14.8: ZoomIndicator Component

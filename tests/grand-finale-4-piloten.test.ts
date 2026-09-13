@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useTournamentStore, INITIAL_TOURNAMENT_STATE } from '@/stores/tournamentStore'
-import type { Heat, PilotBracketState } from '@/types/tournament'
+import type { Heat, PilotBracketState } from '@/types'
 import type { Pilot } from '@/lib/schemas'
 
 // Reset store before each test

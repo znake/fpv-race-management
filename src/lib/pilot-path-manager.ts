@@ -1,4 +1,4 @@
-import type { Heat } from '@/types/tournament'
+import type { Heat } from '@/types'
 
 export interface PathSegment {
   fromHeatId: string

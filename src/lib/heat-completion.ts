@@ -8,8 +8,7 @@
  * Story 1.6: submitHeatResults() aufteilen
  */
 
-import type { Heat } from '@/types'
-import type { TournamentPhase } from '@/types/tournament'
+import type { Heat, TournamentPhase } from '@/types'
 import type { Pilot, Ranking } from '@/lib/schemas'
 
 import { createLBHeatFromPool, isGrandFinaleBracketType } from './bracket-logic'
@@ -322,7 +321,7 @@ export function determineCurrentHeatIndex(heats: Heat[]): number {
 // Story 1.6: Heat Generation Logic
 // ============================================================================
 
-import type { PilotBracketState } from '@/types/tournament'
+import type { PilotBracketState } from '@/types'
 import { HEAT_ID_PREFIXES, POOL_THRESHOLDS } from './bracket-constants'
 
 /**

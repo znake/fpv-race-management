@@ -13,8 +13,9 @@
  * - AC9: Pointer Events for stylus support
  */
 
-import { useState, useRef, useEffect, useCallback, RefObject } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { flushSync } from 'react-dom'
+import type { RefObject } from 'react'
 
 /**
  * Helper: Calculate distance between two touch points

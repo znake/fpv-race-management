@@ -4,8 +4,6 @@ import type { Pilot, Ranking } from '@/lib/schemas'
 import type { Heat, TournamentPhase } from '@/types'
 import { calculateHeatDistribution } from '@/lib/heat-distribution'
 
-// Re-export types for backward compatibility
-export type { Heat, TournamentPhase }
 import { shuffleArray } from '@/lib/utils'
 // Phase 3: fullBracketStructure komplett entfernt - heats[] ist Single Source of Truth
 
@@ -44,12 +42,6 @@ export const INITIAL_TOURNAMENT_STATE = {
   pilotBracketStates: {} as Record<string, { bracket: string; roundReached: number; bracketOrigin?: 'wb' | 'lb' }>,
   showPilotPaths: false,
 }
-
-// Pilot interface export
-export type { Pilot } from '@/lib/schemas'
-
-// Note: Heat interface is defined at the top of this file (before helper functions)
-// to allow usage in createWBHeatFromPool and createLBHeatFromPool
 
 // Story 1.5: Generische Pool Helper-Funktionen
 // Eliminieren Code-Duplikation zwischen addToLoserPool/addToWinnerPool und removeFromLoserPool
