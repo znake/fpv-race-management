@@ -376,7 +376,7 @@ export function PlacementEntryModal({
 
               className={`
                                 relative bg-night text-center cursor-pointer
-                                border-2 rounded-xl select-none
+                                border-2 rounded-xl select-none touch-manipulation
                                 transition-all duration-200 ease-out
                                 focus:outline-none focus:ring-2 focus:ring-neon-cyan/50
                                 hover:-translate-y-0.5
@@ -386,7 +386,6 @@ export function PlacementEntryModal({
                                   : 'border-steel hover:border-neon-cyan'
                                 }
                               `}
-                              style={{ touchAction: 'manipulation' }}
             >
               {/* Rank Badge */}
               {hasRank && (

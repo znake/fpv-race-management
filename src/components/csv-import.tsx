@@ -231,7 +231,7 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-neon-pink text-void px-6 py-3 rounded-lg font-semibold hover:shadow-[0_0_20px_rgba(255,42,109,0.5)] transition-all duration-200"
+                className="bg-neon-pink text-void px-6 py-3 rounded-lg font-semibold hover:shadow-glow-pink transition-all duration-200"
               >
                 Datei auswählen
               </button>
@@ -361,7 +361,7 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
             </button>
             <button
               onClick={handleImport}
-              className="px-6 py-3 bg-neon-pink text-void rounded-lg font-semibold hover:shadow-[0_0_20px_rgba(255,42,109,0.5)] transition-all duration-200"
+              className="px-6 py-3 bg-neon-pink text-void rounded-lg font-semibold hover:shadow-glow-pink transition-all duration-200"
             >
               {state.result.validRows} Piloten importieren
             </button>

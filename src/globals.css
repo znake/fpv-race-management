@@ -248,7 +248,7 @@
 
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(255, 42, 109, 0.7);
+    box-shadow: theme('boxShadow.glow-pink-lg');
   }
 
   .btn-primary:disabled {
@@ -958,40 +958,8 @@
   }
 
   /* Glow Classes */
-  .shadow-glow-cyan {
-    box-shadow: 0 0 20px rgba(5, 217, 232, 0.5);
-  }
-
   .shadow-glow-cyan-live {
     box-shadow: var(--glow-cyan-live);
-  }
-
-  .shadow-glow-green {
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
-  }
-
-  .shadow-gold {
-    box-shadow: 0 0 20px rgba(249, 200, 14, 0.5);
-  }
-
-  .shadow-glow-gold {
-    box-shadow: 0 0 30px rgba(249, 200, 14, 0.6);
-  }
-
-  .shadow-glow-silver {
-    box-shadow: 0 0 30px rgba(192, 192, 192, 0.6);
-  }
-
-  .shadow-glow-bronze {
-    box-shadow: 0 0 30px rgba(205, 127, 50, 0.6);
-  }
-
-  .shadow-glow-red {
-    box-shadow: 0 0 20px rgba(255, 7, 58, 0.5);
-  }
-
-  .shadow-glow-pink {
-    box-shadow: 0 0 30px rgba(255, 0, 128, 0.7);
   }
 
   /* ========================================

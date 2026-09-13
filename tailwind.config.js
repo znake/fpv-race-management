@@ -51,6 +51,7 @@ export default {
       },
       boxShadow: {
         'glow-pink': '0 0 20px rgba(255, 42, 109, 0.5)',
+        'glow-pink-lg': '0 0 30px rgba(255, 42, 109, 0.7)',
         'glow-cyan': '0 0 20px rgba(5, 217, 232, 0.5)',
         'glow-gold': '0 0 20px rgba(249, 200, 14, 0.5)',
         'glow-silver': '0 0 20px rgba(192, 192, 192, 0.5)',

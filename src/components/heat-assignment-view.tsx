@@ -98,7 +98,7 @@ export function HeatAssignmentView({ heats, pilots, onConfirm, onCancel }: HeatA
               "bg-neon-pink text-void px-8 py-4 rounded-xl font-bold text-lg transition-all",
               hasInvalidHeats
                 ? "opacity-50 cursor-not-allowed"
-                : "shadow-glow-pink hover:shadow-[0_0_30px_rgba(255,42,109,0.7)]"
+                : "shadow-glow-pink hover:shadow-glow-pink-lg"
             )}
           >
             Aufteilung bestätigen

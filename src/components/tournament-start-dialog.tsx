@@ -27,7 +27,7 @@ export function TournamentStartDialog({ pilotCount, onConfirm, onCancel }: Tourn
         </button>
         <button
           onClick={onConfirm}
-          className="px-6 py-3 bg-neon-pink text-void rounded-lg font-bold shadow-[0_0_20px_rgba(255,42,109,0.5)] hover:shadow-[0_0_30px_rgba(255,42,109,0.7)] hover:-translate-y-0.5 transition-all duration-200"
+          className="px-6 py-3 bg-neon-pink text-void rounded-lg font-bold shadow-glow-pink hover:shadow-glow-pink-lg hover:-translate-y-0.5 transition-all duration-200"
         >
           Bestätigen
         </button>

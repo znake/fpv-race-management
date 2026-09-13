@@ -168,7 +168,7 @@ export function App() {
                 <p className="text-lg text-steel/70 mb-8">Füge den ersten Pilot hinzu!</p>
                 <button
                   onClick={loadDemoPilots}
-                  className="bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-pink bg-[length:200%_100%] animate-pulse text-void px-8 py-4 rounded-xl font-bold text-xl shadow-[0_0_30px_rgba(255,45,117,0.5)] hover:shadow-[0_0_50px_rgba(5,217,232,0.7)] hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-pink bg-[length:200%_100%] animate-pulse text-void px-8 py-4 rounded-xl font-bold text-xl shadow-glow-pink hover:shadow-[0_0_50px_rgba(5,217,232,0.7)] hover:scale-105 transition-all duration-300"
                 >
                   Mit Standardpiloten starten
                 </button>
@@ -182,7 +182,7 @@ export function App() {
             <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setShowCSVImport(true)}
-                className="flex-1 bg-neon-cyan text-void px-4 py-3 min-h-[48px] rounded-lg font-semibold text-beamer-body hover:shadow-[0_0_20px_rgba(5,217,232,0.5)] transition-all duration-200"
+                className="flex-1 bg-neon-cyan text-void px-4 py-3 min-h-[48px] rounded-lg font-semibold text-beamer-body hover:shadow-glow-cyan transition-all duration-200"
               >
                 CSV Import
               </button>
