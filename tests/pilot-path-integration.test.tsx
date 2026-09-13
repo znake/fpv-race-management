@@ -53,6 +53,7 @@ describe('BracketTree Integration - Pilot Paths', () => {
     status: 'active',
     pilotIds: ['p1']
   }]
+  const mockUseTournamentStore = vi.mocked(useTournamentStore)
 
   const mockStore = {
     heats: mockHeats,
@@ -64,7 +65,7 @@ describe('BracketTree Integration - Pilot Paths', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(useTournamentStore as any).mockImplementation((selector: any) => selector(mockStore))
+    mockUseTournamentStore.mockImplementation((selector) => selector(mockStore as ReturnType<typeof useTournamentStore.getState>))
   })
 
   it('renders PilotPathToggle', () => {
