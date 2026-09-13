@@ -453,7 +453,7 @@ export function BracketTree({
         onFitToView={handleFitToViewToggle}
       />
 
-      <PilotPathToggle />
+      <PilotPathToggle showPilotPaths={showPilotPaths} onToggle={togglePilotPaths} />
 
       {/* Heat Detail Modal */}
       {selectedHeatData && (
