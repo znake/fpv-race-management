@@ -6,7 +6,7 @@
 
 ## Aktueller Stand
 
-Die Testsuite umfasst 26 Testdateien. Die exakten Testzahlen werden vom Vitest-Lauf bestimmt. Alle Tests sind grün und laufen in etwa 1,8 bis 2,2 Sekunden. Es gibt keine `.only`-, `.skip`- oder `.todo`-Markierungen.
+Die Testsuite umfasst 30 Testdateien. Die exakten Testzahlen werden vom Vitest-Lauf bestimmt. Alle Tests sind grün und laufen in etwa 1,8 bis 2,2 Sekunden. Es gibt keine `.only`-, `.skip`- oder `.todo`-Markierungen.
 
 In diesem Durchgang fand keine Testkonsolidierung statt. Keine Testdatei wurde gelöscht oder geändert. Entfernt wurden ausschließlich acht nicht verwendete CSV-Fixtures.
 
@@ -54,7 +54,9 @@ Die früher erwähnten Hinweise zu einem TODO und `console.log`-Ausgaben in `lb-
 - `pilot-path-calculation.test.ts`
 - `reset-functions.test.ts`
 - `round-progression.test.ts`
+- `utils.test.ts`
 - `app-footer.test.tsx`
+- `bracket-tree-hooks.test.tsx`
 - `csv-import.test.tsx`
 - `finale-ceremony.test.tsx`
 - `heat-results.test.tsx`
@@ -65,6 +67,8 @@ Die früher erwähnten Hinweise zu einem TODO und `console.log`-Ausgaben in `lb-
 - `rank-badge.test.tsx`
 - `tournament-start.test.tsx`
 - `use-pilots.test.tsx`
+- `use-is-mobile.test.tsx`
+- `use-zoom-pan.test.tsx`
 
 ## Verifikation
 

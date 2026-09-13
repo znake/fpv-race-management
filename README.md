@@ -239,7 +239,7 @@ Die erfassten Zeiten werden im Bracket neben der Platzierung angezeigt und sind 
 #### Phase 5: Siegerehrung
 
 - **Podium-Anzeige** mit Top 4 Piloten
-- Gold/Silber/Bronze/Cyan Styling mit Animationen
+- Gold/Silber/Bronze/Dunkelrot Styling mit Animationen
 - **"Neues Turnier"** Button zum Zurücksetzen
 
 ![Siegerehrung](./docs/images/Sigerehrung.png)

@@ -26,7 +26,7 @@ heats/
 │   ├── stores/
 │   ├── types/
 │   └── App.tsx
-├── tests/ (26 test files)
+├── tests/ (30 test files)
 │   ├── helpers/
 │   ├── bracket-logic.test.ts
 │   ├── channel-assignment.test.ts
@@ -43,7 +43,9 @@ heats/
 │   ├── pilot-path-calculation.test.ts
 │   ├── reset-functions.test.ts
 │   ├── round-progression.test.ts
+│   ├── utils.test.ts
 │   ├── app-footer.test.tsx
+│   ├── bracket-tree-hooks.test.tsx
 │   ├── csv-import.test.tsx
 │   ├── finale-ceremony.test.tsx
 │   ├── heat-results.test.tsx
@@ -54,6 +56,8 @@ heats/
 │   ├── rank-badge.test.tsx
 │   ├── tournament-start.test.tsx
 │   ├── use-pilots.test.tsx
+│   ├── use-is-mobile.test.tsx
+│   ├── use-zoom-pan.test.tsx
 └── docs/
 ```
 

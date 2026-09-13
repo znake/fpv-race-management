@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-All tests live here (never colocated). 23 test files: `*.test.ts` for logic/store, `*.test.tsx` for components. Shared fixtures in `helpers/`.
+All tests live here (never colocated). 30 test files: `*.test.ts` for logic/store, `*.test.tsx` for components. Shared fixtures in `helpers/`.
 
 ## STRUCTURE
 

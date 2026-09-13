@@ -54,17 +54,12 @@
 ### UI-Komponenten
 | Paket | Version | Zweck |
 |-------|---------|-------|
-| `@radix-ui/react-dialog` | 1.1.4 | Accessible Dialogs |
-| `@radix-ui/react-slot` | 1.1.1 | Component Composition |
-| `@radix-ui/react-switch` | 1.1.2 | Toggle Switch |
 | `lucide-react` | 0.441.0 | Icon-Bibliothek |
 
 ### Drag & Drop
 | Paket | Version | Zweck |
 |-------|---------|-------|
 | `@dnd-kit/core` | 6.3.1 | Drag & Drop Core |
-| `@dnd-kit/sortable` | 9.0.0 | Sortierbare Listen |
-| `@dnd-kit/utilities` | 3.2.2 | DnD Utilities |
 
 ### Utilities
 | Paket | Version | Zweck |

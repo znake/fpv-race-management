@@ -11,7 +11,7 @@
 
 | Dokument | Beschreibung |
 |----------|--------------|
-| [README](./README.md) | **Aktuellste Dokumentation** - Benutzerhandbuch |
+| [README](../README.md) | **Aktuellste Dokumentation** - Benutzerhandbuch |
 | [Getting Started](./getting-started.md) | Schnelleinstieg & Installation |
 | [Architektur Deep-Dive](./architecture-deep-dive.md) | Architektur-Entscheidungen & Patterns |
 
@@ -23,7 +23,7 @@
 
 | Dokument | Beschreibung | Zuletzt aktualisiert |
 |----------|--------------|---------------------|
-| [README](./README.md) | Umfassendes Benutzerhandbuch mit Screenshots | 2026-01-31 |
+| [README](../README.md) | Umfassendes Benutzerhandbuch mit Screenshots | 2026-01-31 |
 | [Getting Started](./getting-started.md) | Installation, Setup, Turnier-Ablauf | 2026-01-19 |
 | [Source Tree](./source-tree.md) | Verzeichnisstruktur & Datei-Beschreibungen | 2026-02-02 |
 | [Tech Stack](./tech-stack.md) | Technologien, Dependencies, Design System | 2026-02-02 |
@@ -51,24 +51,7 @@
 
 ## Historische Artefakte
 
-Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repositorys.
-
-------|--------------|
-| `_bmad-output/planning-artifacts/project-context.md` | Projektkontext |
-| `_bmad-output/planning-artifacts/epics.md` | Alle Epics (1-14) |
-| `_bmad-output/planning-artifacts/analysis/product-brief-*.md` | Product Brief |
-| `_bmad-output/planning-artifacts/analysis/tournament-rules.md` | Double-Elimination Regeln |
-| `_bmad-output/planning-artifacts/design/ux-design-specification.md` | UX-Design |
-| `_bmad-output/planning-artifacts/design/bracket-tree-vertical-dynamisch.md` | Bracket-Design |
-
-<!-- Historische Artefaktpfade wurden entfernt. -->
-
-| Pfad | Beschreibung |
-|------|--------------|
-| `_bmad-output/implementation-artifacts/user-stories/` | User Stories (Epic 1-14) |
-| `_bmad-output/implementation-artifacts/validation-reports/` | Validierungs-Berichte |
-| `_bmad-output/implementation-artifacts/completion-reports/` | Abschluss-Berichte |
-| `_bmad-output/implementation-artifacts/change-proposals/` | Änderungsvorschläge |
+Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repositorys. Die früher dokumentierten `_bmad-output/...`-Pfade existieren im Repository nicht (mehr) und werden hier bewusst nicht aufgeführt.
 
 ---
 
@@ -81,8 +64,8 @@ Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repos
 | **Source-Dateien** | 64 TypeScript/TSX |
 | **Components** | ~30 |
 | **Hooks** | 3 |
-| **Lib-Module** | 13 |
-| **Test-Dateien** | 26 |
+| **Lib-Module** | 16 |
+| **Test-Dateien** | 30 |
 | **Epics** | 14 |
 | **User Stories** | 90+ |
 

@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-Single Zustand store owning the entire tournament lifecycle, persisted to localStorage (key `heats-tournament`). `heats[]` is the single source of truth; all bracket structure is computed dynamically.
+Single Zustand store owning the entire tournament lifecycle, persisted to localStorage (key `tournament-storage`). `heats[]` is the single source of truth; all bracket structure is computed dynamically.
 
 ## WHERE TO LOOK
 
