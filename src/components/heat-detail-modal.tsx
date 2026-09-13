@@ -3,9 +3,10 @@ import type { Heat } from '@/types'
 import type { Pilot } from '@/lib/schemas'
 import { Clock, X } from 'lucide-react'
 import { useTournamentStore } from '@/stores/tournamentStore'
-import { getRankBadgeClasses, FALLBACK_PILOT_IMAGE, formatLapTime, parseLapTimeDigits } from '@/lib/ui-helpers'
+import { FALLBACK_PILOT_IMAGE, formatLapTime, parseLapTimeDigits } from '@/lib/ui-helpers'
 import { Modal } from './ui/modal'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { RankBadge } from './ui/rank-badge'
 
 interface HeatDetailModalProps {
   heat: Heat
@@ -131,13 +132,10 @@ export function HeatDetailModal({
               {/* Ranking Badge */}
               {ranking && (
                 <>
-                  <div className={`
-                    rounded-full flex items-center justify-center font-bold
-                    ${isMobile ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-lg'}
-                    ${getRankBadgeClasses(ranking.rank)}
-                  `}>
-                    {ranking.rank}
-                  </div>
+                  <RankBadge
+                    rank={ranking.rank}
+                    className={isMobile ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-lg'}
+                  />
 
                   {heat.status === 'completed' && canEdit && ranking && (
                     <>

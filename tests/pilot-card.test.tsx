@@ -52,7 +52,7 @@ describe('PilotCard', () => {
     render(<PilotCard pilot={mockPilot} rank={2} />)
     
     const card = screen.getByText('Test Pilot').closest('[class*="bg-night"]')
-    expect(card).toHaveClass('border-neon-cyan', 'shadow-glow-cyan')
+    expect(card).toHaveClass('border-silver', 'shadow-glow-silver')
   })
 
   it('applies selected styling when selected', () => {

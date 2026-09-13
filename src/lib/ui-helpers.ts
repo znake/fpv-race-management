@@ -28,23 +28,10 @@ export const FALLBACK_PILOT_IMAGE = `data:image/svg+xml,${encodeURIComponent(`
 `)}`
 
 /**
- * Get consistent rank badge styling for placements
+ * Get consistent border styling for ranked cards.
  *
- * Color scheme:
- * - 1st place: Gold
- * - 2nd place: Silver
- * - 3rd place: Bronze
- * - 4th place: Dark Red
- */
-export function getRankBadgeClasses(rank: number): string {
-  if (rank === 1) return 'bg-gold text-void shadow-glow-gold'
-  if (rank === 2) return 'bg-silver text-void shadow-glow-silver'
-  if (rank === 3) return 'bg-bronze text-void shadow-glow-bronze'
-  return 'bg-rank-4 text-void shadow-glow-rank-4' // rank 4+
-}
-
-/**
- * Get consistent border styling for ranked cards
+ * Canonical rank token map — keeps the card border/glow in sync with the
+ * fill colors rendered by `RankBadge` (`src/components/ui/rank-badge.tsx`).
  */
 export function getRankBorderClasses(rank: number): string {
   if (rank === 1) return 'border-gold shadow-glow-gold'

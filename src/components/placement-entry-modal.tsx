@@ -3,12 +3,12 @@ import type { Heat } from '@/types'
 import type { Pilot } from '@/lib/schemas'
 import { Modal } from './ui/modal'
 import {
-  getRankBadgeClasses,
   getRankBorderClasses,
   FALLBACK_PILOT_IMAGE,
   parseLapTimeDigits,
   formatPartialTimeEntry
 } from '@/lib/ui-helpers'
+import { RankBadge } from './ui/rank-badge'
 import { formatChannel, getChannelForPosition } from '@/lib/channel-assignment'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -305,11 +305,6 @@ export function PlacementEntryModal({
     }
   }, [isOpen])
 
-  // Get rank badge styling
-  const getRankBadgeClass = (rank: number) => {
-    return getRankBadgeClasses(rank).replace(' text-void', '')
-  }
-
   // Generate heat name (same logic as BracketHeatBox)
   const getHeatName = () => {
     const bracketType = heat.bracketType
@@ -395,15 +390,11 @@ export function PlacementEntryModal({
             >
               {/* Rank Badge */}
               {hasRank && (
-                <div className={`
-                  absolute rounded-full
-                  flex items-center justify-center font-display text-void
-                  rank-badge-animate
-                  ${isMobile ? '-top-2 -right-2 w-10 h-10 text-xl' : '-top-4 -right-4 w-16 h-16 text-3xl'}
-                  ${getRankBadgeClass(rank)}
-                `}>
-                  {rank}
-                </div>
+                <RankBadge
+                  rank={rank as 1 | 2 | 3 | 4}
+                  animated
+                  className={isMobile ? 'absolute -top-2 -right-2 w-10 h-10 text-xl' : 'absolute -top-4 -right-4 w-16 h-16 text-3xl'}
+                />
               )}
 
               {/* Pilot Photo - responsive size */}

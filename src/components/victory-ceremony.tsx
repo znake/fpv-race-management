@@ -61,17 +61,17 @@ function PodiumCard({
       label: 'CHAMPION'
     },
     2: {
-      border: 'border-gray-300',
-      bg: 'bg-gray-400/20',
+      border: 'border-silver',
+      bg: 'bg-silver/20',
       glow: 'shadow-glow-silver',
-      badge: 'bg-gray-300 text-void',
+      badge: 'bg-silver text-void',
       label: '2. PLATZ'
     },
     3: {
-      border: 'border-amber-600',
-      bg: 'bg-amber-700/20',
+      border: 'border-bronze',
+      bg: 'bg-bronze/20',
       glow: 'shadow-glow-bronze',
-      badge: 'bg-amber-600 text-void',
+      badge: 'bg-bronze text-void',
       label: '3. PLATZ'
     },
     4: {

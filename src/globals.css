@@ -896,25 +896,6 @@
     text-overflow: ellipsis;
   }
 
-  /* AC11: Rank-Badge */
-  .rank-badge {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 9px;
-    color: var(--void);
-    flex-shrink: 0;
-  }
-
-  .rank-badge.r1 { background: var(--gold); }
-  .rank-badge.r2 { background: #c0c0c0; }
-  .rank-badge.r3 { background: #cd7f32; }
-  .rank-badge.r4 { background: var(--rank-4); }
-
   /* Heat Groups (Story 11-1) */
   .heat-group {
     display: flex;

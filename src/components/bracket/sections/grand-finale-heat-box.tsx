@@ -3,6 +3,7 @@ import { formatChannel, getChannelForPosition } from '@/lib/channel-assignment'
 import { cn } from '@/lib/utils'
 import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
 import type { GrandFinaleHeatBoxProps } from '../types'
+import { RankBadge } from '@/components/ui/rank-badge'
 
 /**
  * US-14.7: Grand Finale Heat Box - Special styling for 4-pilot finale
@@ -97,7 +98,10 @@ export function GrandFinaleHeatBox({
               </span>
 
               {rank && (
-                <span className={`rank-badge r${rank}`}>{rank}</span>
+                <RankBadge
+                  rank={rank}
+                  id={`rank-badge-${pilot.id}-${heat.id}`}
+                />
               )}
             </div>
           </div>

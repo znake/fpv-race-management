@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Pilot } from '@/lib/schemas'
 import { FALLBACK_PILOT_IMAGE } from '@/lib/ui-helpers'
 import { Modal } from './ui/modal'
+import { RankBadge } from './ui/rank-badge'
 
 type PilotCardProps = {
   pilot: Pilot
@@ -35,20 +36,24 @@ export function PilotCard({
   const [isHovered, setIsHovered] = useState(false)
 
   // US-2.3: Rang-spezifische Farben
+  // US-2.3: Rang-spezifische Farben (kanonische Rank-Tokens)
   const getRankBorderClass = () => {
     if (pilot.status === 'withdrawn') return 'border-steel opacity-60'
-    if (rank === 1) return 'border-gold' // Gold für Rang 1
-    if (rank === 2) return 'border-neon-cyan' // Cyan für Rang 2
-    if (rank === 3 || rank === 4) return 'border-neon-pink' // Pink für Rang 3+4
+    if (rank === 1) return 'border-gold'
+    if (rank === 2) return 'border-silver'
+    if (rank === 3) return 'border-bronze'
+    if (rank === 4) return 'border-rank-4'
     if (selected) return 'border-neon-pink'
     return 'border-steel'
   }
 
   const getRankGlowClass = () => {
     if (pilot.status === 'withdrawn') return ''
-    if (rank === 1) return 'shadow-glow-gold animate-[glow-pulse-gold_2s_ease-in-out_infinite]'
-    if (rank === 2) return 'shadow-glow-cyan animate-[glow-pulse-cyan_2s_ease-in-out_infinite]'
-    if (rank === 3 || rank === 4 || selected) return 'shadow-glow-pink'
+    if (rank === 1) return 'shadow-glow-gold'
+    if (rank === 2) return 'shadow-glow-silver'
+    if (rank === 3) return 'shadow-glow-bronze'
+    if (rank === 4) return 'shadow-glow-rank-4'
+    if (selected) return 'shadow-glow-pink'
     return ''
   }
 
@@ -149,16 +154,11 @@ export function PilotCard({
       >
         {/* Rank Badge - Beamer-optimiert (min 32px Zahl für Beamer-Lesbarkeit - AC5) */}
         {showRank && rank && pilot.status !== 'withdrawn' && (
-          <div className={`
-            absolute -top-2 -right-2
-            ${size === 'large' ? 'w-14 h-14' : 'w-12 h-12'}
-            rounded-full flex items-center justify-center font-display text-void rank-badge-animate text-beamer-rank
-            ${rank === 1 ? 'bg-gold shadow-glow-gold' : ''}
-            ${rank === 2 ? 'bg-neon-cyan shadow-glow-cyan' : ''}
-            ${rank === 3 || rank === 4 ? 'bg-neon-pink shadow-glow-pink' : ''}
-          `}>
-            {rank}
-          </div>
+          <RankBadge
+            rank={rank as 1 | 2 | 3 | 4}
+            animated
+            className={`absolute -top-2 -right-2 ${size === 'large' ? 'w-14 h-14' : 'w-12 h-12'} text-beamer-rank`}
+          />
         )}
 
         {/* Withdrawn Badge */}
