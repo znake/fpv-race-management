@@ -15,7 +15,7 @@ src/components/ui/
 ├── label.tsx        # peer-disabled form label
 ├── modal.tsx        # Backdrop, escape, focus trap
 ├── pilot-avatar.tsx # Circular avatar + fallback image
-├── rank-badge.tsx   # 1st–4th badges (gold/silver/bronze/cyan)
+├── rank-badge.tsx   # 1st–4th badges (gold/silver/bronze/dark red)
 └── heat-card.tsx    # Multi-variant card — see NOTES
 ```
 
@@ -27,7 +27,7 @@ src/components/ui/
 | Button variants | `button.tsx` | CVA, 6 variants / 4 sizes |
 | Modal sizing | `modal.tsx` | sm → full |
 | Avatar fallback | `pilot-avatar.tsx` | `FALLBACK_PILOT_IMAGE` from `@/lib/ui-helpers` |
-| Rank colors | `rank-badge.tsx` | Gold, Silver, Bronze, Cyan |
+| Rank colors | `rank-badge.tsx` | Gold, Silver, Bronze, dark red (`rank-4`) |
 | Heat variants | `heat-card.tsx` | empty, bracket, filled, overview, detail |
 
 ## CONVENTIONS

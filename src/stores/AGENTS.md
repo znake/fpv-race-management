@@ -36,10 +36,10 @@ One `set()` orchestrates 5 sub-systems: ranking rollback → pool updates → `g
 
 ## CONVENTIONS
 
-- **Consumers use selectors**: `useTournamentStore(state => state.x)`, never whole-store subscription (one violation: `bracket/PilotPathToggle.tsx`).
+- **Consumers use selectors**: `useTournamentStore(state => state.x)`, never whole-store subscription.
 - Non-reactive reads outside React use `useTournamentStore.getState()`.
 - Store may call `crypto.randomUUID()` directly (documented drift from `src/lib` rules).
-- Uses `alert()`/`confirm()` for validation UX (side effects in store).
+- Uses `alert()`/`confirm()` for some validation UX (duplicate-name checks are centralized in `usePilots`).
 
 ## ANTI-PATTERNS
 

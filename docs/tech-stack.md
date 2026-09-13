@@ -105,10 +105,9 @@
 ```json
 {
   "dev": "vite",
-  "build": "tsc -b && vite build",
+  "build": "tsc && vite build",
   "preview": "vite preview",
   "test": "vitest",
-  "test:run": "vitest run"
 }
 ```
 
@@ -118,7 +117,7 @@
 | `npm run build` | TypeScript Check + Production Build |
 | `npm run preview` | Vorschau des Production Builds |
 | `npm test` | Startet Vitest im Watch-Mode |
-| `npm run test:run` | Führt Tests einmalig aus |
+| `npm test -- run` | Führt Tests einmalig aus |
 
 ---
 

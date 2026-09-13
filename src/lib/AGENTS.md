@@ -21,7 +21,7 @@ Pure TypeScript business logic for double-elimination bracket management, heat g
 | Export/Import | `export-import.ts` | JSON backup, CSV results; hand-rolled guards |
 | HTML bracket export | `export-bracket-html.ts` | Self-contained HTML export |
 | Heat distribution | `heat-distribution.ts` | 3er/4er split for 7–60 pilots |
-| UI helpers | `ui-helpers.ts` | Rank badges, lap-time format/parse |
+| UI helpers | `ui-helpers.ts` | Rank borders, lap-time format/parse |
 | Constants | `bracket-constants.ts` | `HEAT_ID_PREFIXES`, pool/ranking thresholds |
 | Schemas / domain types | `schemas.ts` | Zod + canonical `Pilot`/`Ranking`/`HeatResults` |
 | Shared utils | `utils.ts` | `cn`, `debounce`, `shuffleArray` |

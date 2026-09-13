@@ -49,14 +49,11 @@
 
 ---
 
-## BMAD-Artefakte
+## Historische Artefakte
 
-Die BMAD-Workflow-Artefakte befinden sich in `_bmad-output/`:
+Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repositorys.
 
-### Planungs-Artefakte
-
-| Pfad | Beschreibung |
-|------|--------------|
+------|--------------|
 | `_bmad-output/planning-artifacts/project-context.md` | Projektkontext |
 | `_bmad-output/planning-artifacts/epics.md` | Alle Epics (1-14) |
 | `_bmad-output/planning-artifacts/analysis/product-brief-*.md` | Product Brief |
@@ -64,7 +61,7 @@ Die BMAD-Workflow-Artefakte befinden sich in `_bmad-output/`:
 | `_bmad-output/planning-artifacts/design/ux-design-specification.md` | UX-Design |
 | `_bmad-output/planning-artifacts/design/bracket-tree-vertical-dynamisch.md` | Bracket-Design |
 
-### Implementierungs-Artefakte
+<!-- Historische Artefaktpfade wurden entfernt. -->
 
 | Pfad | Beschreibung |
 |------|--------------|
@@ -85,7 +82,7 @@ Die BMAD-Workflow-Artefakte befinden sich in `_bmad-output/`:
 | **Components** | ~30 |
 | **Hooks** | 3 |
 | **Lib-Module** | 13 |
-| **Test-Dateien** | 17+ |
+| **Test-Dateien** | 26 |
 | **Epics** | 14 |
 | **User Stories** | 90+ |
 
@@ -96,7 +93,7 @@ Die BMAD-Workflow-Artefakte befinden sich in `_bmad-output/`:
 | Feature | Beschreibung |
 |---------|--------------|
 | ✨ **SVG Pilot Paths** | Bezier-Kurven zeigen Piloten-Reise durch das Bracket |
-| ✨ **Channel Optimization** | Intelligente Raceband-Kanal-Zuweisung (R1, R3, R4, R6, R8) |
+| ✨ **Channel Optimization** | Intelligente Raceband-Kanal-Zuweisung (R1, R3, R6, R8) |
 | ✨ **Pool Aggregation** | Optimierte LB-Heat-Generierung mit korrekter Piloten-Sammlung |
 | ✨ **Confetti Victory** | canvas-confetti Animation bei Siegerehrung |
 | ✨ **Lap Time Entry** | Optionale Rundenzeiten-Erfassung pro Pilot |

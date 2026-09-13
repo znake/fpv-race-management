@@ -10,7 +10,7 @@ Custom React hooks. `usePilots` is the intended facade over the store; `useZoomP
 
 | Hook | File | Notes |
 |------|------|-------|
-| `usePilots()` | `usePilots.ts` | Pilot CRUD facade over `useTournamentStore` (Zod validation, duplicate confirm, optimistic rollback, CSV batch import) |
+| `usePilots()` | `usePilots.ts` | Pilot gateway over `useTournamentStore` with Zod validation, centralized duplicate policy, unified `PilotActionResult`, and CSV batch import |
 | `useZoomPan(options)` | `useZoomPan.ts` | Zoom/pan engine — **726 LOC hotspot** |
 | `useIsMobile()` | `useIsMobile.ts` | `matchMedia('(max-width: 768px)')` with SSR guard |
 
@@ -29,6 +29,6 @@ Custom React hooks. `usePilots` is the intended facade over the store; `useZoomP
 
 ## ANTI-PATTERNS
 
-- **No business logic** in hooks — delegate to `src/lib`.
+- Keep general business logic in `src/lib`, but retain pilot validation and duplicate-name policy in `usePilots` as the deliberate pilot gateway.
 - **No whole-store subscriptions** — select narrowly.
 - **Don't duplicate pilot CRUD** — go through `usePilots`.

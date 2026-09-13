@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-09-13
-**Commit:** 8929ec8
+**Commit:** b4365fe
 **Branch:** cleanup/phase-0-1-dead-code
 
 ## OVERVIEW
@@ -51,7 +51,7 @@ docs/               # Domain rules, architecture, store API
 | Heat split (3er/4er) | `src/lib/heat-distribution.ts` | 7–60 pilots |
 | Channel assignment | `src/lib/channel-assignment.ts` | Raceband R1/R3/R6/R8 |
 | State management | `src/stores/tournamentStore.ts` | Single store, localStorage persist |
-| Bracket rendering | `src/components/bracket/BracketTree.tsx` | Only store-touching bracket file |
+| Bracket rendering | `src/components/bracket/bracket-tree.tsx` | Only store-touching bracket file |
 | Zoom/pan | `src/hooks/useZoomPan.ts` | 726-LOC hotspot |
 | Export/Import | `src/lib/export-import.ts` | JSON backup, CSV results |
 | CSV import | `src/components/csv-import.tsx` | PapaParse, drag & drop |
@@ -70,14 +70,14 @@ docs/               # Domain rules, architecture, store API
 | `processRankingsByBracket` | fn | `src/lib/heat-completion.ts` | Rank→pool/elimination transitions |
 | `calculateHeatDistribution` | fn | `src/lib/heat-distribution.ts` | Optimal 4er/3er split |
 | `inferBracketType` | fn | `src/lib/bracket-logic.ts` | Map heat id → bracket type |
-| `BracketTree` | component | `src/components/bracket/BracketTree.tsx` | Canvas + orchestration |
+| `BracketTree` | component | `src/components/bracket/bracket-tree.tsx` | Canvas + orchestration |
 | `useZoomPan` | hook | `src/hooks/useZoomPan.ts:100` | Wheel/touch/pointer/keyboard zoom-pan |
 | `usePilots` | hook | `src/hooks/usePilots.ts` | Pilot CRUD facade over store (Zod) |
 | `App` | component | `src/App.tsx:27` | Root: tabs, dialogs, export/import |
 
 ## CONVENTIONS (deviations from standard only)
 
-- **No default exports** — named only. `kebab-case.ts` for logic, `PascalCase.tsx` for components.
+- **No default exports** — named only. `kebab-case.ts` for logic and `kebab-case.tsx` for components.
 - **Imports**: React → external → `@/` alias → relative → `import type` last. Alias `@/*` → `src/*` must stay in sync in `tsconfig.json` AND `vite.config.ts`.
 - **`border-3`** is a custom Tailwind width (not `border-4`). Beamer font sizes: `text-beamer-body` (18px) … `text-beamer-display` (48px).
 - **Theme colors**: `void`, `night`, `neon-pink`, `neon-cyan`, `neon-magenta`, `gold`, `silver`, `bronze`, `winner-green`, `loser-red`.
@@ -88,7 +88,7 @@ docs/               # Domain rules, architecture, store API
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
-- **No store imports in UI primitives / presentation components** — only smart containers (`App.tsx`, `bracket/BracketTree.tsx`, `bracket/PilotPathToggle.tsx`, `heat-detail-modal.tsx`, `heat-assignment-view.tsx`) may call the store. Pass data via props.
+- **No store imports in UI primitives / presentation components** — only smart containers (`App.tsx`, `bracket/bracket-tree.tsx`, `heat-detail-modal.tsx`, `heat-assignment-view.tsx`) may call the store. Pass data via props.
 - **No `as any` / `@ts-ignore` / `@ts-expect-error`** — enforced by `tsc` in the build, not an ESLint rule.
 - **No empty catch blocks** — handle or log every error.
 - **No mutating Sets in `src/lib/`** — create new Sets (exception: `heat-completion.ts` mutates; documented drift).
@@ -110,7 +110,7 @@ docs/               # Domain rules, architecture, store API
 - **Canonical `Pilot`/`HeatResults`/`Ranking` types live in `src/lib/schemas.ts`**, re-exported through `src/types/index.ts`.
 - **`src/test/` is Vitest setup, not tests** — the suite is centralized in `/tests/`.
 - **`docs/architecture.md` is outdated** (describes a removed Provider); use `docs/architecture-deep-dive.md`.
-- **`docs/dead-code-report.md` flags stale AGENTS.md references** (e.g. removed `PoolDisplay`, `getHeatConnections`); verify against disk before trusting nested docs.
+- **`docs/dead-code-report.md` records historical cleanup context**; verify current paths against disk before trusting historical references.
 
 ## NOTES
 

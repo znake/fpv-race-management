@@ -13,7 +13,7 @@ src/components/
 ├── *.tsx                    # Smart containers (business logic)
 ├── bracket/                 # Bracket visualization (has barrel)
 │   ├── index.ts
-│   ├── heat-boxes/          # BracketHeatBox.tsx (sole variant)
+│   ├── heat-boxes/          # bracket-heat-box.tsx (sole variant)
 │   ├── sections/            # Quali / WB-LB / Grand Finale layouts
 │   └── *.tsx                # BracketTree, SVG connectors, pilot paths
 └── ui/                      # Reusable UI primitives (no barrel)
@@ -29,15 +29,15 @@ src/components/
 | Placement entry | `placement-entry-modal.tsx` | Click-to-rank + lap-time state machine (540 LOC) |
 | Heat detail | `heat-detail-modal.tsx` | Completed-heat view, reopen |
 | Victory screen | `victory-ceremony.tsx` | Podium, CSV export |
-| Bracket tree | `bracket/BracketTree.tsx` | Main container, zoom/pan |
-| Heat box | `bracket/heat-boxes/BracketHeatBox.tsx` | Sole variant (140/120/180px) |
+| Bracket tree | `bracket/bracket-tree.tsx` | Main container, zoom/pan |
+| Heat box | `bracket/heat-boxes/bracket-heat-box.tsx` | Sole variant (140/120/180px) |
 | Bracket sections | `bracket/sections/` | See `bracket/AGENTS.md` |
 | UI primitives | `ui/*.tsx` | Import directly (no barrel) |
 
 ## CONVENTIONS
 
 **Smart containers (root + a few bracket files):**
-- May call `useTournamentStore(selector)`. Store-touching components: `App.tsx`, `bracket/BracketTree.tsx`, `bracket/PilotPathToggle.tsx`, `heat-detail-modal.tsx`, `heat-assignment-view.tsx`.
+- May call `useTournamentStore(selector)`. Store-touching components: `App.tsx`, `bracket/bracket-tree.tsx`, `heat-detail-modal.tsx`, `heat-assignment-view.tsx`.
 - Prefer `src/hooks/usePilots.ts` for pilot CRUD.
 - Business logic belongs in `src/lib/`, not components.
 

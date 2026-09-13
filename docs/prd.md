@@ -124,7 +124,7 @@ Da FPV Racing Heats ein Community-Tool ist, gelten Community-Ziele statt klassis
 | Double Elimination | Winner-Bracket + Loser-Bracket |
 | Bracket-Visualisierung | Interaktiver Baum mit Zoom/Pan, Farbcodierung (Cyan/Grün/Rot/Gold) |
 | Piloten-Pfade | Visualisierung der Flugwege durch das Turnier mit Toggle und Hover-Highlight |
-| Channel-Anzeige | Raceband-Channels (R1, R3, R4, R6, R8) pro Heat-Position mit intelligenter Optimierung |
+| Channel-Anzeige | Raceband-Channels (R1, R3, R6, R8) pro Heat-Position mit intelligenter Optimierung |
 | Sichtbare Historie | Piloten bleiben wo sie waren |
 | Tabs | Piloten / Bracket / Aktueller Heat |
 | On-Deck Vorschau | Nächster Heat wird unten angezeigt → Piloten können Drohnen vorbereiten |
@@ -465,7 +465,7 @@ Die aktuelle Heat-Ansicht zeigt zusätzlich den **nächsten Heat** als Vorschau 
 
 ### Channel-Management
 
-- **FR31h:** System zeigt Raceband-Channels (R1, R3, R4, R6, R8) pro Heat-Position als Badges
+- **FR31h:** System zeigt Raceband-Channels (R1, R3, R6, R8) pro Heat-Position als Badges
 - **FR31i:** System merkt sich zuletzt verwendeten Channel pro Pilot
 - **FR31j:** System optimiert Channel-Zuweisung bei neuen Heats um Kanalwechsel zu minimieren
 

@@ -10,7 +10,9 @@ user_name: 'Jakob'
 date: '2025-12-12'
 ---
 
-# Architecture Decision Document
+# HISTORICAL ARCHIVE: Architecture Decision Document
+
+> This is a historical planning artifact from December 2025, not an implementation reference. For the current codebase, read [Architecture Deep-Dive](./architecture-deep-dive.md).
 
 _This document builds collaboratively through step-by-step discovery. Sections are appended as we work through each architectural decision together._
 

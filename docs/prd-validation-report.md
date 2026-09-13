@@ -80,7 +80,7 @@ validationStatus: UPDATED
 | Feature | Section |
 |---------|---------|
 | PWA-Installation (iOS/Android, Vollbildmodus) | Executive Summary, MVP, FR35f-h, NFR19-20 |
-| Channel-Anzeige & Optimierung (R1, R3, R4, R6, R8) | MVP, FR31h-j |
+| Channel-Anzeige & Optimierung (R1, R3, R6, R8) | MVP, FR31h-j |
 | Piloten-Pfade Visualisierung | MVP, FR31e-g |
 | Zoom/Pan im Bracket | FR31a-d |
 | JSON/CSV Export & Import | MVP, FR35a-e |

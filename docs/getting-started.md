@@ -56,7 +56,7 @@ heats/
 | `npm run build` | Erstellt Production Build |
 | `npm run preview` | Vorschau des Production Builds |
 | `npm test` | Startet Tests im Watch-Mode |
-| `npm run test:run` | Führt Tests einmalig aus |
+| `npm test -- run` | Führt Tests einmalig aus |
 
 ---
 

@@ -30,10 +30,10 @@ FPV Racing Heats ist eine Client-only React-Applikation für Double-Elimination 
 │  │  │ PilotCard[]  │  │  HeatAssignmentView (Phase 1)        │  │   │
 │  │  │ AddPilotForm │  │  BracketTree (Phase 2+)              │  │   │
 │  │  │ CSVImport    │  │    ├── QualiSection                  │  │   │
-│  │  └──────────────┘  │    ├── WinnerBracketSection          │  │   │
-│  │                    │    ├── LoserBracketSection           │  │   │
+│  │  └──────────────┘  │    ├── BracketSection          │  │   │
+│  │                    │    ├── BracketSection           │  │   │
 │  │                    │    ├── GrandFinaleSection            │  │   │
-│  │                    │    └── ActiveHeatView                │  │   │
+│  │                    │    └── PlacementEntryModal                │  │   │
 │  │                    └──────────────────────────────────────┘  │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                  │                                   │
@@ -43,7 +43,7 @@ FPV Racing Heats ist eine Client-only React-Applikation für Double-Elimination 
 │  │  ┌─────────────┐  ┌─────────────────────────────────────┐   │   │
 │  │  │ usePilots() │  │      useTournamentStore()           │   │   │
 │  │  │  Validation │  │  ┌─────────────────────────────┐    │   │   │
-│  │  │  Optimistic │  │  │     heats[] (SoT)           │    │   │   │
+│  │  │  Pilot API │  │  │     heats[] (SoT)           │    │   │   │
 │  │  └─────────────┘  │  │  ┌────┐ ┌────┐ ┌────┐       │    │   │   │
 │  │                   │  │  │ Q1 │ │ Q2 │ │ WB │ ...   │    │   │   │
 │  │                   │  │  └────┘ └────┘ └────┘       │    │   │   │
@@ -180,7 +180,7 @@ interface Heat {
 │  BracketTree, HeatAssignmentView, VictoryCeremony       │
 ├─────────────────────────────────────────────────────────┤
 │                   Section Components                     │
-│  QualiSection, WinnerBracketSection, LoserBracketSection │
+│  QualiSection, BracketSection, BracketSection │
 ├─────────────────────────────────────────────────────────┤
 │                      UI Components                       │
 │  HeatCard, PilotCard, Button, Dialog, Input, Card       │
@@ -193,10 +193,10 @@ interface Heat {
 |------------|-------------------|
 | `BracketTree` | Haupt-Bracket-Container, Zoom/Pan, Heat-Modal-Koordination |
 | `QualiSection` | Rendering der Qualifikations-Heats |
-| `WinnerBracketSection` | WB-Heats + WB-Finale |
-| `LoserBracketSection` | LB-Heats + LB-Finale |
+| `BracketSection` | WB-Heats + WB-Finale |
+| `BracketSection` | LB-Heats + LB-Finale |
 | `GrandFinaleSection` | Grand Finale + WB/LB Tags |
-| `ActiveHeatView` | Ergebniseingabe für aktiven Heat |
+| `PlacementEntryModal` | Ergebniseingabe für aktiven Heat |
 | `HeatCard` | Einzelner Heat mit Piloten und Status |
 
 ---
@@ -293,7 +293,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
          │ (manual)│
         ┌┴─────────┴┐
         │Integration│  Vitest + Testing Library
-        │   Tests   │  (17 Test-Dateien)
+        │   Tests   │  (26 Test-Dateien)
        ┌┴───────────┴┐
        │  Unit Tests │  Business-Logic Tests
        │             │  (bracket-logic, heat-completion)
@@ -315,7 +315,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
 
 ### Geplante Erweiterungen
 
-1. **Server-Sync** - StorageAdapter für API-Backend
+1. **Server-Sync** - alternative persistence for an API backend
 2. **Multi-Device** - Real-time Sync via WebSocket
 3. **Export** - Turnier-Ergebnisse als PDF/CSV
 
@@ -323,7 +323,6 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
 
 | Punkt | Beschreibung |
 |-------|--------------|
-| `StorageAdapter` | Interface für alternative Persistenz |
 | `bracketType` | Erweiterbar für andere Turnier-Modi |
 | `HeatCard` | Slot-Pattern für Custom-Rendering |
 

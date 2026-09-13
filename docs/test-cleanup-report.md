@@ -6,7 +6,7 @@
 
 ## Aktueller Stand
 
-Die Testsuite umfasst 22 Testdateien und 319 Tests. Alle Tests sind grün und laufen in etwa 1,8 bis 2,2 Sekunden. Es gibt keine `.only`-, `.skip`- oder `.todo`-Markierungen.
+Die Testsuite umfasst 26 Testdateien. Die exakten Testzahlen werden vom Vitest-Lauf bestimmt. Alle Tests sind grün und laufen in etwa 1,8 bis 2,2 Sekunden. Es gibt keine `.only`-, `.skip`- oder `.todo`-Markierungen.
 
 In diesem Durchgang fand keine Testkonsolidierung statt. Keine Testdatei wurde gelöscht oder geändert. Entfernt wurden ausschließlich acht nicht verwendete CSV-Fixtures.
 
@@ -39,28 +39,32 @@ Die früher erwähnten Hinweise zu einem TODO und `console.log`-Ausgaben in `lb-
 
 ## Aktuelle Testdateien
 
-- `app-footer.test.tsx`
+- `bracket-logic.test.ts`
 - `channel-assignment.test.ts`
-- `csv-import.test.tsx`
 - `eight-pilots-flow.test.ts`
 - `export-bracket-html.test.ts`
 - `export-import.test.ts`
-- `finale-ceremony.test.tsx`
 - `grand-finale-4-piloten.test.ts`
 - `heat-assignment.test.ts`
 - `heat-completion.test.ts`
-- `heat-results.test.tsx`
 - `lap-time-formatting.test.ts`
 - `lb-heat-generation.test.ts`
 - `lb-synchronization-32-pilots.test.ts`
 - `loser-pool.test.ts`
-- `pilot-card.test.tsx`
 - `pilot-path-calculation.test.ts`
-- `pilot-path-integration.test.tsx`
-- `placement-entry-modal.test.tsx`
 - `reset-functions.test.ts`
 - `round-progression.test.ts`
+- `app-footer.test.tsx`
+- `csv-import.test.tsx`
+- `finale-ceremony.test.tsx`
+- `heat-results.test.tsx`
+- `pilot-card.test.tsx`
+- `pilot-path-integration.test.tsx`
+- `pilot-path-toggle.test.tsx`
+- `placement-entry-modal.test.tsx`
+- `rank-badge.test.tsx`
 - `tournament-start.test.tsx`
+- `use-pilots.test.tsx`
 
 ## Verifikation
 
