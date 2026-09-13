@@ -1,73 +1,59 @@
 # COMPONENTS
 
-**Generated:** 2026-02-21
+**Generated:** 2026-09-13
 
 ## OVERVIEW
 
-React components organized by responsibility: smart container components at root, bracket visualization in `bracket/`, reusable UI primitives in `ui/`.
+Root = smart container components (store access, forms, modals). `bracket/` = bracket visualization. `ui/` = reusable primitives. No barrel at root — import files directly.
 
 ## STRUCTURE
 
 ```
 src/components/
-├── *.tsx                    # Smart container components (business logic)
-├── bracket/                 # Bracket visualization system
-│   ├── index.ts             # Barrel exports
-│   ├── heat-boxes/          # Heat display components
-│   ├── sections/            # Bracket section layouts
-│   └── *.tsx                # SVG connectors, zoom, paths
-└── ui/                      # Reusable UI primitives
-    ├── button.tsx           # CVA-based variants
-    ├── input.tsx            # Form inputs
-    ├── modal.tsx            # Dialog overlay
-    └── ...
+├── *.tsx                    # Smart containers (business logic)
+├── bracket/                 # Bracket visualization (has barrel)
+│   ├── index.ts
+│   ├── heat-boxes/          # BracketHeatBox.tsx (sole variant)
+│   ├── sections/            # Quali / WB-LB / Grand Finale layouts
+│   └── *.tsx                # BracketTree, SVG connectors, pilot paths
+└── ui/                      # Reusable UI primitives (no barrel)
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add pilot form | `add-pilot-form.tsx` | React Hook Form + Zod validation |
-| CSV import | `csv-import.tsx` | PapaParse, drag & drop, duplicate handling |
+| Add pilot form | `add-pilot-form.tsx` | React Hook Form + Zod |
+| CSV import | `csv-import.tsx` | PapaParse, drag & drop, duplicates |
 | Heat assignment | `heat-assignment-view.tsx` | @dnd-kit drag & drop, shuffle |
-| Placement entry | `placement-entry-modal.tsx` | Click-to-rank, lap time input |
-| Victory screen | `victory-ceremony.tsx` | Podium display, CSV export |
-| Bracket tree | `bracket/BracketTree.tsx` | Main bracket container, zoom/pan |
-| Heat boxes | `bracket/heat-boxes/` | Empty, filled, base variants |
-| Bracket sections | `bracket/sections/` | Quali, WB, LB, Grand Finale |
-| UI primitives | `ui/*.tsx` | Button, Input, Modal, Label |
-| Barrel exports | `bracket/index.ts` | Public API for bracket components |
+| Placement entry | `placement-entry-modal.tsx` | Click-to-rank + lap-time state machine (540 LOC) |
+| Heat detail | `heat-detail-modal.tsx` | Completed-heat view, reopen |
+| Victory screen | `victory-ceremony.tsx` | Podium, CSV export |
+| Bracket tree | `bracket/BracketTree.tsx` | Main container, zoom/pan |
+| Heat box | `bracket/heat-boxes/BracketHeatBox.tsx` | Sole variant (140/120/180px) |
+| Bracket sections | `bracket/sections/` | See `bracket/AGENTS.md` |
+| UI primitives | `ui/*.tsx` | Import directly (no barrel) |
 
 ## CONVENTIONS
 
-**Smart Components (Root Level):**
-- Use hooks from `@/hooks/` for data access
-- Import stores from `@/stores/`
-- Handle user interactions, modals, forms
-- Business logic delegation to `src/lib/`
+**Smart containers (root + a few bracket files):**
+- May call `useTournamentStore(selector)`. Store-touching components: `App.tsx`, `bracket/BracketTree.tsx`, `bracket/PilotPathToggle.tsx`, `heat-detail-modal.tsx`, `heat-assignment-view.tsx`.
+- Prefer `src/hooks/usePilots.ts` for pilot CRUD.
+- Business logic belongs in `src/lib/`, not components.
 
-**UI Components (`ui/`):**
-- Use `class-variance-authority` for variants
-- Beamer-optimized: min 48px touch targets
-- Forward refs, support all HTML attributes
-- Synthwave theme classes: `neon-pink`, `neon-cyan`, `void`, `night`
+**UI primitives (`ui/`):**
+- CVA for variants; `forwardRef` + `displayName`; `cn()` for classes.
+- Beamer min 48px touch targets. Synthwave tokens only.
 
-**Bracket Components (`bracket/`):**
-- Barrel export via `index.ts`
-- SVG-based connectors and pilot paths
-- Zoom/pan via `useZoomPan` hook
-- Heat boxes: composable variants (empty, filled)
-
-**Styling Patterns:**
-- Tailwind classes for layout
-- `font-ui` for UI text, `font-display` for headers
-- Glow effects: `shadow-glow-pink`, `shadow-glow-cyan`
-- Borders: `border-3` convention (not standard `border-4`)
+**Styling:** `font-ui` for UI text, `font-display` for headers; `shadow-glow-*`; `border-3` (not `border-4`).
 
 ## ANTI-PATTERNS
 
-- **No direct store imports in UI primitives** - UI components receive data via props
-- **No business logic in heat-boxes** - Pure presentation components
-- **No `any` types** - Strict TypeScript enforced
-- **No default exports** - Named exports only
-- **No inline styles** - Tailwind classes only
+- **No store imports in `ui/` or heat-boxes** — presentation only, data via props.
+- **No business logic in components** — delegate to `src/lib/`.
+- **No `any` / default exports / inline styles**.
+- **Don't add a root barrel** — only `bracket/index.ts` exists by design.
+
+## NOTES
+
+- `ui/heat-card.tsx` is 773 LOC — a multi-variant card misclassified as a "primitive"; candidate for reclassification.

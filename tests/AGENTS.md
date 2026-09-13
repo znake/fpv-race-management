@@ -1,48 +1,53 @@
 # TESTS KNOWLEDGE BASE
 
-**Domain**: Test suite for FPV Racing Heats tournament management
+**Domain**: Centralized Vitest suite for FPV Racing Heats
 
 ## OVERVIEW
 
-Centralized test directory with 23 test files covering double-elimination bracket logic, heat management, and UI components using Vitest and @testing-library.
+All tests live here (never colocated). 23 test files: `*.test.ts` for logic/store, `*.test.tsx` for components. Shared fixtures in `helpers/`.
 
 ## STRUCTURE
 
 ```
 tests/
-├── helpers/              # Test utilities
-│   ├── mock-factories.ts # Pilot mock data generators
-│   ├── store-helpers.ts  # Tournament store setup utilities
-│   └── index.ts          # Barrel exports
-├── *.test.ts            # Unit tests (logic, stores)
-└── *.test.tsx           # Component tests (React)
+├── helpers/
+│   ├── mock-factories.ts # createMockPilot(), createMockPilots()
+│   ├── store-helpers.ts  # resetTournamentStore(), setupRunningTournament()
+│   └── index.ts          # Barrel
+├── *.test.ts             # Logic / store tests
+└── *.test.tsx            # Component tests (jsdom + @testing-library/react)
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Mock pilots | `tests/helpers/mock-factories.ts` | `createMockPilot()`, `createMockPilots()` |
-| Store setup | `tests/helpers/store-helpers.ts` | `resetTournamentStore()`, `setupRunningTournament()` |
-| Bracket logic | `tests/bracket-logic.test.ts` | Bracket type inference, pool helpers, pool-based heat generation |
-| Component tests | `tests/*.test.tsx` | React component testing |
-| Test config | `vite.config.ts` | Vitest + jsdom setup |
-| Test setup | `src/test/setup.ts` | Mocks for localStorage, canvas, dialogs |
+| Mock pilots | `helpers/mock-factories.ts` | `createMockPilot()`, `createMockPilots(n)` |
+| Store setup | `helpers/store-helpers.ts` | `resetTournamentStore()`, `setupRunningTournament()` |
+| Bracket logic | `bracket-logic.test.ts` | Type inference, pools, heat generation |
+| Bracket progression | `round-progression.test.ts`, `lb-*.test.ts`, `grand-finale-4-piloten.test.ts` | Via store |
+| End-to-end flow | `eight-pilots-flow.test.ts` | 8-pilot tournament through store |
+| Export/import | `export-import.test.ts`, `export-bracket-html.test.ts` | |
+| Component tests | `*.test.tsx` | PlacementEntryModal, PilotCard, VictoryCeremony, AppFooter, BracketTree |
+| Test config | `vite.config.ts` | Vitest + jsdom (no separate vitest.config) |
+| Test setup | `src/test/setup.ts` | localStorage/alert/confirm/canvas mocks |
 
 ## CONVENTIONS
 
-- **Framework**: Vitest with jsdom environment
-- **Testing Library**: @testing-library/react for components
-- **Mocking**: vi.mock() for dependencies, mock-factories for data
-- **Store isolation**: Always call `resetTournamentStore()` in beforeEach
-- **Counter reset**: Use `resetMockPilotCounter()` for predictable IDs
-- **Naming**: `*.test.ts` for logic, `*.test.tsx` for components
-- **Assertions**: Uses `@testing-library/jest-dom/vitest` matchers
+- **Reset store in `beforeEach`** — always `resetTournamentStore()`; state leaks otherwise.
+- `resetMockPilotCounter()` keeps IDs predictable.
+- `vi.mock()` for dependencies; helpers for data (no magic numbers).
+- Matchers from `@testing-library/jest-dom/vitest`.
+- Setup's global `beforeEach` clears localStorage and all mocks.
 
 ## ANTI-PATTERNS
 
-- **Never forget store reset** — Tests will leak state without `resetTournamentStore()`
-- **No real network calls** — Mock all fetch/URL operations
-- **No unmocked localStorage** — Use the provided mock in setup.ts
-- **No magic numbers** — Use `createMockPilots(n)` for pilot counts
-- **No skipped tests** — Either fix or remove, do not leave `.skip`
+- **Never skip store reset** — tests leak state without it.
+- **No real network calls** — mock fetch/URL.
+- **No unmocked localStorage** — use the setup mock.
+- **No magic numbers** — use `createMockPilots(n)`.
+- **No skipped tests** — fix or remove; never leave `.skip`.
+
+## COVERAGE NOTES
+
+Directly covered lib: `bracket-logic`, `heat-completion`, `channel-assignment`, `pilot-path-manager`, `ui-helpers`, `csv-parser`, `utils`, `export-import`, `export-bracket-html`. No coverage path: `bracket-constants`, `demo-data`.

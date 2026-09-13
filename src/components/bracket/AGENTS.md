@@ -1,77 +1,57 @@
 # Bracket Components
 
-**Generated:** 2026-02-21
+**Generated:** 2026-09-13
 
 ## OVERVIEW
 
-Double-elimination tournament bracket visualization with zoom/pan canvas, SVG connector lines, and pilot path tracking.
+Double-elimination bracket visualization: zoom/pan canvas (`useZoomPan`), SVG connector lines, and pilot path tracking. Only `BracketTree.tsx` and `PilotPathToggle.tsx` touch the store; sections/boxes are prop-driven.
 
 ## STRUCTURE
 
 ```
 src/components/bracket/
-├── heat-boxes/          # Heat box variants
-│   ├── BracketHeatBox.tsx      # Main heat display component
-│   ├── EmptyBracketHeatBox.tsx # Placeholder for pending heats
-│   └── FilledBracketHeatBox.tsx # Completed heat with results
-├── sections/              # Bracket section layouts
-│   ├── BracketSection.tsx       # Winner/Loser bracket columns
-│   ├── QualiSection.tsx         # Qualification heats (horizontal)
-│   ├── GrandFinaleSection.tsx   # Grand finale layout
-│   └── GrandFinaleHeatBox.tsx   # Special 4-pilot finale box
-├── BracketTree.tsx        # Main container with zoom/pan
-├── SVGConnectorLines.tsx  # SVG lines connecting heats
-├── SVGPilotPaths.tsx      # Pilot journey visualization
-├── PilotPathToggle.tsx    # Toggle control for paths
-├── ZoomIndicator.tsx      # Zoom level display
-├── PoolDisplay.tsx        # Pool indicator between rounds
-├── types.ts               # Component-specific types
-└── index.ts               # Barrel exports
+├── heat-boxes/
+│   └── BracketHeatBox.tsx      # Sole heat-box variant (140/120/180px)
+├── sections/
+│   ├── BracketSection.tsx      # Generic WB/LB columns by round
+│   ├── QualiSection.tsx        # Qualification row (horizontal)
+│   ├── GrandFinaleSection.tsx  # Centered finale layout
+│   └── GrandFinaleHeatBox.tsx  # Special 4-pilot finale box
+├── BracketTree.tsx             # Main container (535 LOC), zoom/pan orchestrator
+├── SVGConnectorLines.tsx       # Lines between heats
+├── SVGPilotPaths.tsx           # Pilot journey visualization
+├── PilotPathToggle.tsx         # Toggle for paths (store-touching)
+├── ZoomIndicator.tsx           # Zoom level display
+├── types.ts                    # BracketHeatBoxProps, BracketType, …
+└── index.ts                    # Barrel exports
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Main bracket rendering | `BracketTree.tsx` | Zoom/pan container, orchestrates all sections |
-| Heat box styling | `heat-boxes/BracketHeatBox.tsx` | 140px standard, 120px for 3-pilot, 180px finale |
-| Winner/Loser columns | `sections/BracketSection.tsx` | Side-by-side layout with round grouping |
-| Qualification row | `sections/QualiSection.tsx` | Horizontal layout at top |
-| Grand Finale | `sections/GrandFinaleSection.tsx` | Centered below WB/LB |
-| SVG connections | `SVGConnectorLines.tsx` | Lines between heats, uses getHeatConnections() |
-| Pilot paths | `SVGPilotPaths.tsx` | Toggle with `P` key or PilotPathToggle |
-| Type definitions | `types.ts` | BracketHeatBoxProps, BracketType union |
+| Main rendering / composition | `BracketTree.tsx` | Zoom/pan container; only store-touching bracket file |
+| WB / LB columns | `sections/BracketSection.tsx` | `type` prop: `'winner' \| 'loser'`, groups by round |
+| Qualification row | `sections/QualiSection.tsx` | Horizontal, flow indicator to WB/LB |
+| Grand Finale | `sections/GrandFinaleSection.tsx` + `GrandFinaleHeatBox.tsx` | Centered, 180px gold box |
+| Heat box | `heat-boxes/BracketHeatBox.tsx` | Sorts by rank, channel + rank badges, LIVE state |
+| SVG connections | `SVGConnectorLines.tsx` | Uses `heatRefsMap` + `ConnectorManager` |
+| Pilot paths | `SVGPilotPaths.tsx` | Toggle with `P` key / `PilotPathToggle` |
+| Prop contracts | `types.ts` | `BracketType`, `BracketHeatBoxProps`, … |
 
 ## CONVENTIONS
 
-**Heat Box Sizing:**
-- Standard: 140px width (`heat-box` class)
-- 3-pilot heats: 120px (`three-pilot` class)
-- Grand Finale: 180px (`gf` class)
-
-**Bracket Type Colors:**
-- Qualification: Cyan (`quali` class)
-- Winner Bracket: Green (`wb` class)
-- Loser Bracket: Red (`lb` class)
-- Grand Finale: Gold (`gf` class)
-
-**Status Indicators:**
-- Active heats: Animated border + glow (`heat-live-border`, `shadow-glow-pink`)
-- Live indicator text: "LIVE" badge
-- Completed: Rank badges (1=gold, 2=silver, 3=bronze, 4=cyan)
-
-**Pilot Row Styling:**
-- Rank 1-2: Green background (`top` class)
-- Rank 3-4: Red background (`bottom` class)
-- Grand Finale winner: Champion styling (`champ` class)
-
-**Channel Assignment:**
-- Position 0: R1, Position 1: R3, Position 2: R6, Position 3: R8
-- Displayed as badges on pilot rows
+- **Heat box sizing:** 140px standard, 120px 3-pilot, 180px Grand Finale.
+- **Bracket colors:** Quali cyan, WB green, LB red, Grand Finale gold.
+- **Status:** active = animated border + `shadow-glow-pink` + "LIVE"; completed = rank badges (1 gold, 2 silver, 3 bronze, 4 cyan).
+- **Pilot rows:** rank 1–2 `top` (green), 3–4 `bottom` (red), GF winner `champ`.
+- **Channels:** position 0→R1, 1→R3, 2→R6, 3→R8.
+- **Barrel** exports `BracketTree`, `* from './types'`, `BracketHeatBox`, `BracketSection`, `GrandFinaleSection`, `GrandFinaleHeatBox`, `SVGConnectorLines`. `QualiSection`, `SVGPilotPaths`, `PilotPathToggle`, `ZoomIndicator` are internal-only.
 
 ## ANTI-PATTERNS
 
-- **No direct heat mutation** - Always use store actions via props
-- **No SVG line calculations in render** - Use memoized connector data
-- **No hardcoded pixel values** - Use layout calculator functions
-- **No pilot data fetching in components** - Pilots passed via props from store
+- **No heat mutation in components** — use store actions via props.
+- **No SVG line math in render** — use memoized connector data.
+- **No hardcoded pixels** — use `bracket-layout-calculator` functions.
+- **No pilot fetching in sections/boxes** — pilots passed via props from `BracketTree`.
+- **`GrandFinaleSectionProps` is duplicated** in `types.ts` and `GrandFinaleSection.tsx` (local one is authoritative) — keep in sync or delete the stale copy.
