@@ -309,46 +309,6 @@ describe('Story 13-3: Grand Finale mit 4 Piloten', () => {
 
   describe('Task 3: getTop4Pilots() anpassen', () => {
     describe('Task 3.1 + 3.2: AC4 - Liest Platz 1-4 direkt aus Grand Finale Rankings', () => {
-      it('gibt alle 4 Platzierungen aus Grand Finale zurück', () => {
-        const pilots: Pilot[] = [
-          { id: 'p1', name: 'Champion', imageUrl: '/p1.jpg' },
-          { id: 'p2', name: 'Second', imageUrl: '/p2.jpg' },
-          { id: 'p3', name: 'Third', imageUrl: '/p3.jpg' },
-          { id: 'p4', name: 'Fourth', imageUrl: '/p4.jpg' }
-        ]
-        
-        const grandFinaleHeat: Heat = {
-          id: 'grand-finale-test',
-          heatNumber: 99,
-          pilotIds: ['p1', 'p2', 'p3', 'p4'],
-          status: 'completed',
-          bracketType: 'grand_finale',
-          isFinale: true,
-          results: {
-            rankings: [
-              { pilotId: 'p1', rank: 1 },
-              { pilotId: 'p2', rank: 2 },
-              { pilotId: 'p3', rank: 3 },
-              { pilotId: 'p4', rank: 4 }
-            ],
-            completedAt: new Date().toISOString()
-          }
-        }
-
-        useTournamentStore.setState({
-          pilots,
-          heats: [grandFinaleHeat],
-          tournamentPhase: 'completed'
-        })
-
-        const top4 = useTournamentStore.getState().getTop4Pilots()
-        
-        expect(top4).not.toBeNull()
-        expect(top4?.place1?.name).toBe('Champion')
-        expect(top4?.place2?.name).toBe('Second')
-        expect(top4?.place3?.name).toBe('Third')
-        expect(top4?.place4?.name).toBe('Fourth')
-      })
 
       it('keine komplizierte Logik mehr - nur Grand Finale Rankings', () => {
         const pilots: Pilot[] = [

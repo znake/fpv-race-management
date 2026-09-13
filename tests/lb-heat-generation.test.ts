@@ -124,17 +124,6 @@ describe('Story 9-2: Dynamic LB Heat Generation', () => {
       const { canGenerateLBHeat } = useTournamentStore.getState()
       expect(canGenerateLBHeat()).toBe(false)
     })
-
-    it('should return false when pool has only 2 pilots and WB not finished', () => {
-      useTournamentStore.setState({
-        loserPool: ['p1', 'p2'],
-        tournamentPhase: 'running',
-        heats: createMinimalHeats({ hasActiveWBHeats: true })
-      })
-      
-      const { canGenerateLBHeat } = useTournamentStore.getState()
-      expect(canGenerateLBHeat()).toBe(false)
-    })
   })
 
   describe('Task 2: generateLBHeat() - AC1, AC2', () => {

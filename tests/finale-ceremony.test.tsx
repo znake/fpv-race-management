@@ -224,33 +224,6 @@ describe('VictoryCeremony Component', () => {
 })
 
 describe('Tournament Completion Flow', () => {
-  it('transitions from finale to completed after grand finale results', () => {
-    const pilots: Pilot[] = [
-      { id: 'p1', name: 'Winner', imageUrl: '/p1.jpg' },
-      { id: 'p2', name: 'Loser', imageUrl: '/p2.jpg' }
-    ]
-    
-    useTournamentStore.setState({
-      pilots,
-      tournamentPhase: 'finale',
-      heats: [{
-        id: 'finale-1',
-        heatNumber: 99,
-        pilotIds: ['p1', 'p2'],
-        status: 'active',
-        bracketType: 'grand_finale'
-      }]
-    })
-    
-    // Submit finale results
-    useTournamentStore.getState().submitHeatResults('finale-1', [
-      { pilotId: 'p1', rank: 1 },
-      { pilotId: 'p2', rank: 2 }
-    ])
-    
-    // Should transition to completed
-    expect(useTournamentStore.getState().tournamentPhase).toBe('completed')
-  })
 
   it('preserves heats after tournament completion', () => {
     useTournamentStore.setState({

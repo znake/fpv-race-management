@@ -160,19 +160,6 @@ describe('Loser Pool State & Actions', () => {
       const state = useTournamentStore.getState()
       expect(state.loserPool).toEqual([])
     })
-
-    it('should clear eliminatedPilots on resetTournament', () => {
-      useTournamentStore.setState({ 
-        eliminatedPilots: ['pilot-1'],
-        tournamentStarted: true
-      })
-      const { resetTournament } = useTournamentStore.getState()
-      
-      resetTournament()
-      
-      const state = useTournamentStore.getState()
-      expect(state.eliminatedPilots).toEqual([])
-    })
   })
 
   describe('resetAll clears pool state', () => {

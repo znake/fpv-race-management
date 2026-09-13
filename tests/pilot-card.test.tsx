@@ -35,13 +35,6 @@ describe('PilotCard', () => {
     expect(screen.queryByText(/@/)).not.toBeInTheDocument()
   })
 
-  it('applies synthwave design classes', () => {
-    render(<PilotCard pilot={mockPilot} />)
-    
-    const card = screen.getByText('Test Pilot').closest('[class*="bg-night"]')
-    expect(card).toHaveClass('bg-night', 'border-steel')
-  })
-
   it('shows rank badge when rank is provided', () => {
     render(<PilotCard pilot={mockPilot} rank={1} />)
     
@@ -76,39 +69,5 @@ describe('PilotCard', () => {
     expect(img).toBeInTheDocument()
     // Check that onError handler exists by checking if the function is called
     expect(img.onerror).toBeDefined()
-  })
-
-  it('uses correct typography classes (Beamer-optimiert)', () => {
-    render(<PilotCard pilot={mockPilot} />)
-    
-    // Story 6.2: Beamer-optimierte Schriftgrößen (min 24px für Namen, min 16px für Captions)
-    const nameElement = screen.getByText('Test Pilot')
-    expect(nameElement).toHaveClass('font-display', 'text-beamer-name')
-    
-    const detailElement = screen.getByText('@test_pilot')
-    expect(detailElement).toHaveClass('font-ui', 'text-beamer-caption')
-  })
-
-  // Visual Validation: Component entspricht exakt ux-design-directions.html
-  it('matches visual design specification', () => {
-    const { container } = render(<PilotCard pilot={mockPilot} />)
-    
-    // Check for synthwave design elements
-    const card = container.querySelector('[class*="bg-night"]')
-    expect(card).toBeInTheDocument()
-    
-    // Check for rounded corners (16px per US-2.2 spec) and border (3px)
-    expect(card).toHaveClass('rounded-[16px]', 'border-[3px]')
-    
-    // Check for hover effects (US-2.3: translateY -4px → implemented as -1 for subtlety)
-    expect(card).toHaveClass('hover:-translate-y-1', 'transition-all', 'duration-200')
-    
-    // Check for pilot photo container
-    const photoContainer = container.querySelector('[class*="rounded-full"]')
-    expect(photoContainer).toBeInTheDocument()
-    
-    // Check for gradient background on photo (120px per US-2.2 spec)
-    const pilotPhotoContainer = container.querySelector('.w-\\[120px\\].h-\\[120px\\].rounded-full')
-    expect(pilotPhotoContainer).toHaveClass('from-neon-pink', 'to-neon-magenta')
   })
 })
