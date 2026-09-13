@@ -14,10 +14,6 @@ tests/
 │   ├── mock-factories.ts # Pilot mock data generators
 │   ├── store-helpers.ts  # Tournament store setup utilities
 │   └── index.ts          # Barrel exports
-├── fixtures/             # CSV test data
-│   ├── beispiel-piloten.csv
-│   ├── testpiloten-8.csv ... testpiloten-32.csv
-│   └── (various pilot counts for testing)
 ├── *.test.ts            # Unit tests (logic, stores)
 └── *.test.tsx           # Component tests (React)
 ```
@@ -28,8 +24,7 @@ tests/
 |------|----------|-------|
 | Mock pilots | `tests/helpers/mock-factories.ts` | `createMockPilot()`, `createMockPilots()` |
 | Store setup | `tests/helpers/store-helpers.ts` | `resetTournamentStore()`, `setupRunningTournament()` |
-| CSV fixtures | `tests/fixtures/*.csv` | Test data for 8-32 pilots |
-| Bracket logic | `tests/*-heat*.test.ts` | Heat assignment, progression |
+| Bracket logic | `tests/bracket-logic.test.ts` | Bracket type inference, pool helpers, pool-based heat generation |
 | Component tests | `tests/*.test.tsx` | React component testing |
 | Test config | `vite.config.ts` | Vitest + jsdom setup |
 | Test setup | `src/test/setup.ts` | Mocks for localStorage, canvas, dialogs |
@@ -49,5 +44,5 @@ tests/
 - **Never forget store reset** — Tests will leak state without `resetTournamentStore()`
 - **No real network calls** — Mock all fetch/URL operations
 - **No unmocked localStorage** — Use the provided mock in setup.ts
-- **No magic numbers** — Use pilot counts from fixtures (8, 10, 16, 32)
+- **No magic numbers** — Use `createMockPilots(n)` for pilot counts
 - **No skipped tests** — Either fix or remove, do not leave `.skip`
