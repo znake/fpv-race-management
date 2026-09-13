@@ -79,7 +79,6 @@ describe('LB Synchronization - 32 Pilots', () => {
     
     // Count heats by bracket type
     const qualiHeats = finalState.heats.filter(h => h.bracketType === 'qualification')
-    const wbHeats = finalState.heats.filter(h => h.bracketType === 'winner')
     const lbHeats = finalState.heats.filter(h => h.bracketType === 'loser')
     const grandFinale = finalState.heats.filter(h => h.bracketType === 'grand_finale' || h.bracketType === 'finale')
     

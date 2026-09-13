@@ -51,7 +51,7 @@ describe('activateNextPendingHeat', () => {
       createMockHeat({ id: 'heat-3', status: 'pending' })
     ]
 
-    const result = activateNextPendingHeat(heats, 0)
+    const result = activateNextPendingHeat(heats)
 
     expect(result[1].status).toBe('active')
   })
@@ -62,7 +62,7 @@ describe('activateNextPendingHeat', () => {
       createMockHeat({ id: 'heat-2', status: 'pending' })
     ]
 
-    const result = activateNextPendingHeat(heats, -1)
+    const result = activateNextPendingHeat(heats)
 
     expect(result[0].status).toBe('active')
   })
@@ -73,7 +73,7 @@ describe('activateNextPendingHeat', () => {
       createMockHeat({ id: 'heat-2', status: 'completed' })
     ]
 
-    const result = activateNextPendingHeat(heats, 0)
+    const result = activateNextPendingHeat(heats)
 
     expect(result.every((h: Heat) => h.status !== 'active')).toBe(true)
   })

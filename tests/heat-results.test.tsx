@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { act, renderHook, cleanup } from '@testing-library/react'
-import { useTournamentStore } from '@/stores/tournamentStore'
+import { act, cleanup } from '@testing-library/react'
 import { resetTournamentStore, setupRunningTournament } from './helpers'
 
 describe('Heat Results - submitHeatResults()', () => {

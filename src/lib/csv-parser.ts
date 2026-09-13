@@ -130,7 +130,7 @@ export async function validateImageUrl(url: string, timeout = 5000): Promise<boo
 
     clearTimeout(timeoutId)
     return true // If we get here, the URL is reachable
-  } catch (error) {
+  } catch {
     // For CORS issues, we'll assume the URL is valid if it looks like an image URL
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
     const hasImageExtension = imageExtensions.some(ext =>

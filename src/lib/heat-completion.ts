@@ -195,12 +195,10 @@ export function processRankingsByBracket(input: RankingProcessingInput): Ranking
  * Aktiviert den nächsten pending Heat
  *
  * @param heats - Array aller Heats
- * @param _heatIndex - Index der gerade abgeschlossenen Heat (nicht verwendet)
  * @returns Aktualisiertes heats[] Array
  */
 export function activateNextPendingHeat(
-  heats: Heat[],
-  _heatIndex: number
+  heats: Heat[]
 ): Heat[] {
   const updatedHeats = [...heats]
 
@@ -679,7 +677,7 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   // 1. WB Finale completed ist (3 Piloten Szenario), ODER
   // 2. WB Direct Qualify passiert ist (2 Piloten wurden als grand_finale/wb markiert)
   const wbDirectQualifiedPilots = Object.entries(pilotBracketStateUpdates)
-    .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+    .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
   const wbReadyForGrandFinale = wbFinaleCompleted || wbDirectQualifiedPilots.length === 2
 
   // Generate LB Heats - nur wenn:
@@ -839,7 +837,7 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   } else {
     // Direct-Qualify: Piloten die bereits als WB grand_finale markiert sind
     wbFinalists = Object.entries(pilotBracketStateUpdates)
-      .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+      .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
       .map(([pilotId]) => pilotId)
   }
 
@@ -854,7 +852,7 @@ export function generateNextHeats(input: HeatGenerationInput): HeatGenerationRes
   } else {
     // Direct-Qualify: Piloten die bereits als LB grand_finale markiert sind
     lbFinalists = Object.entries(pilotBracketStateUpdates)
-      .filter(([_, state]) => state.bracketOrigin === 'lb' && state.bracket === 'grand_finale')
+      .filter(([, state]) => state.bracketOrigin === 'lb' && state.bracket === 'grand_finale')
       .map(([pilotId]) => pilotId)
   }
 

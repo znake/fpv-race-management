@@ -265,7 +265,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
         while (iterations < 20) {
           // Prüfe ob Direct-Qualify bereits erreicht wurde
           const wbFinalists = Object.entries(result.current.pilotBracketStates)
-            .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+            .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
           
           if (wbFinalists.length === 2) break // Ziel erreicht
           
@@ -300,7 +300,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
         
         // Stattdessen: Die 2 WB-Piloten sollten als grand_finale markiert sein
         const wbFinalists = Object.entries(result.current.pilotBracketStates)
-          .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+          .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
         expect(wbFinalists.length).toBe(2)
       })
       
@@ -320,7 +320,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
             h.bracketType === 'winner' && h.isFinale
           )
           const wbFinalists = Object.entries(result.current.pilotBracketStates)
-            .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+            .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
           
           if (wbFinale || wbFinalists.length === 2) break // Ziel erreicht
           
@@ -350,7 +350,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
           h.bracketType === 'winner' && h.isFinale
         )
         const wbFinalists = Object.entries(result.current.pilotBracketStates)
-          .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+          .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
         
         // Entweder WB Finale (bei 3 Piloten) oder Direct-Qualify (bei 2 Piloten)
         const hasWBFinale = wbFinale !== undefined
@@ -447,7 +447,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
           h.bracketType === 'winner' && h.isFinale
         )
         const wbFinalists = Object.entries(result.current.pilotBracketStates)
-          .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+          .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
         
         if (wbFinale || wbFinalists.length === 2) break // Ziel erreicht
         
@@ -476,7 +476,7 @@ describe('Story 13-1: Runden-basierte WB Progression', () => {
         h.bracketType === 'winner' && h.isFinale
       )
       const wbFinalists = Object.entries(result.current.pilotBracketStates)
-        .filter(([_, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
+        .filter(([, state]) => state.bracketOrigin === 'wb' && state.bracket === 'grand_finale')
       
       // Entweder WB Finale (bei 3 Piloten) oder Direct-Qualify (bei 2 Piloten)
       const hasWBFinale = wbFinale !== undefined
