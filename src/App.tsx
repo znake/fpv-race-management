@@ -157,13 +157,9 @@ export function App() {
                 key={pilot.id} 
                 pilot={pilot} 
                 tournamentStarted={tournamentStarted}
-                onEdit={(id, updates) => {
-                  const result = updatePilot(id, updates)
-                  if (result === false) return false
-                  return result.success
-                }}
-                onDelete={deletePilot}
-                onMarkDroppedOut={markPilotAsDroppedOut}
+                onEdit={(id, updates) => updatePilot(id, updates).success}
+                onDelete={(id) => deletePilot(id).success}
+                onMarkDroppedOut={(id) => markPilotAsDroppedOut(id).success}
               />
             ))}
             {pilots.length === 0 && (

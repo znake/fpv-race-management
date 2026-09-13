@@ -25,7 +25,7 @@ export function AddPilotForm({ onSuccess }: AddPilotFormProps) {
   })
 
   const onSubmit = (data: PilotInput) => {
-    const success = addPilot(data)
+    const { success } = addPilot(data)
     if (success) {
       form.reset()
       setPreviewUrl('')

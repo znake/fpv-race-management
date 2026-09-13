@@ -183,11 +183,6 @@ export const useTournamentStore = create<TournamentState>()(
       addPilot: (input) => {
         const { pilots } = get()
         if (pilots.length >= 60) return false
-        const lowerNames = pilots.map((p) => p.name.toLowerCase())
-        if (lowerNames.includes(input.name.toLowerCase())) {
-          alert('Pilot mit diesem Namen existiert bereits!')
-          return false
-        }
         const pilot: Pilot = {
           id: crypto.randomUUID(),
           ...input,
@@ -200,17 +195,6 @@ export const useTournamentStore = create<TournamentState>()(
         const { pilots } = get()
         const pilotIndex = pilots.findIndex(p => p.id === id)
         if (pilotIndex === -1) return false
-
-        // Check for duplicate names if name is being updated
-        if (updates.name && updates.name.trim() !== '') {
-          const otherPilotsWithSameName = pilots.filter((p) => 
-            p.id !== id && p.name.toLowerCase() === updates.name!.toLowerCase()
-          )
-          if (otherPilotsWithSameName.length > 0) {
-            alert('Pilot mit diesem Namen existiert bereits!')
-            return false
-          }
-        }
 
         const updatedPilots = [...pilots]
         updatedPilots[pilotIndex] = { ...updatedPilots[pilotIndex], ...updates }
