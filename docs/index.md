@@ -61,7 +61,7 @@ Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repos
 |--------|------|
 | **Projekt-Typ** | Web (React/TypeScript/Vite) |
 | **Repository-Typ** | Monolith |
-| **Source-Dateien** | 64 TypeScript/TSX |
+| **Source-Dateien** | 58 TypeScript/TSX-Dateien unter `src/` |
 | **Components** | ~30 |
 | **Hooks** | 3 |
 | **Lib-Module** | 16 |
