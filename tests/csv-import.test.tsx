@@ -164,4 +164,46 @@ describe('CSVImport', () => {
       { name: 'Max Mustermann', imageUrl: 'https://example.com/max.jpg', instagramHandle: '@max_fpv' }
     ])
   })
+
+  it('preserves an omitted instagramHandle when a duplicate is resolved as "Überschreiben"', async () => {
+    // Given: a duplicate CSV row without an instagramHandle key
+    const existingPilots = [
+      {
+        id: 'existing-1',
+        name: 'Max Mustermann',
+        imageUrl: 'https://example.com/old.jpg',
+        instagramHandle: '@keep_me'
+      }
+    ]
+    vi.mocked(parseCSV).mockResolvedValue({
+      totalRows: 1,
+      validRows: 1,
+      pilots: [
+        { name: 'Max Mustermann', imageUrl: 'https://example.com/max.jpg' }
+      ],
+      errors: [],
+      duplicates: []
+    })
+    render(<CSVImport onImport={mockOnImport} onCancel={mockOnCancel} existingPilots={existingPilots} />)
+    const dropZone = screen.getByText('CSV-Datei hier ablegen').closest('.border-dashed')
+    expect(dropZone).not.toBeNull()
+    if (!dropZone) return
+    const csvContent = 'Name,Bild-URL\nMax Mustermann,https://example.com/max.jpg'
+    const file = new File([csvContent], 'test.csv', { type: 'text/csv' })
+    Object.defineProperty(file, 'text', {
+      value: () => Promise.resolve(csvContent)
+    })
+    fireEvent.drop(dropZone, { dataTransfer: { files: [file] } })
+
+    // When: the duplicate is resolved as "Überschreiben" and the import confirmed
+    await waitFor(() => {
+      expect(screen.getByText('Duplikate gefunden')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText('Überschreiben'))
+    fireEvent.click(screen.getByText('0 Piloten importieren'))
+
+    // Then: onImport receives no key, allowing the existing handle to be preserved
+    expect(mockOnImport).toHaveBeenCalledTimes(1)
+    expect('instagramHandle' in mockOnImport.mock.calls[0][0][0]).toBe(false)
+  })
 })

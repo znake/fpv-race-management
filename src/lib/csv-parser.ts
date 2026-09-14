@@ -6,6 +6,8 @@ import type { CSVImportResult, CSVImportError } from '@/types/csv'
  */
 type CSVRawRow = Record<string, string | undefined>
 
+const INSTAGRAM_COLUMNS = ['Instagram', 'instagram', 'Instagram-Handle'] as const
+
 /**
  * Parse CSV text using PapaParse with robust error handling
  */
@@ -60,7 +62,8 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
 
             const name = row.Name || row.name
             const imageUrl = row['Bild-URL'] || row.imageUrl || row['image_url']
-            const instagramRaw = row.Instagram || row.instagram || row['Instagram-Handle'] || ''
+            const instagramKey = INSTAGRAM_COLUMNS.find(key => key in row)
+            const instagramRaw = instagramKey ? row[instagramKey] : undefined
 
             // Process Instagram handle: add @ if missing, or leave empty
             let instagramHandle: string | undefined
@@ -83,7 +86,7 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
               pilots.push({
                 name: name.toString(),
                 imageUrl: imageUrl.toString(),
-                instagramHandle
+                ...(instagramKey ? { instagramHandle } : {})
               })
             }
           })
