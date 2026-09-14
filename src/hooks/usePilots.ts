@@ -97,9 +97,6 @@ export function usePilots() {
     let successCount = 0
     let failedRows = 0
     const errors: PilotActionError[] = []
-    const seenNames = new Set(
-      useTournamentStore.getState().pilots.map((pilot) => normalizePilotName(pilot.name)),
-    )
 
     try {
       for (const csvPilot of csvPilots) {
@@ -113,21 +110,19 @@ export function usePilots() {
           continue // Skip invalid pilots but continue processing
         }
 
-        // Duplicate handling shares the single normalized policy (skip duplicates).
-        const normalizedName = normalizePilotName(validation.data.name)
-        if (seenNames.has(normalizedName)) {
-          errors.push({
-            field: 'name',
-            message: `Pilot "${csvPilot.name}" existiert bereits`,
-          })
-          failedRows++
-          continue
-        }
+        const existingPilot = findDuplicatePilot(validation.data.name)
+        const imported = existingPilot
+          ? updatePilotInStore(existingPilot.id, {
+              name: validation.data.name,
+              ...('imageUrl' in csvPilot ? { imageUrl: validation.data.imageUrl } : {}),
+              ...('instagramHandle' in csvPilot
+                ? { instagramHandle: validation.data.instagramHandle }
+                : {}),
+            })
+          : addPilotToStore(validation.data)
 
-        const added = addPilotToStore(validation.data)
-        if (added) {
+        if (imported) {
           successCount++
-          seenNames.add(normalizedName)
         } else {
           errors.push({
             field: 'general',

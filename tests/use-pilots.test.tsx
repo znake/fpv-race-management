@@ -128,26 +128,47 @@ describe('usePilots', () => {
   })
 
   describe('importPilots', () => {
-    it('imports valid rows and reports invalid and duplicate rows as errors', async () => {
+    it('creates new rows, updates normalized matches, and reports only invalid rows as errors', async () => {
       const { result } = renderHook(() => usePilots())
-      addViaHook(result, { name: 'Existing Pilot', imageUrl: 'https://example.com/existing.jpg' })
+      addViaHook(result, {
+        name: 'Existing Pilot',
+        imageUrl: 'https://example.com/existing.jpg',
+        instagramHandle: '@existing',
+      })
+      const existingPilotId = getStoreState().pilots[0].id
 
       let outcome = emptyResult
       await act(async () => {
         outcome = await result.current.importPilots([
-          { name: 'Csv One', imageUrl: 'https://example.com/csv1.jpg' },
+          {
+            name: 'Csv Óne',
+            imageUrl: 'https://example.com/csv1.jpg',
+            instagramHandle: '@csv_one',
+          },
           { name: 'ab', imageUrl: 'https://example.com/invalid.jpg' },
           { name: 'existing pilot', imageUrl: 'https://example.com/dup.jpg' },
-          { name: 'csv one', imageUrl: 'https://example.com/dup2.jpg' },
+          { name: '  CSV O\u0301NE  ', instagramHandle: '' },
         ])
       })
 
       expect(outcome.success).toBe(true)
-      expect(outcome.successCount).toBe(1)
-      expect(outcome.errorCount).toBe(3)
-      expect(outcome.errors).toHaveLength(3)
+      expect(outcome.successCount).toBe(3)
+      expect(outcome.errorCount).toBe(1)
+      expect(outcome.errors).toHaveLength(1)
       expect(outcome.duration).toBeGreaterThanOrEqual(0)
-      expect(result.current.pilots).toHaveLength(2)
+      const pilots = getStoreState().pilots
+      expect(pilots).toHaveLength(2)
+      expect(pilots.find((pilot) => pilot.id === existingPilotId)).toMatchObject({
+        id: existingPilotId,
+        name: 'existing pilot',
+        imageUrl: 'https://example.com/dup.jpg',
+        instagramHandle: '@existing',
+      })
+      expect(pilots.find((pilot) => pilot.id !== existingPilotId)).toMatchObject({
+        name: '  CSV O\u0301NE  ',
+        imageUrl: 'https://example.com/csv1.jpg',
+        instagramHandle: undefined,
+      })
       expect(window.alert).not.toHaveBeenCalled()
     })
 
@@ -210,9 +231,10 @@ describe('usePilots', () => {
       expect(outcome.errors.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('counts a mixed valid, invalid, and duplicate batch as failed rows', async () => {
+    it('counts a mixed create, invalid row, and normalized update by row outcome', async () => {
       const { result } = renderHook(() => usePilots())
       addViaHook(result, { name: 'Mixed Existing', imageUrl: 'https://example.com/mixed.jpg' })
+      const existingPilotId = getStoreState().pilots[0].id
 
       let outcome = emptyResult
       await act(async () => {
@@ -224,8 +246,14 @@ describe('usePilots', () => {
       })
 
       expect(outcome.success).toBe(true)
-      expect(outcome.successCount).toBe(1)
-      expect(outcome.errorCount).toBe(2)
+      expect(outcome.successCount).toBe(2)
+      expect(outcome.errorCount).toBe(1)
+      expect(getStoreState().pilots).toHaveLength(2)
+      expect(getStoreState().pilots.find((pilot) => pilot.id === existingPilotId)).toMatchObject({
+        id: existingPilotId,
+        name: 'mixed existing',
+        imageUrl: 'https://example.com/dup.jpg',
+      })
     })
   })
 
