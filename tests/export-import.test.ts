@@ -13,6 +13,33 @@ import type { TournamentStateData } from '@/types'
 const originalCreateObjectURL = globalThis.URL.createObjectURL
 const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
 
+function createCSVExportState(pilotName: string): TournamentStateData {
+  return {
+    pilots: [{ id: 'p1', name: pilotName, imageUrl: 'https://img' }],
+    tournamentStarted: true,
+    tournamentPhase: 'running',
+    heats: [{
+      id: 'h1',
+      heatNumber: 1,
+      pilotIds: ['p1'],
+      status: 'completed',
+      bracketType: 'qualification',
+      results: { rankings: [{ pilotId: 'p1', rank: 1 }] }
+    }],
+    currentHeatIndex: 0,
+    winnerPilots: [],
+    loserPilots: [],
+    eliminatedPilots: [],
+    loserPool: [],
+    grandFinalePool: [],
+    isQualificationComplete: false,
+    isWBFinaleComplete: false,
+    isLBFinaleComplete: false,
+    isGrandFinaleComplete: false,
+    lastCompletedBracketType: null
+  }
+}
+
 describe('export-import utilities', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -139,6 +166,50 @@ describe('export-import utilities', () => {
     const [header, row] = csv.split('\n')
     expect(header).toBe('Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse')
     expect(row).toContain('WB-R1-H1: 1.')
+  })
+
+  it.each([
+    { label: 'equals sign', pilotName: '=1+1', expectedCell: "'=1+1" },
+    { label: 'plus sign', pilotName: '+1', expectedCell: "'+1" },
+    { label: 'minus sign', pilotName: '-1', expectedCell: "'-1" },
+    { label: 'at sign', pilotName: '@cmd', expectedCell: "'@cmd" },
+    { label: 'tab', pilotName: '\tTabbed', expectedCell: "'\tTabbed" },
+    { label: 'NUL', pilotName: '\0NUL', expectedCell: "'\0NUL" }
+  ] as const)('neutralizes a leading $label in a CSV cell', ({ pilotName, expectedCell }) => {
+    const state = createCSVExportState(pilotName)
+
+    const csv = generateCSVExport(state)
+    const row = csv.slice(csv.indexOf('\n') + 1)
+
+    expect(row).toBe(`${expectedCell},Aktiv,-,,1,Q-H1: 1.`)
+  })
+
+  it('prefixes a dangerous value before quoting a comma-containing CSV cell', () => {
+    const state = createCSVExportState('=SUM(1,2)')
+
+    const csv = generateCSVExport(state)
+    const row = csv.slice(csv.indexOf('\n') + 1)
+
+    expect(row).toBe(`"'=SUM(1,2)",Aktiv,-,,1,Q-H1: 1.`)
+  })
+
+  it('prefixes a dangerous value before quoting and doubling quotes in a CSV cell', () => {
+    const state = createCSVExportState('=SUM("1,2")')
+
+    const csv = generateCSVExport(state)
+    const row = csv.slice(csv.indexOf('\n') + 1)
+
+    expect(row).toBe(`"'=SUM(""1,2"")",Aktiv,-,,1,Q-H1: 1.`)
+  })
+
+  it('keeps safe CSV cells and the header byte-identical', () => {
+    const state = createCSVExportState('Max Mustermann')
+
+    const csv = generateCSVExport(state)
+    const [header, row] = csv.split('\n')
+
+    expect(header).toBe('Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse')
+    expect(row).toBe('Max Mustermann,Aktiv,-,,1,Q-H1: 1.')
   })
 
   it('uses top4 placement map when provided', () => {

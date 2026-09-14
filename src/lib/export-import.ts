@@ -387,7 +387,12 @@ function formatHeatResults(pilot: Pilot, heats: Heat[]): string {
 /**
  * Escapes CSV field (handles commas, quotes, newlines)
  */
+const DANGEROUS_CSV_FIRST_CHARACTERS = new Set(['=', '+', '-', '@', '\t', '\0'])
+
 function escapeCSVField(value: string): string {
+  if (value.length > 0 && DANGEROUS_CSV_FIRST_CHARACTERS.has(value[0])) {
+    value = "'" + value
+  }
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {
     return `"${value.replace(/"/g, '""')}"`
   }
