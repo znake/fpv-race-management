@@ -15,8 +15,7 @@ src/components/ui/
 ├── label.tsx        # peer-disabled form label
 ├── modal.tsx        # Backdrop, escape, focus trap
 ├── pilot-avatar.tsx # Circular avatar + fallback image
-├── rank-badge.tsx   # 1st–4th badges (gold/silver/bronze/dark red)
-└── heat-card.tsx    # Multi-variant card — see NOTES
+└── rank-badge.tsx   # 1st–4th badges (gold/silver/bronze/dark red)
 ```
 
 ## WHERE TO LOOK
@@ -28,7 +27,6 @@ src/components/ui/
 | Modal sizing | `modal.tsx` | sm → full |
 | Avatar fallback | `pilot-avatar.tsx` | `FALLBACK_PILOT_IMAGE` from `@/lib/ui-helpers` |
 | Rank colors | `rank-badge.tsx` | Gold, Silver, Bronze, dark red (`rank-4`) |
-| Heat variants | `heat-card.tsx` | empty, bracket, filled, overview, detail |
 
 ## CONVENTIONS
 
@@ -55,7 +53,3 @@ Component.displayName = "Component"
 - **No direct store access** — pass data via props.
 - **No `as any`** — strict TypeScript required.
 - **No hardcoded colors / inline styles** — Tailwind theme tokens via `cn()` only.
-
-## NOTES
-
-- `heat-card.tsx` is 773 LOC (84% of this directory) — a multi-variant composite, not a true primitive; candidate for reclassification.

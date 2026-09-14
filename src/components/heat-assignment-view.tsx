@@ -4,7 +4,7 @@ import type { Heat } from '@/types'
 import type { Pilot } from '@/lib/schemas'
 import { useTournamentStore } from '@/stores/tournamentStore'
 import { cn } from '@/lib/utils'
-import { HeatCard } from './ui/heat-card'
+import { HeatCard } from './heat-card'
 import { Modal } from './ui/modal'
 
 type HeatAssignmentViewProps = {

@@ -116,4 +116,4 @@ docs/               # Domain rules, architecture, store API
 
 - No CI/CD configured; manual build/deploy. Dockerfile present for containerization.
 - Dual licensing: PolyForm Noncommercial 1.0.0 (free) / Commercial (paid, events with fees/sponsors).
-- `src/components/ui/heat-card.tsx` is 773 LOC — oversized for a "primitive"; candidate for reclassification.
+- `src/components/heat-card.tsx` is a 773-LOC multi-variant domain composite (empty/bracket/filled/overview/detail), not a UI primitive.

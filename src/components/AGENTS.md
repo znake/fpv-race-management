@@ -28,6 +28,7 @@ src/components/
 | Heat assignment | `heat-assignment-view.tsx` | @dnd-kit drag & drop, shuffle |
 | Placement entry | `placement-entry-modal.tsx` | Click-to-rank + lap-time state machine (540 LOC) |
 | Heat detail | `heat-detail-modal.tsx` | Completed-heat view, reopen |
+| Heat card | `heat-card.tsx` | Multi-variant domain card (empty/bracket/filled/overview/detail) |
 | Victory screen | `victory-ceremony.tsx` | Podium, CSV export |
 | Bracket tree | `bracket/bracket-tree.tsx` | Main container, zoom/pan |
 | Heat box | `bracket/heat-boxes/bracket-heat-box.tsx` | Sole variant (140/120/180px) |
@@ -56,4 +57,4 @@ src/components/
 
 ## NOTES
 
-- `ui/heat-card.tsx` is 773 LOC — a multi-variant card misclassified as a "primitive"; candidate for reclassification.
+- `heat-card.tsx` is 773 LOC — a multi-variant domain composite (empty/bracket/filled/overview/detail), not a UI primitive.
