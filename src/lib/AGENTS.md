@@ -44,5 +44,5 @@ Pure TypeScript business logic for double-elimination bracket management, heat g
 
 ## TESTS
 
-Covered directly: `bracket-logic`, `heat-completion`, `channel-assignment`, `pilot-path-manager`, `ui-helpers`, `csv-parser`, `utils`, `export-import`, `export-bracket-html`.
-Indirect: `heat-distribution` (via store tests). No coverage path: `bracket-constants`, `demo-data`.
+Covered directly: `bracket-logic`, `heat-completion`, `channel-assignment`, `pilot-path-manager`, `utils`, `export-import`, `export-bracket-html`.
+Indirect: `csv-parser` (via component tests), `heat-distribution` (via store tests). `ui-helpers` has no direct test file. No coverage path: `bracket-constants`, `demo-data`.

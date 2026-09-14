@@ -293,7 +293,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
          │ (manual)│
         ┌┴─────────┴┐
         │Integration│  Vitest + Testing Library
-        │   Tests   │  (30 Test-Dateien)
+        │   Tests   │  (32 Test-Dateien)
        ┌┴───────────┴┐
        │  Unit Tests │  Business-Logic Tests
        │             │  (bracket-logic, heat-completion)
@@ -324,7 +324,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
 | Punkt | Beschreibung |
 |-------|--------------|
 | `bracketType` | Erweiterbar für andere Turnier-Modi |
-| `HeatCard` | Slot-Pattern für Custom-Rendering |
+| `HeatCard` | Single-variant (`overview`) pure-props card für die Heat-Zuweisungsansicht |
 
 ---
 
