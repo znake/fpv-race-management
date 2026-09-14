@@ -273,9 +273,16 @@ export function App() {
       {/* CSV Import Modal */}
       {showCSVImport && (
         <CSVImport
-          onImport={(csvPilots) => {
-            importPilots(csvPilots)
-            setShowCSVImport(false)
+          onImport={async (csvPilots) => {
+            try {
+              const result = await importPilots(csvPilots)
+              alert(`CSV-Import abgeschlossen: ${result.successCount} erfolgreich, ${result.errorCount} fehlgeschlagen.`)
+            } catch (error) {
+              console.error('CSV-Import fehlgeschlagen:', error)
+              alert(`CSV-Import fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
+            } finally {
+              setShowCSVImport(false)
+            }
           }}
           existingPilots={pilots}
           onCancel={() => setShowCSVImport(false)}

@@ -104,6 +104,7 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
             row: 0, // Will be calculated later
             name: pilot.name,
             imageUrl: pilot.imageUrl,
+            instagramHandle: pilot.instagramHandle,
             existingPilot: existing,
             action: 'pending'
           })
@@ -182,7 +183,6 @@ export function CSVImport({ onImport, onCancel, existingPilots = [] }: CSVImport
     })
 
     onImport(pilotsToImport)
-    onCancel()
   }
 
   // Download CSV template
