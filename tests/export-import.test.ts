@@ -284,7 +284,7 @@ describe('export-import utilities', () => {
     const csv = generateCSVExport(state)
     const row = csv.slice(csv.indexOf('\n') + 1)
 
-    expect(row).toBe(`${expectedCell},Aktiv,-,,1,Q-H1: 1.`)
+    expect(row).toBe(`${expectedCell},Aktiv,'-,,1,Q-H1: 1.`)
   })
 
   it('prefixes a dangerous value before quoting a comma-containing CSV cell', () => {
@@ -293,7 +293,7 @@ describe('export-import utilities', () => {
     const csv = generateCSVExport(state)
     const row = csv.slice(csv.indexOf('\n') + 1)
 
-    expect(row).toBe(`"'=SUM(1,2)",Aktiv,-,,1,Q-H1: 1.`)
+    expect(row).toBe(`"'=SUM(1,2)",Aktiv,'-,,1,Q-H1: 1.`)
   })
 
   it('prefixes a dangerous value before quoting and doubling quotes in a CSV cell', () => {
@@ -302,17 +302,17 @@ describe('export-import utilities', () => {
     const csv = generateCSVExport(state)
     const row = csv.slice(csv.indexOf('\n') + 1)
 
-    expect(row).toBe(`"'=SUM(""1,2"")",Aktiv,-,,1,Q-H1: 1.`)
+    expect(row).toBe(`"'=SUM(""1,2"")",Aktiv,'-,,1,Q-H1: 1.`)
   })
 
-  it('keeps safe CSV cells and the header byte-identical', () => {
+  it('keeps the header and safe pilot/status cells unchanged', () => {
     const state = createCSVExportState('Max Mustermann')
 
     const csv = generateCSVExport(state)
     const [header, row] = csv.split('\n')
 
     expect(header).toBe('Pilot,Status,Platzierung,Ranggruppe,Heats Geflogen,Ergebnisse')
-    expect(row).toBe('Max Mustermann,Aktiv,-,,1,Q-H1: 1.')
+    expect(row).toBe('Max Mustermann,Aktiv,\'-,,1,Q-H1: 1.')
   })
 
   it('neutralizes the empty-results sentinel so no cell starts with a formula character', () => {
@@ -324,6 +324,17 @@ describe('export-import utilities', () => {
     const ergebnisse = row.slice(row.lastIndexOf(',') + 1)
 
     expect(ergebnisse).toBe("'-")
+  })
+
+  it('neutralizes the computed placement sentinel so every csv cell is sanitized uniformly', () => {
+    const state = createCSVExportState('Safe Name')
+    state.heats = []
+
+    const csv = generateCSVExport(state)
+    const row = csv.slice(csv.indexOf('\n') + 1)
+    const placement = row.split(',')[2]
+
+    expect(placement).toBe("'-")
   })
 
   it('uses top4 placement map when provided', () => {

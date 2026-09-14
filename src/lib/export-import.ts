@@ -616,9 +616,9 @@ export function generateCSVExport(
     return [
       escapeCSVField(pilot.name),
       escapeCSVField(status),
-      placement,
-      placementGroup,
-      String(heatsFlown),
+      escapeCSVField(placement),
+      escapeCSVField(placementGroup),
+      escapeCSVField(String(heatsFlown)),
       escapeCSVField(results)
     ].join(',')
   })
