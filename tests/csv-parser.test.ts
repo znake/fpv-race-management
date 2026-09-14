@@ -58,4 +58,19 @@ describe('parseCSV', () => {
     if (!pilot) return
     expect(pilot.instagramHandle).toBe('@keep_me')
   })
+
+  it('selects the first non-empty alias when multiple Instagram columns are present', async () => {
+    // Given: a CSV with an empty Instagram column and a filled Instagram-Handle column
+    const csv =
+      'Name,Bild-URL,Instagram,Instagram-Handle\nMarkus,https://example.com/new.jpg,,@keep_me'
+
+    // When: the CSV is parsed
+    const result = await parseCSV(csv)
+    const [pilot] = result.pilots
+
+    // Then: the first non-empty alias wins, matching the previous precedence
+    expect(pilot).toBeDefined()
+    if (!pilot) return
+    expect(pilot.instagramHandle).toBe('@keep_me')
+  })
 })

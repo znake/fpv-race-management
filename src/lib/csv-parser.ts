@@ -62,8 +62,12 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
 
             const name = row.Name || row.name
             const imageUrl = row['Bild-URL'] || row.imageUrl || row['image_url']
-            const instagramKey = INSTAGRAM_COLUMNS.find(key => key in row)
-            const instagramRaw = instagramKey ? row[instagramKey] : undefined
+            const hasInstagramColumn = INSTAGRAM_COLUMNS.some(key => key in row)
+            // First non-empty alias wins (previous precedence); a present-but-blank
+            // column still marks an explicit clear via the own-key contract.
+            const instagramRaw = hasInstagramColumn
+              ? (INSTAGRAM_COLUMNS.map(key => row[key]).find(value => value && value.trim()) ?? '')
+              : undefined
 
             // Process Instagram handle: add @ if missing, or leave empty
             let instagramHandle: string | undefined
@@ -86,7 +90,7 @@ export function parseCSV(csvText: string): Promise<CSVImportResult> {
               pilots.push({
                 name: name.toString(),
                 imageUrl: imageUrl.toString(),
-                ...(instagramKey ? { instagramHandle } : {})
+                ...(hasInstagramColumn ? { instagramHandle } : {})
               })
             }
           })
