@@ -5,8 +5,8 @@
  *
  * Features:
  * - AC1: Zoom-Wrapper Container management
- * - AC2: Zoom to mouse position (Ctrl/Cmd + Scroll)
- * - AC3: Pan with Space + Drag
+ * - AC2: Zoom to mouse position (Scroll)
+ * - AC3: Pan with Pointer Drag
  * - AC5: Zoom Controls (+/- buttons)
  * - AC7: Reset on Double Click + Ctrl/Cmd
  * - AC8: Touch/Touchpad Support (Pinch-to-Zoom, Two-Finger Pan)
@@ -78,7 +78,6 @@ export interface UseZoomPanReturn {
   state: ZoomPanState
   containerRef: RefObject<HTMLDivElement>
   wrapperRef: RefObject<HTMLDivElement>
-  isPanning: boolean
   isDragging: boolean
   isAnimating: boolean
   isTransforming: boolean
@@ -146,12 +145,11 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     }
   }, [])
 
-  const [isPanning, setIsPanning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isTouchPanning, setIsTouchPanning] = useState(false)
   const [isTransforming, setIsTransforming] = useState(false)
-  const isPanningRef = useRef(false)
+  const isDraggingRef = useRef(false)
   const transformDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const markTransforming = useCallback(() => {
@@ -167,6 +165,14 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const cancelAnimation = useCallback(() => {
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current)
+      animationTimeoutRef.current = null
+    }
+    setIsAnimating(false)
+  }, [])
   
   // Touch/Pinch state refs
   const touchStartRef = useRef<{
@@ -214,41 +220,24 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   }, [state, minScale, maxScale, onScaleChange, clampTranslation, markTransforming])
 
   /**
-   * AC2: Wheel Handler (Ctrl/Cmd + Scroll for Zoom, normal scroll for Pan)
-   * 
-   * Behavior:
-   * - Ctrl/Cmd + Scroll: Zoom (also triggered by trackpad pinch in most browsers)
-   * - Normal Scroll (no modifier): Pan the canvas
+   * AC2: Wheel Handler (Scroll to Zoom)
+   *
+   * Uses a multiplicative scale factor for smooth mouse-wheel and trackpad zoom.
    */
   useEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
     const handleWheel = (e: WheelEvent) => {
-      // Pinch-to-zoom on trackpad sends ctrlKey=true in Chrome/Safari
-      if (e.metaKey || e.ctrlKey) {
-        e.preventDefault()
-        // For trackpad pinch, deltaY is more granular
-        const delta = e.deltaY > 0 ? -step : step
-        zoomAtPoint(state.scale + delta, e.clientX, e.clientY)
-      } else {
-        // Normal two-finger scroll on trackpad → Pan
-        e.preventDefault()
-        markTransforming()
-        const newTranslateX = state.translateX - e.deltaX
-        const newTranslateY = state.translateY - e.deltaY
-        const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
-        setState(prev => ({
-          ...prev,
-          translateX: clamped.translateX,
-          translateY: clamped.translateY
-        }))
-      }
+      e.preventDefault()
+      cancelAnimation()
+      const zoomFactor = Math.exp(-e.deltaY * 0.0015)
+      zoomAtPoint(state.scale * zoomFactor, e.clientX, e.clientY)
     }
 
     wrapper.addEventListener('wheel', handleWheel, { passive: false })
     return () => wrapper.removeEventListener('wheel', handleWheel)
-  }, [state.scale, state.translateX, state.translateY, step, zoomAtPoint, clampTranslation, markTransforming])
+  }, [state.scale, state.translateX, state.translateY, zoomAtPoint, cancelAnimation])
   
   /**
    * AC8: Touch Event Handlers (Pinch-to-Zoom, One/Two-Finger Pan)
@@ -409,118 +398,97 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
   }, [state.scale, state.translateX, state.translateY, minScale, maxScale, onScaleChange, isTouchPanning, clampTranslation, markTransforming])
 
   /**
-   * AC3: Space Key Handler for Pan-Mode
-   */
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault()
-        setIsPanning(true)
-        isPanningRef.current = true
-        // User takes control: cancel any running animation
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current)
-          animationTimeoutRef.current = null
-        }
-        setIsAnimating(false)
-        setIsTransforming(false)
-      }
-    }
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        setIsPanning(false)
-        setIsDragging(false)
-        isPanningRef.current = false
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown, true)
-    document.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown, true)
-      document.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [])
-
-  /**
    * AC3 + AC9: Pointer Event Handler for Panning (Mouse + Stylus)
    * 
    * Uses Pointer Events instead of Mouse Events for unified handling of:
    * - Mouse
    * - Stylus/Pen
-   * - Touch (as fallback, but touch events above have priority)
    */
   const dragStartRef = useRef({ x: 0, y: 0, translateX: 0, translateY: 0, pointerId: -1 })
+  const suppressNextClickRef = useRef(false)
 
   useEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
+    const DRAG_THRESHOLD = 5
+
     const handlePointerDown = (e: PointerEvent) => {
-      // Only handle mouse or pen, not touch (touch is handled by touch events)
-      if (e.pointerType === 'touch') return
-      
-      // For pen: always allow panning (no Space key needed)
-      // For mouse: require Space key (pan mode)
-      const shouldPan = e.pointerType === 'pen' || isPanning
-      
-      if (shouldPan) {
-        e.preventDefault()
-        setIsDragging(true)
-        dragStartRef.current = {
-          x: e.clientX,
-          y: e.clientY,
-          translateX: state.translateX,
-          translateY: state.translateY,
-          pointerId: e.pointerId
-        }
-        // Capture pointer for smooth dragging even outside wrapper
-        wrapper.setPointerCapture(e.pointerId)
+      suppressNextClickRef.current = false
+
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return
+      if (e.button !== undefined && e.button !== 0) return
+
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        translateX: state.translateX,
+        translateY: state.translateY,
+        pointerId: e.pointerId
       }
     }
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (isDragging && e.pointerId === dragStartRef.current.pointerId) {
-        markTransforming()
-        const dx = e.clientX - dragStartRef.current.x
-        const dy = e.clientY - dragStartRef.current.y
-        const newTranslateX = dragStartRef.current.translateX + dx
-        const newTranslateY = dragStartRef.current.translateY + dy
-        const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
-        setState(prev => ({
-          ...prev,
-          translateX: clamped.translateX,
-          translateY: clamped.translateY
-        }))
+      if (e.pointerId !== dragStartRef.current.pointerId) return
+
+      const dx = e.clientX - dragStartRef.current.x
+      const dy = e.clientY - dragStartRef.current.y
+
+      if (!isDraggingRef.current) {
+        if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return
+
+        cancelAnimation()
+        isDraggingRef.current = true
+        setIsDragging(true)
+        wrapper.setPointerCapture(e.pointerId)
       }
+
+      e.preventDefault()
+      markTransforming()
+      const newTranslateX = dragStartRef.current.translateX + dx
+      const newTranslateY = dragStartRef.current.translateY + dy
+      const clamped = clampTranslation(newTranslateX, newTranslateY, state.scale, wrapper, containerRef.current)
+      setState(prev => ({
+        ...prev,
+        translateX: clamped.translateX,
+        translateY: clamped.translateY
+      }))
     }
 
     const handlePointerUp = (e: PointerEvent) => {
       if (e.pointerId === dragStartRef.current.pointerId) {
-        setIsDragging(false)
-        dragStartRef.current.pointerId = -1
-        try {
+        if (isDraggingRef.current) {
+          suppressNextClickRef.current = true
+          isDraggingRef.current = false
+          setIsDragging(false)
           wrapper.releasePointerCapture(e.pointerId)
-        } catch {
-          // Pointer may already be released
         }
+        dragStartRef.current.pointerId = -1
       }
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      if (!suppressNextClickRef.current) return
+
+      suppressNextClickRef.current = false
+      e.stopPropagation()
+      e.preventDefault()
     }
 
     wrapper.addEventListener('pointerdown', handlePointerDown)
     wrapper.addEventListener('pointermove', handlePointerMove)
     wrapper.addEventListener('pointerup', handlePointerUp)
     wrapper.addEventListener('pointercancel', handlePointerUp)
+    wrapper.addEventListener('click', handleClick, true)
 
     return () => {
       wrapper.removeEventListener('pointerdown', handlePointerDown)
       wrapper.removeEventListener('pointermove', handlePointerMove)
       wrapper.removeEventListener('pointerup', handlePointerUp)
       wrapper.removeEventListener('pointercancel', handlePointerUp)
+      wrapper.removeEventListener('click', handleClick, true)
     }
-  }, [isPanning, isDragging, state.translateX, state.translateY, state.scale, clampTranslation, markTransforming])
+  }, [state.translateX, state.translateY, state.scale, clampTranslation, markTransforming, cancelAnimation])
 
   /**
    * AC5: Zoom to center (for buttons)
@@ -598,10 +566,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       clearTimeout(transformDebounceRef.current)
     }
 
-    const panning = isPanningRef.current
+    const dragging = isDraggingRef.current
 
     flushSync(() => {
-      setIsAnimating(!panning)
+      setIsAnimating(!dragging)
       setIsTransforming(true)
     })
 
@@ -615,7 +583,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       onScaleChange?.(clampedScale)
       
       animationTimeoutRef.current = setTimeout(() => {
-        if (!panning) {
+        if (!dragging) {
           setIsAnimating(false)
         }
         setIsTransforming(false)
@@ -661,10 +629,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       translateY: newTranslateY
     }
 
-    const panning = isPanningRef.current
+    const dragging = isDraggingRef.current
 
     flushSync(() => {
-      setIsAnimating(!panning)
+      setIsAnimating(!dragging)
       setIsTransforming(true)
     })
 
@@ -674,7 +642,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       onScaleChange?.(targetScale)
 
       animationTimeoutRef.current = setTimeout(() => {
-        if (!panning) {
+        if (!dragging) {
           setIsAnimating(false)
         }
         setIsTransforming(false)
@@ -690,10 +658,10 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       clearTimeout(transformDebounceRef.current)
     }
 
-    const panning = isPanningRef.current
+    const dragging = isDraggingRef.current
 
     flushSync(() => {
-      setIsAnimating(!panning)
+      setIsAnimating(!dragging)
       setIsTransforming(true)
     })
 
@@ -701,7 +669,7 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
       setState(targetState)
       onScaleChange?.(targetState.scale)
       animationTimeoutRef.current = setTimeout(() => {
-        if (!panning) {
+        if (!dragging) {
           setIsAnimating(false)
         }
         setIsTransforming(false)
@@ -724,7 +692,6 @@ export function useZoomPan(options: UseZoomPanOptions = {}): UseZoomPanReturn {
     state,
     containerRef,
     wrapperRef,
-    isPanning,
     isDragging,
     isAnimating,
     isTransforming,

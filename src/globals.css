@@ -1199,30 +1199,14 @@
   .zoom-wrapper {
     overflow: hidden;
     position: relative;
-    cursor: default;
+    cursor: grab;
     height: 100%;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
   }
   
-  /* AC9: Stylus/Pen cursor - indicate pan is always available */
-  @media (pointer: fine) and (any-pointer: coarse) {
-    /* Device has both precise (stylus) and coarse (touch) input */
-    .zoom-wrapper {
-      cursor: grab;
-    }
-    .zoom-wrapper:active {
-      cursor: grabbing;
-    }
-  }
-
-  /* AC3: Pan-Mode Cursor */
-  .zoom-wrapper.panning {
-    cursor: grab;
-  }
-
-  .zoom-wrapper.panning:active,
+  .zoom-wrapper:active,
   .zoom-wrapper.dragging {
     cursor: grabbing;
   }

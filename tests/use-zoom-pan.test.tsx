@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, fireEvent, cleanup, act } from '@testing-library/react'
 import { useEffect } from 'react'
 import { useZoomPan, type ZoomPanState, type FitToViewOptions, type CenterOnElementOptions } from '@/hooks/useZoomPan'
 
 interface Snapshot {
   state: ZoomPanState
-  isPanning: boolean
+  isDragging: boolean
   isAnimating: boolean
   isTransforming: boolean
   fitToView: (options?: FitToViewOptions) => void
@@ -22,7 +22,7 @@ interface Captured {
 function Harness({ capture }: { capture: (snapshot: Snapshot) => void }) {
   const {
     state,
-    isPanning,
+    isDragging,
     isAnimating,
     isTransforming,
     fitToView,
@@ -35,7 +35,7 @@ function Harness({ capture }: { capture: (snapshot: Snapshot) => void }) {
   useEffect(() => {
     capture({
       state,
-      isPanning,
+      isDragging,
       isAnimating,
       isTransforming,
       fitToView,
@@ -51,6 +51,62 @@ function Harness({ capture }: { capture: (snapshot: Snapshot) => void }) {
       <div ref={containerRef} data-testid="container">content</div>
     </div>
   )
+}
+
+interface PointerEventProperties {
+  pointerId: number
+  pointerType: 'mouse' | 'pen'
+  button?: number
+  clientX: number
+  clientY: number
+}
+
+function dispatchPointerEvent(
+  element: HTMLElement,
+  type: 'pointerdown' | 'pointermove' | 'pointerup',
+  properties: PointerEventProperties
+) {
+  const event = new Event(type, { bubbles: true, cancelable: true })
+  Object.defineProperties(event, {
+    pointerId: { value: properties.pointerId },
+    pointerType: { value: properties.pointerType },
+    button: { value: properties.button },
+    clientX: { value: properties.clientX },
+    clientY: { value: properties.clientY },
+  })
+  fireEvent(element, event)
+}
+
+function stubPointerCapture(element: HTMLElement) {
+  element.setPointerCapture = vi.fn()
+  element.releasePointerCapture = vi.fn()
+}
+
+function startPointerDrag(element: HTMLElement, pointerType: 'mouse' | 'pen' = 'mouse') {
+  dispatchPointerEvent(element, 'pointerdown', {
+    pointerId: 1,
+    pointerType,
+    button: 0,
+    clientX: 0,
+    clientY: 0,
+  })
+  dispatchPointerEvent(element, 'pointermove', {
+    pointerId: 1,
+    pointerType,
+    button: 0,
+    clientX: 50,
+    clientY: 0,
+  })
+}
+
+function endPointerDrag(element: HTMLElement, pointerType: 'mouse' | 'pen' = 'mouse') {
+  dispatchPointerEvent(element, 'pointerup', {
+    pointerId: 1,
+    pointerType,
+    button: 0,
+    clientX: 50,
+    clientY: 0,
+  })
 }
 
 describe('useZoomPan', () => {
@@ -77,44 +133,24 @@ describe('useZoomPan', () => {
     expect(captured.current?.state).toEqual({ scale: 1.5, translateX: 0, translateY: 0 })
   })
 
-  it('zooms in on Ctrl/Cmd + wheel', () => {
+  it('zooms in on a plain wheel event with negative delta', () => {
     const { wrapper } = renderHarness()
 
-    fireEvent.wheel(wrapper, { deltaY: -100, ctrlKey: true, clientX: 100, clientY: 100 })
+    fireEvent.wheel(wrapper, { deltaY: -100, clientX: 100, clientY: 100 })
 
     expect(captured.current?.state.scale).toBeGreaterThan(1.5)
   })
 
-  it('zooms out on Ctrl/Cmd + wheel with positive delta', () => {
+  it('zooms out on a plain wheel event with positive delta', () => {
     const { wrapper } = renderHarness()
 
-    fireEvent.wheel(wrapper, { deltaY: 100, ctrlKey: true, clientX: 100, clientY: 100 })
+    fireEvent.wheel(wrapper, { deltaY: 100, clientX: 100, clientY: 100 })
 
     expect(captured.current?.state.scale).toBeLessThan(1.5)
   })
 
-  it('pans on a plain wheel scroll', () => {
+  it('cancels a running animation when wheel zoom starts', () => {
     const { wrapper } = renderHarness()
-
-    fireEvent.wheel(wrapper, { deltaX: 0, deltaY: 100, clientX: 100, clientY: 100 })
-
-    expect(captured.current?.state.translateY).not.toBe(0)
-  })
-
-  it('enables pan mode while Space is held and disables it on release', () => {
-    renderHarness()
-
-    expect(captured.current?.isPanning).toBe(false)
-
-    fireEvent.keyDown(document.body, { code: 'Space' })
-    expect(captured.current?.isPanning).toBe(true)
-
-    fireEvent.keyUp(document.body, { code: 'Space' })
-    expect(captured.current?.isPanning).toBe(false)
-  })
-
-  it('cancels a running animation and resets transform when Space pan mode starts', () => {
-    renderHarness()
 
     act(() => {
       captured.current?.animateToState({ scale: 2, translateX: 0, translateY: 0 })
@@ -122,13 +158,82 @@ describe('useZoomPan', () => {
     expect(captured.current?.isAnimating).toBe(true)
     expect(captured.current?.isTransforming).toBe(true)
 
-    fireEvent.keyDown(document.body, { code: 'Space' })
+    fireEvent.wheel(wrapper, { deltaY: -100, clientX: 100, clientY: 100 })
 
     expect(captured.current?.isAnimating).toBe(false)
-    expect(captured.current?.isTransforming).toBe(false)
+    expect(captured.current?.state.scale).toBeGreaterThan(1.5)
   })
 
-  it('resets isTransforming after fitToView even while pan mode is active', () => {
+  it.each(['mouse', 'pen'] as const)('starts a %s drag and translates after crossing the threshold', (pointerType) => {
+    const { wrapper } = renderHarness()
+    stubPointerCapture(wrapper)
+
+    startPointerDrag(wrapper, pointerType)
+
+    expect(captured.current?.isDragging).toBe(true)
+    expect(captured.current?.state.translateX).not.toBe(0)
+    expect(wrapper.setPointerCapture).toHaveBeenCalledWith(1)
+  })
+
+  it('treats an unavailable pointer button as the left button', () => {
+    const { wrapper } = renderHarness()
+    stubPointerCapture(wrapper)
+
+    dispatchPointerEvent(wrapper, 'pointerdown', { pointerId: 1, pointerType: 'mouse', clientX: 0, clientY: 0 })
+    dispatchPointerEvent(wrapper, 'pointermove', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 0 })
+
+    expect(captured.current?.isDragging).toBe(true)
+  })
+
+  it('does not start dragging when a mouse click has no movement', () => {
+    const { wrapper } = renderHarness()
+    stubPointerCapture(wrapper)
+
+    dispatchPointerEvent(wrapper, 'pointerdown', {
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      clientX: 25,
+      clientY: 25,
+    })
+    dispatchPointerEvent(wrapper, 'pointerup', {
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      clientX: 25,
+      clientY: 25,
+    })
+
+    expect(captured.current?.isDragging).toBe(false)
+    expect(captured.current?.state.translateX).toBe(0)
+    expect(wrapper.setPointerCapture).not.toHaveBeenCalled()
+  })
+
+  it('suppresses exactly the next click after a real pointer drag', () => {
+    const { wrapper } = renderHarness()
+    stubPointerCapture(wrapper)
+
+    startPointerDrag(wrapper)
+    endPointerDrag(wrapper)
+
+    expect(fireEvent.click(wrapper)).toBe(false)
+    expect(fireEvent.click(wrapper)).toBe(true)
+  })
+
+  it('cancels a running animation when pointer dragging starts', () => {
+    const { wrapper } = renderHarness()
+    stubPointerCapture(wrapper)
+    act(() => {
+      captured.current?.animateToState({ scale: 2, translateX: 0, translateY: 0 })
+    })
+
+    startPointerDrag(wrapper)
+
+    expect(captured.current?.isAnimating).toBe(false)
+    expect(captured.current?.isDragging).toBe(true)
+  })
+
+  it('resets isTransforming after fitToView', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] })
     renderHarness()
 
@@ -137,19 +242,8 @@ describe('useZoomPan', () => {
     if (!wrapper || !container) throw new Error('refs not captured')
     Object.defineProperty(container, 'scrollWidth', { value: 1000, configurable: true })
     Object.defineProperty(container, 'scrollHeight', { value: 1000, configurable: true })
-    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue({
-      width: 800,
-      height: 600,
-      left: 0,
-      top: 0,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    })
+    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 800, 600))
 
-    fireEvent.keyDown(document.body, { code: 'Space' })
     act(() => {
       captured.current?.fitToView({ duration: 500 })
     })
@@ -161,7 +255,7 @@ describe('useZoomPan', () => {
     expect(captured.current?.isTransforming).toBe(false)
   })
 
-  it('resets isTransforming after centerOnElement even while pan mode is active', () => {
+  it('resets isTransforming after centerOnElement', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] })
     renderHarness()
 
@@ -170,43 +264,12 @@ describe('useZoomPan', () => {
     if (!wrapper || !container) throw new Error('refs not captured')
     Object.defineProperty(container, 'scrollWidth', { value: 1000, configurable: true })
     Object.defineProperty(container, 'scrollHeight', { value: 1000, configurable: true })
-    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue({
-      width: 800,
-      height: 600,
-      left: 0,
-      top: 0,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    })
-    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-      width: 1000,
-      height: 1000,
-      left: 0,
-      top: 0,
-      right: 1000,
-      bottom: 1000,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    })
+    vi.spyOn(wrapper, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 800, 600))
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1000, 1000))
 
     const target = document.createElement('div')
-    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({
-      width: 100,
-      height: 100,
-      left: 10,
-      top: 10,
-      right: 110,
-      bottom: 110,
-      x: 10,
-      y: 10,
-      toJSON: () => ({}),
-    })
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(new DOMRect(10, 10, 100, 100))
 
-    fireEvent.keyDown(document.body, { code: 'Space' })
     act(() => {
       captured.current?.centerOnElement(target, { duration: 500 })
     })
@@ -226,13 +289,14 @@ describe('useZoomPan', () => {
     expect(captured.current?.isTransforming).toBe(true)
   })
 
-  it('removes window listeners on unmount', () => {
-    const { unmount } = renderHarness()
+  it('removes interaction listeners on unmount', () => {
+    const { wrapper, unmount } = renderHarness()
 
     unmount()
 
-    // Dispatching after unmount must not throw and must not update state
-    fireEvent.keyDown(document.body, { code: 'Space' })
-    expect(captured.current?.isPanning).toBe(false)
+    expect(() => {
+      fireEvent.wheel(wrapper, { deltaY: -100, clientX: 100, clientY: 100 })
+      fireEvent.touchStart(wrapper, { touches: [{ clientX: 0, clientY: 0 }] })
+    }).not.toThrow()
   })
 })

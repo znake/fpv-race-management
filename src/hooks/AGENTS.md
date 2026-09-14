@@ -16,10 +16,10 @@ Custom React hooks. `usePilots` is the intended facade over the store; `useZoomP
 
 ## useZoomPan
 
-- Exports `UseZoomPanReturn`: state, refs, `zoomIn`/`zoomOut`/`reset`/`centerOnElement`/`fitToView`/`animateToState`, `isPanning`/`isDragging`/`isAnimating`/`isTransforming`.
-- Four separate listener effects: wheel (Ctrl/Cmd = zoom, plain = pan), touch (1-finger pan, 2-finger pinch, 2→1 handoff), Space-key pan mode, pointer events.
+- Exports `UseZoomPanReturn`: state, refs, `zoomIn`/`zoomOut`/`reset`/`centerOnElement`/`fitToView`/`animateToState`, `isDragging`/`isAnimating`/`isTransforming`.
+- Three separate listener effects: wheel always zooms toward the cursor, touch supports 1-finger pan / 2-finger pinch / 2→1 handoff, and mouse or pen pointer drag pans without a modifier key.
 - **Hazard**: effects depend on `state.scale/translateX/translateY`, so listeners re-attach on every transform — watch for stale closures.
-- Uses `flushSync` + `requestAnimationFrame` + timeouts for animation; cancellation (`isPanning` cancels `isAnimating`) is fragile.
+- Uses `flushSync` + `requestAnimationFrame` + timeouts for animation; wheel or drag start cancels active animation, and auto-center animation checks the drag ref.
 
 ## CONVENTIONS
 

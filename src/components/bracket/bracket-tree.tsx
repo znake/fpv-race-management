@@ -75,7 +75,6 @@ export function BracketTree({
     state: zoomState,
     containerRef: zoomContainerRef,
     wrapperRef: zoomWrapperRef,
-    isPanning,
     isDragging,
     isAnimating,
     zoomIn,
@@ -343,7 +342,6 @@ export function BracketTree({
       ref={zoomWrapperRef}
       className={cn(
         'zoom-wrapper',
-        isPanning && 'panning',
         isDragging && 'dragging'
       )}
       onDoubleClick={(e) => {
