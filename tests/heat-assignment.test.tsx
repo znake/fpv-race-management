@@ -1,7 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { act, renderHook, cleanup } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { act, renderHook, cleanup, render, screen } from '@testing-library/react'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { useTournamentStore } from '@/stores/tournamentStore'
+import { HeatCard } from '@/components/heat-card'
 import { resetTournamentStore, createMockPilots, resetMockPilotCounter } from './helpers'
+
+vi.mock('@dnd-kit/core', () => ({
+  useDroppable: vi.fn(),
+  useDraggable: vi.fn(),
+}))
+
+const useDroppableMock = vi.mocked(useDroppable)
+const useDraggableMock = vi.mocked(useDraggable)
 
 describe('Heat Assignment Actions (Story 3.3)', () => {
   beforeEach(() => {
@@ -397,5 +407,168 @@ describe('Heat Assignment Actions (Story 3.3)', () => {
 
       expect(result.current.pilots.length).toBe(11)
     })
+  })
+})
+
+describe('HeatCard overview variant (characterization)', () => {
+  function mockDroppableReturn(isOver = false): ReturnType<typeof useDroppable> {
+    return {
+      active: null,
+      rect: { current: null },
+      isOver,
+      node: { current: null },
+      over: null,
+      setNodeRef: () => undefined,
+    }
+  }
+
+  function mockDraggableReturn(): ReturnType<typeof useDraggable> {
+    return {
+      active: null,
+      activatorEvent: null,
+      activeNodeRect: null,
+      attributes: {
+        role: 'button',
+        tabIndex: 0,
+        'aria-disabled': false,
+        'aria-pressed': undefined,
+        'aria-roledescription': 'draggable',
+        'aria-describedby': '',
+      },
+      isDragging: false,
+      listeners: undefined,
+      node: { current: null },
+      over: null,
+      setNodeRef: () => undefined,
+      setActivatorNodeRef: () => undefined,
+      transform: null,
+    }
+  }
+
+  const baseProps = {
+    variant: 'overview',
+    heatId: 'test-heat-1',
+    heatNumber: 1,
+    status: 'pending',
+  } as const
+
+  function renderOverview(overrides: Partial<Parameters<typeof HeatCard>[0]> = {}) {
+    const pilots = createMockPilots(4)
+    const pilotIds = pilots.map((p) => p.id)
+    const utils = render(
+      <HeatCard {...baseProps} pilots={pilots} pilotIds={pilotIds} invalidReason={null} {...overrides} />
+    )
+    return { pilots, pilotIds, ...utils }
+  }
+
+  function getCardRoot() {
+    return screen.getByText('HEAT 1').closest('[class*="bg-night"]')
+  }
+
+  beforeEach(() => {
+    resetMockPilotCounter()
+    useDroppableMock.mockReturnValue(mockDroppableReturn())
+    useDraggableMock.mockReturnValue(mockDraggableReturn())
+  })
+
+  afterEach(() => {
+    cleanup()
+  })
+
+  it('registers the heat card as a droppable target with its heatId', () => {
+    renderOverview()
+
+    expect(useDroppableMock).toHaveBeenCalledTimes(1)
+    expect(useDroppableMock).toHaveBeenCalledWith({ id: 'test-heat-1' })
+  })
+
+  it('registers one draggable per pilot keyed by pilot id', () => {
+    const { pilotIds } = renderOverview()
+
+    expect(useDraggableMock).toHaveBeenCalledTimes(pilotIds.length)
+    const draggableIds = useDraggableMock.mock.calls.map((call) => call[0].id)
+    expect(new Set(draggableIds)).toEqual(new Set(pilotIds))
+  })
+
+  it('shows the loser-red border when the heat is overfilled', () => {
+    renderOverview({ invalidReason: 'overfilled' })
+
+    const card = getCardRoot()
+    expect(card).toHaveClass('border-loser-red', 'shadow-glow-red')
+    expect(card).not.toHaveClass('border-gold')
+    expect(card).not.toHaveClass('border-steel')
+  })
+
+  it('shows the gold warning border when the heat is empty', () => {
+    renderOverview({ pilotIds: [], invalidReason: 'empty' })
+
+    const card = getCardRoot()
+    expect(card).toHaveClass('border-gold', 'shadow-glow-gold')
+    expect(card).not.toHaveClass('border-loser-red')
+    expect(card).not.toHaveClass('border-steel')
+  })
+
+  it('shows the neutral steel border for a valid heat', () => {
+    renderOverview({ invalidReason: null })
+
+    const card = getCardRoot()
+    expect(card).toHaveClass('border-steel')
+    expect(card).not.toHaveClass('border-loser-red')
+    expect(card).not.toHaveClass('border-gold')
+    expect(card).not.toHaveClass('border-neon-cyan')
+  })
+
+  it('shows the cyan drop-highlight border when dragging over a valid heat', () => {
+    useDroppableMock.mockReturnValue(mockDroppableReturn(true))
+
+    renderOverview({ invalidReason: null })
+
+    const card = getCardRoot()
+    expect(card).toHaveClass('border-neon-cyan', 'shadow-glow-cyan')
+    expect(card).not.toHaveClass('border-steel')
+  })
+
+  it('renders the Empfohlen badge when the heat is recommended', () => {
+    renderOverview({ isRecommended: true })
+
+    expect(screen.getByText('Empfohlen')).toBeInTheDocument()
+  })
+
+  it('omits the Empfohlen badge when the heat is not recommended', () => {
+    renderOverview()
+
+    expect(screen.queryByText('Empfohlen')).not.toBeInTheDocument()
+  })
+
+  it('shows the edit button on a completed heat when canEdit defaults to true', () => {
+    renderOverview({ status: 'completed', onEdit: vi.fn() })
+
+    expect(screen.getByTitle('Heat bearbeiten')).toBeInTheDocument()
+  })
+
+  it('hides the edit button on a completed heat when canEdit is false', () => {
+    renderOverview({ status: 'completed', onEdit: vi.fn(), canEdit: false })
+
+    expect(screen.queryByTitle('Heat bearbeiten')).not.toBeInTheDocument()
+  })
+
+  it('renders the pilot-count header with plural for multiple pilots', () => {
+    renderOverview()
+
+    expect(screen.getByText('4 Piloten')).toBeInTheDocument()
+  })
+
+  it('renders the pilot-count header without plural suffix for a single pilot', () => {
+    const pilots = createMockPilots(1)
+    renderOverview({ pilots, pilotIds: pilots.map((p) => p.id) })
+
+    expect(screen.getByText('1 Pilot')).toBeInTheDocument()
+  })
+
+  it('does not emit the legacy bracket test ids even when completed', () => {
+    renderOverview({ status: 'completed', onEdit: vi.fn() })
+
+    expect(screen.queryByTestId('bracket-heat-1')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('heat-status-indicator')).not.toBeInTheDocument()
   })
 })
