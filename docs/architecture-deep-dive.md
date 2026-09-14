@@ -270,7 +270,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
 
 | Bereich | Technik |
 |---------|---------|
-| **Rendering** | React.memo auf HeatCard, useMemo für gefilterte Heats |
+| **Rendering** | useMemo in HeatCard (Single-Variant-Overview-Card der Heat-Zuweisung) für rangsortierte Piloten |
 | **Store** | Zustand Selector-Pattern verhindert unnötige Re-Renders |
 | **Layout** | CSS Grid für Bracket-Layout (kein JS-Layout) |
 | **SVG** | Connector-Lines werden nur bei Änderungen neu berechnet |
