@@ -315,6 +315,17 @@ describe('export-import utilities', () => {
     expect(row).toBe('Max Mustermann,Aktiv,-,,1,Q-H1: 1.')
   })
 
+  it('neutralizes the empty-results sentinel so no cell starts with a formula character', () => {
+    const state = createCSVExportState('Safe Name')
+    state.heats = []
+
+    const csv = generateCSVExport(state)
+    const row = csv.slice(csv.indexOf('\n') + 1)
+    const ergebnisse = row.slice(row.lastIndexOf(',') + 1)
+
+    expect(ergebnisse).toBe("'-")
+  })
+
   it('uses top4 placement map when provided', () => {
     const state: TournamentStateData = {
       pilots: [
