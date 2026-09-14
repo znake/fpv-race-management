@@ -2,7 +2,7 @@
 
 **Generated:** 2026-09-13
 **Commit:** b4365fe
-**Branch:** cleanup/phase-0-1-dead-code
+**Branch:** develop
 
 ## OVERVIEW
 
@@ -21,6 +21,13 @@ Optimized for beamer/projector display at live events. German UI copy and docs.
 | `npm test -- run` / `npm test -- <file>` | Run once / single file (no `test:run` script exists) |
 | `npm run test:ui` | Vitest UI browser |
 | `npm run lint` | ESLint flat config, `--report-unused-disable-directives --max-warnings 0` |
+
+## GIT WORKFLOW
+
+- **`develop` is the single development branch.** All development starts from `develop` — branch off it and merge back into it.
+- **Always switch back to `develop`** when an operation is finished (after commit, merge, push, rebase, or checkout). Never leave the repo checked out on another branch.
+- **`main` is deploy-only and must stay clean.** Only merge into `main` to deploy (fast-forward from `develop`); never commit, edit, or experiment directly on `main`.
+- After a deploy merge, keep `main` in sync with `origin/main`.
 
 ## STRUCTURE
 
