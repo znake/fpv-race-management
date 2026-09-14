@@ -293,7 +293,7 @@ Die `submitHeatResults()` Funktion ist das Herzstück der Business-Logik (~340 Z
          │ (manual)│
         ┌┴─────────┴┐
         │Integration│  Vitest + Testing Library
-        │   Tests   │  (32 Test-Dateien)
+        │   Tests   │  (33 Test-Dateien)
        ┌┴───────────┴┐
        │  Unit Tests │  Business-Logic Tests
        │             │  (bracket-logic, heat-completion)

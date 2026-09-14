@@ -65,7 +65,7 @@ Die frueheren BMAD-Workflow-Artefakte sind nicht Bestandteil des aktuellen Repos
 | **Components** | 32 |
 | **Hooks** | 3 |
 | **Lib-Module** | 16 |
-| **Test-Dateien** | 32 |
+| **Test-Dateien** | 33 |
 | **Epics** | 14 |
 | **User Stories** | 90+ |
 

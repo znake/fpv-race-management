@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-All tests live here (never colocated). 32 test files: `*.test.ts` for logic/store, `*.test.tsx` for components. Shared fixtures in `helpers/`.
+All tests live here (never colocated). 33 test files: `*.test.ts` for logic/store, `*.test.tsx` for components. Shared fixtures in `helpers/`.
 
 ## STRUCTURE
 
@@ -50,4 +50,4 @@ tests/
 
 ## COVERAGE NOTES
 
-Directly covered lib: `bracket-logic`, `heat-completion`, `channel-assignment`, `pilot-path-manager`, `utils`, `export-import`, `export-bracket-html`. `csv-parser` is exercised indirectly through component tests. `ui-helpers` has no direct test file. No coverage path: `bracket-constants`, `demo-data`.
+Directly covered lib: `bracket-logic`, `heat-completion`, `channel-assignment`, `pilot-path-manager`, `utils`, `export-import`, `export-bracket-html`, `csv-parser` (`csv-parser.test.ts`). Partially covered directly: `ui-helpers` (lap-time helpers in `lap-time-formatting.test.ts`). Note: `csv-parser` is mocked in both CSV component suites, so those suites do not exercise the parser. Indirect: `heat-distribution` via store tests. No coverage path: `bracket-constants`, `demo-data`.
