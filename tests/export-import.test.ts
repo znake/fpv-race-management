@@ -13,6 +13,25 @@ import type { TournamentStateData } from '@/types'
 const originalCreateObjectURL = globalThis.URL.createObjectURL
 const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
 
+const validImportHeat = {
+  id: 'h1',
+  heatNumber: 1,
+  pilotIds: ['p1'],
+  status: 'completed'
+} as const
+
+function createValidImportPayload() {
+  return {
+    state: {
+      pilots: [{ id: 'p1', name: 'A', imageUrl: 'https://img' }],
+      tournamentStarted: true,
+      tournamentPhase: 'running',
+      heats: [validImportHeat],
+      currentHeatIndex: 0
+    }
+  }
+}
+
 function createCSVExportState(pilotName: string): TournamentStateData {
   return {
     pilots: [{ id: 'p1', name: pilotName, imageUrl: 'https://img' }],
@@ -99,15 +118,7 @@ describe('export-import utilities', () => {
   })
 
   it('parses valid import JSON and extracts summary', () => {
-    const payload = {
-      state: {
-        pilots: [{ id: 'p1', name: 'A', imageUrl: 'https://img' }],
-        tournamentStarted: true,
-        tournamentPhase: 'running',
-        heats: [{ id: 'h1', heatNumber: 1, pilotIds: ['p1'], status: 'completed' }],
-        currentHeatIndex: 0
-      }
-    }
+    const payload = createValidImportPayload()
 
     const result = parseImportedJSON(JSON.stringify(payload))
     expect(result?.pilotCount).toBe(1)
@@ -133,6 +144,98 @@ describe('export-import utilities', () => {
     }
     const result = parseImportedJSON(JSON.stringify(payload))
     expect(result).toBeNull()
+  })
+
+  it('rejects heat results without rankings', () => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        heats: [{
+          ...validImportHeat,
+          results: { completedAt: '2026-01-01T00:00:00.000Z' }
+        }]
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
+  })
+
+  it('rejects heat results with non-array rankings', () => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        heats: [{
+          ...validImportHeat,
+          results: { rankings: {} }
+        }]
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
+  })
+
+  it('rejects heat results with a null ranking', () => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        heats: [{
+          ...validImportHeat,
+          results: { rankings: [null] }
+        }]
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
+  })
+
+  it('rejects heat results with a non-numeric lap time', () => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        heats: [{
+          ...validImportHeat,
+          results: {
+            rankings: [{ pilotId: 'p1', rank: 1, lapTimeMs: 'fast' }]
+          }
+        }]
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
+  })
+
+  it.each([
+    { poolField: 'winnerPilots' },
+    { poolField: 'loserPilots' },
+    { poolField: 'eliminatedPilots' },
+    { poolField: 'loserPool' },
+    { poolField: 'grandFinalePool' }
+  ] as const)('rejects non-array $poolField', ({ poolField }) => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        [poolField]: 'p1'
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
+  })
+
+  it('rejects a pool field containing a non-string entry', () => {
+    const validPayload = createValidImportPayload()
+    const payload = {
+      state: {
+        ...validPayload.state,
+        winnerPilots: [1]
+      }
+    }
+
+    expect(parseImportedJSON(JSON.stringify(payload))).toBeNull()
   })
 
   it('builds CSV with required header and results format', () => {

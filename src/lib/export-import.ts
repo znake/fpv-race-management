@@ -135,11 +135,17 @@ function isValidHeat(heat: unknown): heat is Heat {
   if (!isValidHeatStatus(candidate.status)) return false
   if (!hasValidBracketType) return false
 
-  if (candidate.results?.rankings) {
+  if (candidate.results !== undefined) {
+    if (!candidate.results || typeof candidate.results !== 'object') return false
+    if (!Array.isArray(candidate.results.rankings)) return false
+
     const rankingsValid = candidate.results.rankings.every((ranking) => {
       return (
+        ranking !== null &&
+        typeof ranking === 'object' &&
         typeof ranking.pilotId === 'string' &&
-        (ranking.rank === 1 || ranking.rank === 2 || ranking.rank === 3 || ranking.rank === 4)
+        (ranking.rank === 1 || ranking.rank === 2 || ranking.rank === 3 || ranking.rank === 4) &&
+        (ranking.lapTimeMs === undefined || typeof ranking.lapTimeMs === 'number')
       )
     })
     if (!rankingsValid) return false
@@ -152,6 +158,10 @@ function isValidPilot(pilot: unknown): pilot is Pilot {
   if (!pilot || typeof pilot !== 'object') return false
   const candidate = pilot as Pilot
   return typeof candidate.id === 'string' && typeof candidate.name === 'string'
+}
+
+function isValidOptionalStringArray(value: unknown): value is string[] | undefined {
+  return value === undefined || (Array.isArray(value) && value.every((entry) => typeof entry === 'string'))
 }
 
 /**
@@ -190,6 +200,16 @@ export function parseImportedJSON(jsonString: string): ParsedImportData | null {
 
     if (!state.heats.every(isValidHeat)) {
       throw new Error('Ungültige Struktur: heats fehlerhaft')
+    }
+
+    if (
+      !isValidOptionalStringArray(state.winnerPilots) ||
+      !isValidOptionalStringArray(state.loserPilots) ||
+      !isValidOptionalStringArray(state.eliminatedPilots) ||
+      !isValidOptionalStringArray(state.loserPool) ||
+      !isValidOptionalStringArray(state.grandFinalePool)
+    ) {
+      throw new Error('Ungültige Struktur: Piloten-Pools fehlerhaft')
     }
     
     // Extract summary
