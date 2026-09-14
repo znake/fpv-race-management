@@ -168,6 +168,10 @@ export function BracketTree({
   const [selectedHeat, setSelectedHeat] = useState<string | null>(null)
   // Placement Modal state (for active heats in bracket)
   const [placementHeat, setPlacementHeat] = useState<Heat | null>(null)
+  // Guard against the second click of a double-click on the submit button:
+  // the first click submits and unmounts the modal, so the second click would
+  // land on the heat box underneath. Ignore heat clicks until this timestamp.
+  const heatClickGuardUntilRef = useRef(0)
   
   // Track if initial auto-focus on tournament start has been performed
   const hasInitialFocused = useRef(false)
@@ -237,6 +241,8 @@ export function BracketTree({
   }, [showPilotPaths, togglePilotPaths])
 
   const handleHeatClick = (heatId: string) => {
+    if (performance.now() < heatClickGuardUntilRef.current) return
+
     const heat = heats.find(h => h.id === heatId)
     if (heat?.status === 'active') {
       // Active heat: open Placement Modal (mutual exclusivity)
@@ -478,6 +484,9 @@ export function BracketTree({
           onSubmitResults={(heatId, rankings) => {
             onSubmitResults(heatId, rankings)
             setPlacementHeat(null)
+            // Ignore heat clicks for 400ms after submit: a typical double-click
+            // lands within ~300ms and would otherwise open the detail modal.
+            heatClickGuardUntilRef.current = performance.now() + 400
             
             // Auto-center on next active heat (with retry for dynamically created LB/GF heats)
             setTimeout(() => centerOnActiveHeatWithRetry(), 100)
